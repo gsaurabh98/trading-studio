@@ -1,0 +1,390 @@
+    <div class="wrap">
+      <div class="shead">
+        <h2>TIMEFRAME STRATEGY <span class="count-badge">MULTI-TF</span></h2>
+      </div>
+
+      <div class="catdiv">TIMEFRAME HIERARCHY</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px">
+        <div
+          style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:18px;border-top:3px solid #6c63ff">
+          <div
+            style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.92rem;color:#6c63ff;margin-bottom:8px">
+            60 MIN (1 HOUR)</div>
+          <div style="font-size:1.02rem;color:var(--text);font-weight:600;margin-bottom:6px">TREND DIRECTION</div>
+          <div style="font-size:0.94rem;color:var(--text-soft);font-style:normal;line-height:1.5">This is your TREND
+            timeframe. Identify whether market is bullish, bearish, or sideways. Only trade in this direction on lower
+            TFs.</div>
+        </div>
+        <div
+          style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:18px;border-top:3px solid var(--neutral)">
+          <div
+            style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.92rem;color:var(--neutral);margin-bottom:8px">
+            15 MIN</div>
+          <div style="font-size:1.02rem;color:var(--text);font-weight:600;margin-bottom:6px">SIGNAL TIMEFRAME</div>
+          <div style="font-size:0.94rem;color:var(--text-soft);font-style:normal;line-height:1.5">Look for candle
+            patterns here. This is your primary signal TF. Identify S&amp;R levels, spot patterns, confirm with volume.
+          </div>
+        </div>
+        <div
+          style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:18px;border-top:3px solid var(--bull)">
+          <div
+            style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.92rem;color:var(--bull);margin-bottom:8px">
+            5 MIN</div>
+          <div style="font-size:1.02rem;color:var(--text);font-weight:600;margin-bottom:6px">ENTRY TIMEFRAME</div>
+          <div style="font-size:0.94rem;color:var(--text-soft);font-style:normal;line-height:1.5">Fine-tune your entry
+            here. After 15-min gives signal, wait for 5-min confirmation candle to enter with tighter SL.</div>
+        </div>
+        <div
+          style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:18px;border-top:3px solid var(--bear)">
+          <div
+            style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.92rem;color:var(--bear);margin-bottom:8px">
+            1 MIN</div>
+          <div style="font-size:1.02rem;color:var(--text);font-weight:600;margin-bottom:6px">AVOID FOR OPTIONS</div>
+          <div style="font-size:0.94rem;color:var(--text-soft);font-style:normal;line-height:1.5">Too much noise. False
+            signals everywhere. 1-min patterns are unreliable for option buying. Use only for scalping futures.</div>
+        </div>
+      </div>
+
+      <div class="catdiv">THE 3-SCREEN SYSTEM (ELDER'S METHOD)</div>
+      <div class="anat-card" style="align-items:flex-start;gap:20px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;width:100%">
+          <div style="background:var(--bg);border-radius:6px;padding:16px;border:1px solid rgba(108,99,255,0.3)">
+            <div
+              style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.74rem;color:#6c63ff;margin-bottom:8px">
+              SCREEN 1 — 60 MIN</div>
+            <div style="font-size:0.98rem;color:var(--text);margin-bottom:6px;font-weight:600">Ask: What is the TREND?
+            </div>
+            <div style="font-size:0.92rem;color:var(--text-soft);font-style:normal;line-height:1.5">
+              <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="4,12 10,18 20,6" />
+              </svg> Price above 20 EMA → Uptrend → Only buy CE<br>
+              <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="4,12 10,18 20,6" />
+              </svg> Price below 20 EMA → Downtrend → Only buy PE<br>
+              <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="4,12 10,18 20,6" />
+              </svg> Price at 20 EMA → Sideways → Avoid
+            </div>
+          </div>
+          <div style="background:var(--bg);border-radius:6px;padding:16px;border:1px solid rgba(212,148,26,0.3)">
+            <div
+              style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.74rem;color:var(--neutral);margin-bottom:8px">
+              SCREEN 2 — 15 MIN</div>
+            <div style="font-size:0.98rem;color:var(--text);margin-bottom:6px;font-weight:600">Ask: What is the SIGNAL?
+            </div>
+            <div style="font-size:0.92rem;color:var(--text-soft);font-style:normal;line-height:1.5">
+              <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="4,12 10,18 20,6" />
+              </svg> Look for candle pattern at S&amp;R<br>
+              <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="4,12 10,18 20,6" />
+              </svg> Must align with 60-min trend<br>
+              <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="4,12 10,18 20,6" />
+              </svg> Volume should confirm
+            </div>
+          </div>
+          <div style="background:var(--bg);border-radius:6px;padding:16px;border:1px solid rgba(9,168,110,0.3)">
+            <div
+              style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.74rem;color:var(--bull);margin-bottom:8px">
+              SCREEN 3 — 5 MIN</div>
+            <div style="font-size:0.98rem;color:var(--text);margin-bottom:6px;font-weight:600">Ask: Where to ENTER?
+            </div>
+            <div style="font-size:0.92rem;color:var(--text-soft);font-style:normal;line-height:1.5">
+              <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="4,12 10,18 20,6" />
+              </svg> Wait for confirmation candle<br>
+              <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="4,12 10,18 20,6" />
+              </svg> Enter on next candle open<br>
+              <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="4,12 10,18 20,6" />
+              </svg> Place SL below/above signal candle wick
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv">BEST INTRADAY TIME WINDOWS</div>
+      <table class="strat-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Session</th>
+            <th>Action</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>9:15 – 9:30</td>
+            <td style="color:var(--neutral)">Opening Chaos</td>
+            <td class="tw">OBSERVE ONLY</td>
+            <td>Wild swings, no patterns reliable. Mark ORB high and low.</td>
+          </tr>
+          <tr>
+            <td>9:30 – 11:30</td>
+            <td style="color:var(--bull)">Best Session</td>
+            <td class="tc">MOST ACTIVE TRADING</td>
+            <td>Highest volume, cleanest moves, best patterns. Primary window.</td>
+          </tr>
+          <tr>
+            <td>11:30 – 1:00</td>
+            <td style="color:var(--neutral)">Lunch Lull</td>
+            <td class="tw">REDUCE SIZE</td>
+            <td>Low volume, choppy, fakeouts common. Trade smaller or skip.</td>
+          </tr>
+          <tr>
+            <td>1:00 – 2:30</td>
+            <td style="color:var(--bull)">Afternoon Session</td>
+            <td class="tc">SELECTIVE TRADING</td>
+            <td>Second-best window. Good breakout trades if morning trend continues.</td>
+          </tr>
+          <tr>
+            <td>2:30 – 3:15</td>
+            <td style="color:var(--bear)">Power Hour</td>
+            <td class="tp">THETA DANGER ZONE</td>
+            <td>Avoid buying options. Theta destroys premium rapidly. Exit existing trades.</td>
+          </tr>
+          <tr>
+            <td>3:15 – 3:30</td>
+            <td style="color:var(--bear)">Closing</td>
+            <td class="tp">EXIT ALL POSITIONS</td>
+            <td>Mandatory exit. Never carry intraday positions overnight.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="infobox" style="border-left-color:var(--info);margin-top:20px"><svg class="ico ico-info"
+          viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M2 4a2 2 0 0 1 2-2h6v18H4a2 2 0 0 1-2-2z" />
+          <path d="M22 4a2 2 0 0 0-2-2h-6v18h6a2 2 0 0 0 2-2z" />
+        </svg> <b>Gaps &mdash; the 5 gap types, India-specific rules, and the gap-up / gap-down opening playbook</b>
+        live in the <button onclick="show('chart')"
+          style="background:none;border:none;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit;padding:0">Chart
+          Patterns tab &rarr;</button></div>
+
+      <div class="catdiv">WHICH TIMEFRAME SHOULD YOU TRADE OPTIONS ON?</div>
+      <div class="infobox"><svg class="ico ico-zap" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+        </svg> The #1 mistake option buyers make: trading on a timeframe that doesn't match their style, attention span,
+        or capital. Match the timeframe to YOU, not the other way around.</div>
+
+      <div class="pgrid lg c3">
+        <div class="card bear">
+          <div class="cname">1-MIN CHART — SCALPING</div>
+          <div class="badge bear">DO NOT USE FOR OPTIONS</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">Hold time:</b> 1–5 minutes<br>
+            <b style="color:var(--text)">Target premium move:</b> ₹3–8<br>
+            <b style="color:var(--text)">Problem:</b> Option bid-ask spread (₹1–3) + STT + brokerage eats ₹15–25 of your
+            ₹5 target. <b>Mathematically losing.</b><br>
+            <b style="color:var(--text)">Noise ratio:</b> Extreme — 70% of patterns are fake.<br><br>
+            <b style="color:var(--bear)">Verdict:</b> Only for futures scalpers with co-location. Options on 1-min =
+            gambling.
+          </div>
+        </div>
+        <div class="card neu">
+          <div class="cname">5-MIN CHART — INTRADAY SCALP</div>
+          <div class="badge neu">ONLY FOR EXPERIENCED</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">Hold time:</b> 10–45 minutes<br>
+            <b style="color:var(--text)">Target premium move:</b> ₹15–40<br>
+            <b style="color:var(--text)">Best for:</b> Breakout trades AFTER a 15-min signal. Fine-tuning entry.<br>
+            <b style="color:var(--text)">Use case:</b> You've spotted a 15-min bullish engulfing at support → zoom to
+            5-min → wait for a bullish confirmation candle → enter.<br><br>
+            <b style="color:var(--neutral)">Verdict:</b> Tactical support tool, NOT your primary decision TF.
+          </div>
+        </div>
+        <div class="card bull">
+          <div class="cname">15-MIN CHART — SWEET SPOT</div>
+          <div class="badge bull"><span class="rating" aria-label="1 star rating"><svg class="ico ico-star"
+                viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" stroke="currentColor"
+                  d="m12 2 3 7 7 .8-5.4 4.7 1.7 6.9L12 17.8 5.7 21.4l1.7-6.9L2 9.8 9 9z" />
+              </svg></span> BEST FOR OPTION BUYERS</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">Hold time:</b> 45 min – 3 hours<br>
+            <b style="color:var(--text)">Target premium move:</b> ₹40–120<br>
+            <b style="color:var(--text)">Why best:</b> Enough candles for patterns to be statistically meaningful.
+            Enough movement to clear costs comfortably. Enough time between candles to think clearly.<br>
+            <b style="color:var(--text)">Theta impact:</b> Manageable — most trades complete before decay
+            accelerates.<br><br>
+            <b style="color:var(--bull)">Verdict:</b> Start here. 80% of your intraday option trades should come from
+            15-min signals.
+          </div>
+        </div>
+        <div class="card bull">
+          <div class="cname">60-MIN CHART — SWING STYLE</div>
+          <div class="badge bull">POSITIONAL INTRADAY</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">Hold time:</b> 2 hours – full day / overnight*<br>
+            <b style="color:var(--text)">Target premium move:</b> ₹100–300<br>
+            <b style="color:var(--text)">Best for:</b> Strong trend days (e.g. after RBI policy, major news), breakouts
+            from multi-day ranges, ITM option swing trades.<br>
+            <b style="color:var(--text)">Theta warning:</b> Holding options overnight near weekly expiry = dangerous.
+            Use monthly or ITM options.<br><br>
+            <b style="color:var(--info)">Verdict:</b> For high-conviction setups only.
+          </div>
+        </div>
+        <div class="card info" style="border-left:3px solid var(--info)">
+          <div class="cname" style="color:var(--info)">DAILY CHART — SWING TRADING</div>
+          <div class="badge info">MULTI-DAY HOLDS</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">Hold time:</b> 2–10 days<br>
+            <b style="color:var(--text)">Target premium move:</b> ₹200–1000+<br>
+            <b style="color:var(--text)">Best for:</b> ITM options or next-month expiry. NEVER weekly ATM — theta
+            destroys you overnight.<br>
+            <b style="color:var(--text)">Position size:</b> Half of intraday size since you're exposed to overnight
+            gaps.<br><br>
+            <b style="color:var(--info)">Verdict:</b> For traders with capital + patience.
+          </div>
+        </div>
+        <div class="card neu">
+          <div class="cname">WEEKLY CHART — MACRO VIEW</div>
+          <div class="badge neu">TREND READING</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">Don't trade options on it.</b> Use weekly chart <b>only to understand the macro
+              trend</b> that gives context to your daily / 60-min / 15-min trade.<br><br>
+            <b style="color:var(--text)">Rule:</b> Never take a trade against the weekly trend unless it's a proven
+            reversal setup (H&amp;S, Island Reversal, etc.).
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv">MATCH THE TIMEFRAME TO YOUR PROFILE</div>
+      <div class="strat-wrap">
+        <table class="strat-table">
+          <thead>
+            <tr>
+              <th>Your Profile</th>
+              <th>Signal TF</th>
+              <th>Entry TF</th>
+              <th>Hold Time</th>
+              <th>Strike Choice</th>
+              <th>Best Expiry</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Beginner (learning)</td>
+              <td class="tc">15-min</td>
+              <td class="tc">15-min</td>
+              <td>1–3 hrs</td>
+              <td>ATM</td>
+              <td>Current / Next week</td>
+            </tr>
+            <tr>
+              <td>Intraday (confident)</td>
+              <td class="tc">15-min</td>
+              <td class="tc">5-min</td>
+              <td>30 min – 2 hrs</td>
+              <td>ATM or 1 OTM</td>
+              <td>Current week</td>
+            </tr>
+            <tr>
+              <td>Breakout trader</td>
+              <td class="tc">60-min</td>
+              <td class="tc">15-min</td>
+              <td>2–6 hrs</td>
+              <td>ATM</td>
+              <td>Current / Next week</td>
+            </tr>
+            <tr>
+              <td>Positional intraday</td>
+              <td class="tc">60-min</td>
+              <td class="tc">15-min</td>
+              <td>4 hrs – full day</td>
+              <td>1 ITM</td>
+              <td>Next week / Monthly</td>
+            </tr>
+            <tr>
+              <td>Swing (2–10 days)</td>
+              <td class="tc">Daily</td>
+              <td class="tc">60-min</td>
+              <td>2–10 days</td>
+              <td>1 ITM or 2 ITM</td>
+              <td>Monthly</td>
+            </tr>
+            <tr>
+              <td>Scalper (advanced)</td>
+              <td class="tw">5-min</td>
+              <td class="tw">1-min</td>
+              <td>5–30 min</td>
+              <td>ATM liquid</td>
+              <td>Current week</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="catdiv">HOW TO DECIDE YOUR OWN TIMEFRAME (DECISION TREE)</div>
+      <div class="anat-card" style="align-items:flex-start">
+        <div style="display:grid;grid-template-columns:1fr;gap:12px;width:100%">
+          <div style="background:var(--s2);border-left:3px solid var(--bull);border-radius:6px;padding:14px 18px">
+            <div
+              style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.82rem;color:var(--bull);margin-bottom:6px;letter-spacing:0.05em">
+              Q1 — HOW MUCH TIME DO YOU HAVE AT THE SCREEN?</div>
+            <div style="font-size:0.98rem;color:var(--text-soft);line-height:1.6">
+              • <b style="color:var(--text)">All day (full-time):</b> 15-min signal TF, 5-min entry TF<br>
+              • <b style="color:var(--text)">2–3 hours:</b> 15-min signal, 15-min entry (place orders, step away)<br>
+              • <b style="color:var(--text)">&lt;1 hour (checking phone):</b> Daily chart swing trades only — do NOT
+              intraday
+            </div>
+          </div>
+          <div style="background:var(--s2);border-left:3px solid var(--neutral);border-radius:6px;padding:14px 18px">
+            <div
+              style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.82rem;color:var(--neutral);margin-bottom:6px;letter-spacing:0.05em">
+              Q2 — HOW DO YOU REACT TO NOISE / CANDLE JIGGLES?</div>
+            <div style="font-size:0.98rem;color:var(--text-soft);line-height:1.6">
+              • <b style="color:var(--text)">Panic on every red candle:</b> Go higher TF (60-min or daily). Less noise =
+              less emotion.<br>
+              • <b style="color:var(--text)">Bored waiting for 15-min candle to close:</b> Either stay with 15-min and
+              build discipline, OR move to 5-min if experienced.<br>
+              • <b style="color:var(--text)">Calm either way:</b> 15-min is your sweet spot.
+            </div>
+          </div>
+          <div style="background:var(--s2);border-left:3px solid var(--info);border-radius:6px;padding:14px 18px">
+            <div
+              style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.82rem;color:var(--info);margin-bottom:6px;letter-spacing:0.05em">
+              Q3 — WHAT'S YOUR CAPITAL? (POST-65-LOT NIFTY)</div>
+            <div style="font-size:0.98rem;color:var(--text-soft);line-height:1.6">
+              • <b style="color:var(--text)">&lt; ₹1,00,000:</b> Paper trade — real capital too small after SEBI
+              changes<br>
+              • <b style="color:var(--text)">₹1–2 L:</b> 15-min intraday ATM only, 1 lot Nifty<br>
+              • <b style="color:var(--text)">₹2–5 L:</b> 15-min intraday + occasional 60-min swings, 1–2 lots<br>
+              • <b style="color:var(--text)">₹5 L+:</b> Can use any TF. Scale lot with edge proven over 6 months.
+            </div>
+          </div>
+          <div style="background:var(--s2);border-left:3px solid var(--bear);border-radius:6px;padding:14px 18px">
+            <div
+              style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.82rem;color:var(--bear);margin-bottom:6px;letter-spacing:0.05em">
+              Q4 — WHAT'S YOUR LOSS TOLERANCE PER TRADE?</div>
+            <div style="font-size:0.98rem;color:var(--text-soft);line-height:1.6">
+              • <b style="color:var(--text)">₹500–2000 per trade:</b> 15-min, ATM, current week<br>
+              • <b style="color:var(--text)">₹2000–5000:</b> 15-min or 60-min, ATM / 1 ITM<br>
+              • <b style="color:var(--text)">₹5000+:</b> You need a 60-min or daily TF with room to breathe, otherwise
+              SL hits noise<br>
+              • <b style="color:var(--text)">Rule:</b> SL distance (in points) must be ≥ 1.5× ATR of your signal TF. If
+              your SL is tighter, move to a smaller TF.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rbox">
+        <h3><svg class="ico ico-zap" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg> THE DEFINITIVE TIMEFRAME ANSWER FOR 90% OF READERS</h3>
+        <ul>
+          <li><b>Use 60-min to read the trend</b> — is the market bullish, bearish, or sideways today?</li>
+          <li><b>Use 15-min to find your signal</b> — candle pattern + volume + S/R confluence + VWAP alignment.</li>
+          <li><b>Use 5-min to refine entry</b> — wait for the confirmation candle on 5-min after the 15-min signal
+            completes.</li>
+          <li><b>Hold for 30 min – 3 hours</b> — most 15-min-signal option trades resolve in this window.</li>
+          <li><b>Stop looking at 1-min</b> — it will only make you panic-exit a good trade or enter a bad one.</li>
+          <li><b>Exit by 3:00 PM</b> regardless of the trade — theta accelerates sharply in the last 30 minutes.</li>
+        </ul>
+      </div>
+    </div>
+  

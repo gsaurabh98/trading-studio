@@ -1,0 +1,164 @@
+    <div class="wrap">
+      <div class="shead">
+        <h2>TRADING CALCULATORS <span class="count-badge">4 TOOLS</span></h2>
+      </div>
+      <div class="infobox"><svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+          <polyline points="3,17 9,11 13,15 21,7" />
+          <polyline points="15,7 21,7 21,13" />
+        </svg> These are <b>decision support</b> tools, not predictions. Use them before every trade to translate your
+        capital and stop-loss into real lot counts and rupee risk.</div>
+
+      <div class="infobox" style="background:rgba(9,168,110,.08);border-color:rgba(9,168,110,.35)"><svg
+          class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 18h6" />
+          <path d="M10 21h4" />
+          <path d="M12 3a7 7 0 0 1 4 12.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-1.3A7 7 0 0 1 12 3z" />
+        </svg> <b>Why a trader without calculators is gambling:</b> Gut-feel sizing is the #1 reason retail accounts
+        blow up. Every A+ setup has a <u>correct</u> lot count based on your capital and SL distance. Using the
+        position-size calculator takes 15 seconds and ensures no single trade can wipe out your week. <b>If you skip
+          this step, you are trading with closed eyes.</b></div>
+
+      <div class="rbox" style="border-left-color:var(--bull)">
+        <h3><svg class="ico ico-zap" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg> HOW TO USE THESE TOOLS &mdash; PRE-TRADE WORKFLOW (1 MINUTE)</h3>
+        <ul>
+          <li><b>Step 1 &middot; POSITION SIZE</b> &mdash; Enter your total capital + max risk % per trade (1&ndash;2%
+            recommended) + premium + SL distance. This tells you how many LOTS you can safely buy. Never exceed this
+            count.</li>
+          <li><b>Step 2 &middot; RISK:REWARD</b> &mdash; Check if the trade is worth taking. Target at least 1:2 &mdash;
+            meaning the potential reward is at least twice the risk. Below 1:2 = skip, regardless of how good the setup
+            looks.</li>
+          <li><b>Step 3 &middot; PREMIUM SL</b> &mdash; Convert the index-level SL into a premium-level SL that you can
+            place on your broker. This is the number you enter in the SL-M order.</li>
+          <li><b>Step 4 &middot; LOT VALUE &amp; BREAKEVEN</b> &mdash; Know your margin requirement and breakeven
+            <u>before</u> you trade. Prevents overleveraging on buying and surprise SPAN+Exposure margin calls on
+            selling.</li>
+        </ul>
+      </div>
+
+      <div class="infobox" style="margin-top:16px"><svg class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg> <b>Rule for beginners:</b> Never risk more than <b>1% of your capital</b> on a single option trade for
+        your first 3 months. After 100 trades with a journal, if your win-rate and R-expectancy are positive, you can
+        slowly scale up to 2%. <u>Never</u> cross 2% per trade &mdash; that's casino-level risk.</div>
+
+      <div class="calc-grid">
+
+        <div class="calc-card">
+          <h3><span class="cnum">1</span> POSITION SIZE CALCULATOR</h3>
+          <div class="calc-desc">How many lots can you afford given your capital and the 2% daily-risk rule?</div>
+          <div class="calc-row">
+            <div class="calc-field"><label>Capital (&#8377;)</label><input type="number" id="ps-cap" value="500000"
+                oninput="calcPosSize()"></div>
+            <div class="calc-field"><label>Risk % per trade</label><input type="number" id="ps-risk" value="2"
+                step="0.25" oninput="calcPosSize()"></div>
+            <div class="calc-field"><label>SL points (index or premium)</label><input type="number" id="ps-sl"
+                value="30" oninput="calcPosSize()"></div>
+            <div class="calc-field"><label>Lot size</label>
+              <select id="ps-lot" onchange="calcPosSize()">
+                <option value="65">Nifty (65)</option>
+                <option value="30">BankNifty (30)</option>
+                <option value="20">Sensex (20)</option>
+                <option value="75">FinNifty (75)</option>
+                <option value="120">MidCpNifty (120)</option>
+              </select>
+            </div>
+          </div>
+          <div class="calc-result" id="ps-out">&mdash;</div>
+          <div
+            style="margin-top:10px;font-size:12px;color:var(--muted);font-family:'IBM Plex Mono',monospace;line-height:1.6">
+            <b>Tip for option buyers:</b> the formula <code>SL &times; lot</code> is <b>exact for futures</b> but
+            <b>approximate for options</b>. For options, the premium drops by roughly <code>SL &times; Delta</code>. So
+            enter your <b>premium-loss in points</b> here (e.g. 30-pt index move &times; 0.5 ATM Delta &asymp; 15 in
+            this field). Or use <b>Premium SL Calculator</b> below &mdash; it's premium-native.
+          </div>
+        </div>
+
+        <div class="calc-card">
+          <h3><span class="cnum">2</span> RISK:REWARD CALCULATOR</h3>
+          <div class="calc-desc">Check whether a trade meets the 1:2 minimum before you click Buy.</div>
+          <div class="calc-row">
+            <div class="calc-field"><label>Entry price (&#8377;)</label><input type="number" id="rr-e" value="100"
+                step="0.5" oninput="calcRR()"></div>
+            <div class="calc-field"><label>Stop-loss price</label><input type="number" id="rr-s" value="70" step="0.5"
+                oninput="calcRR()"></div>
+            <div class="calc-field"><label>Target price</label><input type="number" id="rr-t" value="160" step="0.5"
+                oninput="calcRR()"></div>
+            <div class="calc-field"><label>Direction</label>
+              <select id="rr-dir" onchange="calcRR()">
+                <option value="long">Long (CE / buy)</option>
+                <option value="short">Short (PE / sell)</option>
+              </select>
+            </div>
+          </div>
+          <div class="calc-result" id="rr-out">&mdash;</div>
+        </div>
+
+        <div class="calc-card">
+          <h3><span class="cnum">3</span> PREMIUM-SL CALCULATOR</h3>
+          <div class="calc-desc">Convert the 30&ndash;40% premium-SL rule into exact rupee levels for your trade.</div>
+          <div class="calc-row">
+            <div class="calc-field"><label>Buy premium (&#8377;)</label><input type="number" id="sl-p" value="100"
+                step="0.5" oninput="calcSL()"></div>
+            <div class="calc-field"><label>SL %</label><input type="number" id="sl-pct" value="35" step="1"
+                oninput="calcSL()"></div>
+            <div class="calc-field"><label>Lots</label><input type="number" id="sl-lots" value="1" step="1" min="1"
+                oninput="calcSL()"></div>
+            <div class="calc-field"><label>Lot size</label>
+              <select id="sl-lot" onchange="calcSL()">
+                <option value="65">Nifty (65)</option>
+                <option value="30">BankNifty (30)</option>
+                <option value="20">Sensex (20)</option>
+                <option value="75">FinNifty (75)</option>
+                <option value="120">MidCpNifty (120)</option>
+              </select>
+            </div>
+          </div>
+          <div class="calc-result" id="sl-out">&mdash;</div>
+        </div>
+
+        <div class="calc-card">
+          <h3><span class="cnum">4</span> LOT VALUE &amp; BREAKEVEN</h3>
+          <div class="calc-desc">Total capital blocked, and the premium level you need to breakeven after brokerage
+            &amp; taxes.</div>
+          <div class="calc-row">
+            <div class="calc-field"><label>Premium (&#8377;)</label><input type="number" id="lv-p" value="100"
+                step="0.5" oninput="calcLotValue()"></div>
+            <div class="calc-field"><label>Lots</label><input type="number" id="lv-lots" value="1" step="1" min="1"
+                oninput="calcLotValue()"></div>
+            <div class="calc-field"><label>Lot size</label>
+              <select id="lv-lot" onchange="calcLotValue()">
+                <option value="65">Nifty (65)</option>
+                <option value="30">BankNifty (30)</option>
+                <option value="20">Sensex (20)</option>
+                <option value="75">FinNifty (75)</option>
+                <option value="120">MidCpNifty (120)</option>
+              </select>
+            </div>
+            <div class="calc-field"><label>Per-lot brokerage (&#8377;)</label><input type="number" id="lv-fee"
+                value="40" step="5" oninput="calcLotValue()"></div>
+          </div>
+          <div class="calc-result" id="lv-out">&mdash;</div>
+        </div>
+
+      </div>
+
+      <div class="rbox" style="border-left-color:var(--neutral);margin-top:32px">
+        <h3>HOW TO USE THESE CALCULATORS</h3>
+        <ul>
+          <li><b>Every single trade:</b> Run Calculator 1 first. If max-lots &lt; 1, you can't take the trade at this SL
+            distance &mdash; either widen the SL or skip.</li>
+          <li><b>Before clicking Buy:</b> Run Calculator 2 with your planned entry/SL/target. If RR &lt; 1:2, fix your
+            target or skip.</li>
+          <li><b>After fill:</b> Run Calculator 3 to place the exact SL-M order price at 30&ndash;35% below your fill.
+          </li>
+          <li><b>End of day:</b> Run Calculator 4 to confirm your ledger matches what you expected &mdash;
+            reconciliation catches broker-fee surprises early.</li>
+        </ul>
+      </div>
+
+    </div>
+  

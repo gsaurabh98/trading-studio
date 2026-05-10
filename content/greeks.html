@@ -1,0 +1,437 @@
+    <div class="wrap">
+      <div class="shead">
+        <h2>OPTION GREEKS <span class="count-badge">THE FORCES THAT MOVE PREMIUM</span></h2>
+      </div>
+
+      <div class="infobox"><svg class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg> Retail option buyers lose primarily because they ignore 3 of the 4 Greeks. They look only at Delta
+        (direction) &mdash; but <b>Theta bleeds the premium daily</b> and <b>IV crush can destroy it in minutes</b>.
+        Understanding all four turns random speculation into calculated trades.</div>
+
+      <div class="catdiv">THE 4 GREEKS YOU MUST KNOW</div>
+      <div class="pgrid md">
+        <div class="card bull">
+          <div class="cname">&Delta; DELTA</div>
+          <div
+            style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--bull);margin:8px 0">
+            0.5</div>
+          <div class="badge bull">ATM OPTION</div>
+          <div class="cdesc">How much option price moves per &#8377;1 move in underlying. ATM Delta &asymp; 0.5. Deep
+            ITM &asymp; 1. Deep OTM &asymp; 0.1. Buy options with Delta &gt; 0.4 for responsive moves.</div>
+        </div>
+        <div class="card bear">
+          <div class="cname">&Theta; THETA (TIME DECAY)</div>
+          <div
+            style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--bear);margin:8px 0">
+            -ve</div>
+          <div class="badge bear">YOUR ENEMY</div>
+          <div class="cdesc">Amount your option loses every single day even if price doesn't move. Theta accelerates
+            near expiry. NEVER hold options overnight near expiry &mdash; theta will destroy premium.</div>
+        </div>
+        <div class="card neu">
+          <div class="cname">&nu; VEGA (VOLATILITY)</div>
+          <div
+            style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--neutral);margin:8px 0">
+            IV</div>
+          <div class="badge neu">WATCH CAREFULLY</div>
+          <div class="cdesc">How much option price changes with 1% change in IV. High IV = expensive options. Buy
+            options when IV is LOW. After events (results, budget), IV crashes = premium crashes even if price moves
+            right.</div>
+        </div>
+        <div class="card info" style="border-left:3px solid var(--info)">
+          <div class="cname" style="color:var(--info)">&Gamma; GAMMA</div>
+          <div
+            style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--info);margin:8px 0">
+            &Delta; rate</div>
+          <div class="badge info">ACCELERATION</div>
+          <div class="cdesc">Rate of change of Delta. High Gamma near ATM and near expiry. Weekly expiry options have
+            high Gamma &mdash; small moves can give large % returns but also large losses.</div>
+        </div>
+      </div>
+
+      <div class="catdiv">IMPLIED VOLATILITY (VEGA IN PRACTICE)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div class="anat-card">
+          <div class="cname" style="color:var(--bull)">WHEN IV IS LOW &rarr; BUY</div>
+          <svg width="240" height="120" viewBox="0 0 240 120">
+            <polyline points="10,100 40,90 70,70 100,50 130,30 160,20 190,15 220,18" fill="none" stroke="#c91f3a"
+              stroke-width="2" />
+            <line x1="0" y1="60" x2="240" y2="60" stroke="#d4941a" stroke-width="1" stroke-dasharray="4,3" />
+            <text x="2" y="56" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="9">AVG IV</text>
+            <text x="2" y="110" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">LOW IV ZONE &rarr;
+              BUY OPTIONS</text>
+            <circle cx="70" cy="70" r="5" fill="none" stroke="#09a86e" stroke-width="2" />
+            <text x="75" y="67" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="8">BUY HERE</text>
+          </svg>
+          <p style="font-size:0.94rem;color:var(--text-soft);text-align:center;font-style:normal">When IV is below
+            average, options are cheap. Best time to buy. IV will likely expand &rarr; premium increases even before
+            price moves.</p>
+        </div>
+        <div class="anat-card">
+          <div class="cname" style="color:var(--bear)">IV CRUSH AFTER EVENTS</div>
+          <svg width="240" height="120" viewBox="0 0 240 120">
+            <polyline points="10,80 40,60 70,40 100,20 120,15" fill="none" stroke="#c91f3a" stroke-width="2" />
+            <line x1="120" y1="15" x2="120" y2="15" stroke="#d4941a" stroke-width="2" />
+            <polyline points="120,15 140,60 160,75 190,80 220,82" fill="none" stroke="#c91f3a" stroke-width="2"
+              stroke-dasharray="4,2" />
+            <text x="105" y="10" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="8">EVENT</text>
+            <line x1="120" y1="0" x2="120" y2="120" stroke="#d4941a" stroke-width="1" stroke-dasharray="3,2" />
+            <text x="130" y="55" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="9">IV CRASH</text>
+            <text x="130" y="68" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="9">= LOSS</text>
+          </svg>
+          <p style="font-size:0.94rem;color:var(--text-soft);text-align:center;font-style:normal">Before results/budget,
+            IV is high. After event, IV crashes even if price moves. AVOID buying options just before major events.</p>
+        </div>
+      </div>
+
+      <div class="catdiv">THETA DECAY BY TIME OF DAY</div>
+      <div class="anat-card">
+        <div class="cname" style="color:var(--bear)">PREMIUM DECAY CURVE (INTRADAY)</div>
+        <svg width="500" height="130" viewBox="0 0 500 130" style="max-width:100%">
+          <line x1="40" y1="10" x2="40" y2="110" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
+          <line x1="40" y1="110" x2="490" y2="110" stroke="rgba(255,255,255,0.2)" stroke-width="1" />
+          <polyline points="50,20 100,22 150,26 200,32 250,42 300,56 350,72 380,85 410,95 440,103 470,108 490,110"
+            fill="none" stroke="#c91f3a" stroke-width="2.5" />
+          <rect x="50" y="10" width="200" height="100" fill="rgba(9,168,110,0.05)" rx="0" />
+          <rect x="250" y="10" width="130" height="100" fill="rgba(212,148,26,0.05)" rx="0" />
+          <rect x="380" y="10" width="110" height="100" fill="rgba(201,31,58,0.07)" rx="0" />
+          <text x="45" y="125" fill="#c0d4f0" font-family="'IBM Plex Mono',monospace" font-size="9">9:15</text>
+          <text x="145" y="125" fill="#c0d4f0" font-family="'IBM Plex Mono',monospace" font-size="9">11:00</text>
+          <text x="245" y="125" fill="#c0d4f0" font-family="'IBM Plex Mono',monospace" font-size="9">1:00</text>
+          <text x="375" y="125" fill="#c0d4f0" font-family="'IBM Plex Mono',monospace" font-size="9">2:30</text>
+          <text x="460" y="125" fill="#c0d4f0" font-family="'IBM Plex Mono',monospace" font-size="9">3:30</text>
+          <text x="100" y="50" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">BEST BUY</text>
+          <text x="100" y="62" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">WINDOW</text>
+          <text x="258" y="50" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="9">CAUTION</text>
+          <text x="395" y="50" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="9">AVOID</text>
+          <text x="390" y="62" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="9">BUYING</text>
+          <text x="0" y="65" fill="rgba(255,255,255,0.4)" font-family="'IBM Plex Mono',monospace" font-size="8"
+            transform="rotate(-90,0,65)">PREMIUM</text>
+        </svg>
+        <p style="font-size:0.96rem;color:var(--text-soft);text-align:center;font-style:normal">Buy options between
+          9:15&ndash;11:30 AM. Theta decay accelerates after 2:00 PM. After 2:30 PM, option buyers are at severe
+          disadvantage.</p>
+      </div>
+
+      <div class="catdiv">PLAIN-ENGLISH ANALOGIES (REMEMBER THESE)</div>
+      <div class="infobox"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="5" />
+          <circle cx="12" cy="12" r="1.5" />
+        </svg> <b>The 4 Greeks in one sentence each</b> &mdash; use these mental models every time you trade options.
+        Greek formulas don't matter; the <i>intuition</i> does.</div>
+      <div class="pgrid md">
+        <div class="card bull">
+          <div class="cname">&Delta; DELTA = THE THERMOMETER</div>
+          <div class="cdesc" style="text-align:left">Tells you <b>how reactive</b> the option is to index moves. Delta
+            0.5 means the option moves 50 paise for every &#8377;1 the index moves. Also roughly equals the
+            <b>probability the option finishes ITM</b>. Beginners: always buy Delta &ge; 0.4 &mdash; anything lower is a
+            lottery ticket.</div>
+        </div>
+        <div class="card bear">
+          <div class="cname">&Theta; THETA = THE RENT</div>
+          <div class="cdesc" style="text-align:left">You pay <b>rent every day</b> to hold an option. Theta is that
+            rent, in &#8377;. A -&#8377;8 theta means the option loses &#8377;8 overnight even if the index doesn't
+            move. Rent compounds &mdash; theta accelerates as expiry approaches. <b>The option buyer's permanent
+              enemy.</b></div>
+        </div>
+        <div class="card neu">
+          <div class="cname">&nu; VEGA = THE FUEL PRICE</div>
+          <div class="cdesc" style="text-align:left">Think of IV as the <b>fuel price</b> of options. When fuel is
+            expensive (high IV), every option costs more. When fuel crashes (after an event), every option loses value
+            instantly &mdash; even if the index moves in your favour. Rule: buy options when fuel is cheap, not
+            expensive.</div>
+        </div>
+        <div class="card info" style="border-left:3px solid var(--info)">
+          <div class="cname" style="color:var(--info)">&Gamma; GAMMA = THE ACCELERATOR</div>
+          <div class="cdesc" style="text-align:left">Delta isn't fixed &mdash; it changes as the index moves. Gamma is
+            <b>how fast Delta speeds up</b>. Highest on expiry day, for ATM strikes. High Gamma = massive profits when
+            right, massive losses when wrong. <b>Double-edged sword.</b></div>
+        </div>
+      </div>
+
+      <div class="catdiv" style="margin-top:32px">"WHY DID MY CE LOSE MONEY EVEN THOUGH NIFTY WENT UP?" &mdash; WORKED
+        EXAMPLE</div>
+      <div class="infobox" style="background:rgba(201,31,58,.08);border-color:rgba(201,31,58,.35)"><svg
+          class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <circle cx="12" cy="16" r="0.8" fill="currentColor" stroke="none" />
+        </svg> This is the <b>#1 question every new option buyer asks</b>. You were right on direction &mdash; the index
+        went UP &mdash; yet your CE shows a LOSS. The answer is always in the Greeks. Here's the math broken down
+        day-by-day so you can finally see it with your own eyes.</div>
+
+      <div class="anat-card" style="margin-bottom:20px">
+        <div class="cname" style="color:var(--bull)">SETUP</div>
+        <div style="font-size:0.98rem;color:var(--text);line-height:1.8;padding:0 8px">
+          <b>Friday 09:30 AM:</b> Nifty is at <b>24,000</b>. You buy <b>24,100 CE</b> (slightly OTM) expiring next
+          <b>Tuesday</b> (Nifty weekly). Premium = <b>&#8377;80</b> per unit. Lot size 65 &rarr; you pay
+          <b>&#8377;5,200</b>.<br>
+          Greeks at entry: <b>Delta 0.35 &middot; Theta -&#8377;12/day &middot; Vega &#8377;5 per 1% IV change &middot;
+            IV = 14%</b><br>
+          You believe Nifty will rally to 24,200 by Tuesday. Your thesis is <b>correct</b>. Let's see what actually
+          happens.
+        </div>
+      </div>
+
+      <table class="strat-table" style="margin-bottom:20px">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Nifty spot</th>
+            <th>What happens</th>
+            <th>Premium</th>
+            <th>P&amp;L per unit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="tc"><b>Fri 09:30</b></td>
+            <td class="tc">24,000</td>
+            <td>Entry. Paid &#8377;80. Thesis: Nifty hits 24,200 by Tue.</td>
+            <td class="tc">&#8377;80</td>
+            <td class="tw">&mdash;</td>
+          </tr>
+          <tr>
+            <td class="tc"><b>Fri 15:30</b></td>
+            <td class="tc">24,010 (+10)</td>
+            <td>Nifty drifts up &#8377;10. Delta adds (+&#8377;3.5). Theta eats (-&#8377;6 for half day).</td>
+            <td class="tc">&#8377;77</td>
+            <td class="tp">-&#8377;3</td>
+          </tr>
+          <tr>
+            <td class="tc"><b>Mon 15:30</b></td>
+            <td class="tc">24,030 (+30)</td>
+            <td>Weekend &amp; Mon decay. Delta adds (+&#8377;7). BUT 3 days of theta come out (-&#8377;30) and IV drops
+              1% (-&#8377;5).</td>
+            <td class="tc">&#8377;58</td>
+            <td class="tp">-&#8377;22</td>
+          </tr>
+          <tr>
+            <td class="tc"><b>Tue 11:00</b></td>
+            <td class="tc">24,100 (+100)</td>
+            <td>Nifty at your target strike! Delta adds (+&#8377;18). BUT expiry theta is brutal (-&#8377;25) and IV
+              crashes (-&#8377;10).</td>
+            <td class="tc">&#8377;41</td>
+            <td class="tp">-&#8377;39</td>
+          </tr>
+          <tr>
+            <td class="tc"><b>Tue 14:30</b></td>
+            <td class="tc">24,130 (+130)</td>
+            <td>Nifty up 130 points &mdash; your thesis was RIGHT. But expiry-day theta is crushing. 0 DTE IV has
+              crashed.</td>
+            <td class="tc">&#8377;32</td>
+            <td class="tp">-&#8377;48</td>
+          </tr>
+          <tr>
+            <td class="tc"><b>Tue 15:30</b></td>
+            <td class="tp"><b>24,130 (expiry)</b></td>
+            <td>Expires with intrinsic value = (24,130-24,100) = &#8377;30.</td>
+            <td class="tp">&#8377;30</td>
+            <td class="tp">-&#8377;50</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="rbox" style="border-left-color:var(--bear)">
+        <h3><svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
+            <polygon points="7.86,2 16.14,2 22,7.86 22,16.14 16.14,22 7.86,22 2,16.14 2,7.86" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg> WHAT HAPPENED &mdash; THE BRUTAL LESSON</h3>
+        <ul>
+          <li><b>Direction was right:</b> Nifty moved +130 points in 4 days. Most retail traders would think "my CE must
+            be profitable".</li>
+          <li><b>Delta earned you ~&#8377;35</b> total over the 4 days as the index climbed.</li>
+          <li><b>Theta cost you ~&#8377;58</b> over 4 days (accelerating near expiry from -&#8377;12 to -&#8377;25/day).
+          </li>
+          <li><b>Vega (IV crush) cost you ~&#8377;15</b> as IV fell from 14% to 11% through the week.</li>
+          <li><b>Net result:</b> &#8377;35 - &#8377;58 - &#8377;15 = <b>&#8377;38 LOSS per unit</b> (close to the
+            &#8377;50 shown above). You were <u>right on direction</u> but Theta + Vega devoured your profit.</li>
+        </ul>
+      </div>
+
+      <div class="infobox" style="margin-top:16px;background:rgba(9,168,110,.08);border-color:rgba(9,168,110,.35)"><svg
+          class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 18h6" />
+          <path d="M10 21h4" />
+          <path d="M12 3a7 7 0 0 1 4 12.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-1.3A7 7 0 0 1 12 3z" />
+        </svg> <b>The fix:</b> Had you bought 24,000 CE (ATM, Delta 0.52) instead of 24,100 CE (OTM, Delta 0.35) &mdash;
+        you would have earned more Delta per point of Nifty move, enough to offset Theta. Or had you traded 2-hour
+        intraday (no overnight theta) instead of holding 4 days, you'd have captured the Delta without the theta bleed.
+        <b>Strike selection and holding period are NOT cosmetic &mdash; they are the trade.</b></div>
+
+      <div class="catdiv" style="margin-top:32px">STRIKE SELECTION BY GREEKS (DECISION TABLE)</div>
+      <div class="infobox"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M16 6 4 8v13l12-2z" />
+          <path d="M16 6l4 1v13l-4 1" />
+          <path d="M8 8v13" />
+        </svg> <b>How to pick a strike using Greeks &mdash; not gut feel.</b> Beginners default to the cheapest OTM
+        strike because it "feels affordable". Professionals pick based on Delta (for reactivity) and Theta/premium ratio
+        (for bleed tolerance).</div>
+
+      <table class="strat-table" style="margin-bottom:20px">
+        <thead>
+          <tr>
+            <th>Strike type</th>
+            <th>Delta</th>
+            <th>Theta (% of prem)</th>
+            <th>Gamma</th>
+            <th>Premium</th>
+            <th>Best for</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="tc"><b>Deep ITM</b><br>(2-3 strikes in)</td>
+            <td class="tc">0.80&ndash;0.95</td>
+            <td class="tc">2&ndash;4%/day</td>
+            <td class="tc">Low</td>
+            <td class="tc">High (&#8377;200+)</td>
+            <td class="tc">Positional / 2&ndash;4 day swing trades. Behaves almost like the underlying.</td>
+          </tr>
+          <tr>
+            <td class="tc"><b>Slightly ITM</b><br>(1 strike in)</td>
+            <td class="tc">0.60&ndash;0.75</td>
+            <td class="tc">3&ndash;5%/day</td>
+            <td class="tc">Medium</td>
+            <td class="tc">Medium (&#8377;120&ndash;180)</td>
+            <td class="tc">Intraday trending days. Good Delta response with manageable theta.</td>
+          </tr>
+          <tr>
+            <td class="tw"><b>ATM</b><br>(nearest strike)</td>
+            <td class="tw">0.45&ndash;0.55</td>
+            <td class="tw">5&ndash;8%/day</td>
+            <td class="tw">High</td>
+            <td class="tw">Medium (&#8377;80&ndash;130)</td>
+            <td class="tw"><b>BEGINNER SWEET SPOT.</b> Best Delta-per-rupee, clean behavior, widely traded.</td>
+          </tr>
+          <tr>
+            <td class="tc"><b>Slightly OTM</b><br>(1 strike out)</td>
+            <td class="tc">0.25&ndash;0.40</td>
+            <td class="tc">8&ndash;12%/day</td>
+            <td class="tc">High</td>
+            <td class="tc">Low (&#8377;50&ndash;80)</td>
+            <td class="tc">Only when you expect a big move within 1&ndash;2 days. Needs strong conviction.</td>
+          </tr>
+          <tr>
+            <td class="tp"><b>Far OTM</b><br>(2+ strikes out)</td>
+            <td class="tp">&lt;0.20</td>
+            <td class="tp">15&ndash;30%/day</td>
+            <td class="tp">Very high</td>
+            <td class="tp">Very low (&lt;&#8377;30)</td>
+            <td class="tp"><b>AVOID.</b> Lottery tickets. 80%+ expire worthless. Retail favourite because "cheap"
+              &mdash; also the reason retail loses.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="rbox" style="border-left-color:var(--bull)">
+        <h3><svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M8.5 12.5 11 15l4.5-6" />
+          </svg> BEGINNER RULE OF THUMB &mdash; PICK YOUR STRIKE</h3>
+        <ul>
+          <li><b>Expiry day (0 DTE):</b> <u>Only</u> ATM or 1-strike ITM. OTM is a trap &mdash; theta kills you in
+            minutes.</li>
+          <li><b>1&ndash;3 days to expiry:</b> ATM or slightly ITM. Delta &ge; 0.45.</li>
+          <li><b>4+ days to expiry:</b> You can use slightly OTM if you expect a big move, but ATM stays safest.</li>
+          <li><b>Never:</b> Far OTM "cheap" options. The maths is against you &mdash; the whole reason they are cheap is
+            because they have a &lt;20% chance of paying out.</li>
+        </ul>
+      </div>
+
+      <div class="catdiv" style="margin-top:32px">DTE (DAYS TO EXPIRY) &mdash; HOW THETA ACCELERATES</div>
+      <div class="infobox"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 22h14" />
+          <path d="M5 2h14" />
+          <path
+            d="M17 22v-4.6a2 2 0 0 0-.6-1.4l-4-4a2 2 0 0 1 0-2.8l4-4A2 2 0 0 0 17 3.8V2H7v1.8a2 2 0 0 0 .6 1.4l4 4a2 2 0 0 1 0 2.8l-4 4A2 2 0 0 0 7 17.4V22" />
+        </svg> <b>Theta is not linear &mdash; it is exponential near expiry.</b> The same ATM option loses &#8377;5/day
+        at 30 DTE, &#8377;15/day at 7 DTE, and &#8377;40/day at 1 DTE. Understanding this curve prevents the classic "I
+        held too long" mistake.</div>
+
+      <table class="strat-table" style="margin-bottom:20px">
+        <thead>
+          <tr>
+            <th>DTE</th>
+            <th>Theta decay</th>
+            <th>Gamma</th>
+            <th>Vega exposure</th>
+            <th>Best strategy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="tc"><b>30 DTE (monthly)</b></td>
+            <td class="tc">Slow (&lt; 1% premium/day)</td>
+            <td class="tc">Low</td>
+            <td class="tc">Very high</td>
+            <td class="tc">Positional swing trades (3&ndash;10 days). Lower Gamma = smaller intraday gyrations.</td>
+          </tr>
+          <tr>
+            <td class="tc"><b>14 DTE</b></td>
+            <td class="tc">Moderate (2&ndash;3% premium/day)</td>
+            <td class="tc">Medium</td>
+            <td class="tc">High</td>
+            <td class="tc">Ideal for 2&ndash;5 day swing trades. Good balance of Delta response and bleed.</td>
+          </tr>
+          <tr>
+            <td class="tw"><b>7 DTE (weekly)</b></td>
+            <td class="tw">Fast (4&ndash;8% premium/day)</td>
+            <td class="tw">High</td>
+            <td class="tw">Moderate</td>
+            <td class="tw"><b>Intraday buyers' favourite.</b> High Gamma = explosive moves. Close same day.</td>
+          </tr>
+          <tr>
+            <td class="tp"><b>1&ndash;2 DTE</b></td>
+            <td class="tp">Brutal (10&ndash;25% premium/day)</td>
+            <td class="tp">Extreme</td>
+            <td class="tp">Low</td>
+            <td class="tp">Scalp only. Never hold overnight. Even 30 min can be costly if index stagnates.</td>
+          </tr>
+          <tr>
+            <td class="tp"><b>0 DTE (expiry day)</b></td>
+            <td class="tp">Catastrophic (can halve in 1 hour)</td>
+            <td class="tp">Maximum</td>
+            <td class="tp">Zero</td>
+            <td class="tp">Experts only. See EXPIRY DAY tab for the hour-by-hour playbook.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="rbox" style="border-left-color:var(--bull);margin-top:32px">
+        <h3>GREEKS CHEAT-SHEET FOR OPTION BUYERS</h3>
+        <ul>
+          <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="9,6 15,12 9,18" />
+              </svg> DELTA:</b> Pick options with Delta &gt; 0.4 (ATM or slightly ITM) for responsive moves. Deep OTM
+            has low Delta and near-zero hope.</li>
+          <li><b style="color:var(--bear)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="9,6 15,12 9,18" />
+              </svg> THETA:</b> Your daily rent. Pay attention after 2 PM on expiry day &mdash; premium can halve in 30
+            minutes on a stagnant index.</li>
+          <li><b style="color:var(--neutral)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="9,6 15,12 9,18" />
+              </svg> VEGA:</b> Check India VIX. Below 13 &rarr; IV expansion tailwind. Above 20 &rarr; IV contraction
+            risk. Never buy options just before scheduled events.</li>
+          <li><b style="color:var(--info)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="9,6 15,12 9,18" />
+              </svg> GAMMA:</b> Weekly expiries have the highest Gamma. Small index moves = outsized P&amp;L. Great when
+            you're right, devastating when you're wrong.</li>
+        </ul>
+      </div>
+
+      <div class="infobox" style="margin-top:16px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m21 21-4.3-4.3" />
+        </svg> <b>How to see Greeks on your broker screen:</b> Zerodha Kite, Upstox, Dhan &mdash; all show Delta / Theta
+        / Vega / Gamma on the option chain if you click the expand/settings icon. Turn these columns ON permanently. If
+        you can't see them, you are trading blind. Also visit <b>NSE's option chain website</b> (nseindia.com) &mdash;
+        shows live Greeks free.</div>
+
+    </div>
+  

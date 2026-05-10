@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <!-- Trading Studio v2 — ascending bear/doji/bull with trend overlay + baseline -->
+  <rect width="192" height="192" rx="36" fill="#07090f"/>
+
+  <!-- Analytical trend line: connects upper wick tops, ascending left→right -->
+  <line x1="44" y1="80" x2="148" y2="40" stroke="#d4941a" stroke-width="2" stroke-dasharray="4,5" opacity="0.55" stroke-linecap="round"/>
+
+  <!-- Bear candle (left, lowest top) -->
+  <line x1="44" y1="80" x2="44" y2="92" stroke="#c91f3a" stroke-width="6" stroke-linecap="round"/>
+  <rect x="32" y="92" width="24" height="40" rx="3" fill="#c91f3a"/>
+  <line x1="44" y1="132" x2="44" y2="142" stroke="#c91f3a" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Doji candle (middle) -->
+  <line x1="96" y1="60" x2="96" y2="100" stroke="#d4941a" stroke-width="5" stroke-linecap="round"/>
+  <rect x="84" y="100" width="24" height="6" rx="2" fill="#d4941a"/>
+  <line x1="96" y1="106" x2="96" y2="142" stroke="#d4941a" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Bull candle (right, tallest top) -->
+  <line x1="148" y1="40" x2="148" y2="52" stroke="#09a86e" stroke-width="6" stroke-linecap="round"/>
+  <rect x="136" y="52" width="24" height="80" rx="3" fill="#09a86e"/>
+  <line x1="148" y1="132" x2="148" y2="142" stroke="#09a86e" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Studio "stage" baseline -->
+  <line x1="32" y1="155" x2="160" y2="155" stroke="#d4941a" stroke-width="2" opacity="0.35" stroke-linecap="round"/>
+</svg>

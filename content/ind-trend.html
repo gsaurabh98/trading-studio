@@ -1,0 +1,140 @@
+    <div class="wrap">
+      <div class="shead">
+        <h2>TREND INDICATORS <span class="count-badge">3 CORE TOOLS</span></h2>
+      </div>
+      <div class="infobox"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg> <b>Trend indicators answer "which way, and how strong?"</b> They are the <b>primary directional
+          filter</b> &mdash; if you trade against a clear trend, you are fighting the big money on the other side. Use
+        <b>VWAP</b> for intraday bias, <b>EMA structure</b> for trend strength, <b>Supertrend</b> for clean flip
+        signals.</div>
+
+      <div class="rbox" style="border-left-color:var(--info)">
+        <h3><svg class="ico ico-zap" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg> HOW TO READ EACH INDICATOR CARD BELOW</h3>
+        <ul>
+          <li><b>WHY IT MATTERS</b> &mdash; what edge it gives and why professionals use it</li>
+          <li><b>HOW TO READ</b> &mdash; the 2&ndash;3 signals you actually watch for</li>
+          <li><b>BUY CE WHEN</b> / <b>BUY PE WHEN</b> &mdash; the exact trigger conditions for a trade</li>
+          <li><b>SL</b> / <b>TARGET</b> &mdash; where the stop and profit levels go</li>
+          <li><b>TIMEFRAME</b> &mdash; where the indicator works best</li>
+          <li><b>AVOID</b> &mdash; the market condition that breaks the signal</li>
+        </ul>
+      </div>
+
+      <div class="pgrid lg c2">
+        <div class="card bull">
+          <div class="cname">VWAP (VOLUME-WEIGHTED AVERAGE PRICE)</div>
+          <svg width="220" height="100" viewBox="0 0 220 100">
+            <polyline points="10,70 35,55 60,75 85,40 110,55 135,30 160,45 185,20 210,35" fill="none" stroke="#ffffff"
+              stroke-width="2" />
+            <polyline points="10,65 40,58 70,55 100,50 130,45 160,42 190,40 210,38" fill="none" stroke="#d4941a"
+              stroke-width="2" stroke-dasharray="5,3" />
+            <text x="170" y="14" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="8">VWAP</text>
+            <text x="10" y="95" fill="#c0d4f0" font-family="'IBM Plex Mono',monospace" font-size="8">INTRADAY — RESETS
+              DAILY</text>
+          </svg>
+          <div class="badge bull"><span class="rating" aria-label="1 star rating"><svg class="ico ico-star"
+                viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" stroke="currentColor"
+                  d="m12 2 3 7 7 .8-5.4 4.7 1.7 6.9L12 17.8 5.7 21.4l1.7-6.9L2 9.8 9 9z" />
+              </svg></span> MOST IMPORTANT INTRADAY</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">WHY IT MATTERS:</b> Institutional fair-price benchmark &mdash; mutual funds,
+            FIIs and algos execute large orders around VWAP. Trading against it means trading against the day's
+            smart-money flow.<br><br>
+            <b style="color:var(--text)">HOW TO READ:</b><br>
+            &bull; Price <b>above</b> VWAP &rarr; buyers control the day<br>
+            &bull; Price <b>below</b> VWAP &rarr; sellers control the day<br>
+            &bull; VWAP <b>slope</b> = trend direction &middot; <b>distance</b> from VWAP = overextension<br><br>
+            <b style="color:var(--bull)">BUY CE WHEN:</b> Price pulls back down to a <b>rising</b> VWAP + bullish
+            rejection candle (hammer / bullish engulfing) + volume spike on the rejection bar.<br>
+            <b style="color:var(--bear)">BUY PE WHEN:</b> Price rallies up to a <b>falling</b> VWAP + bearish rejection
+            candle (shooting star / bearish engulfing) + volume spike.<br><br>
+            <b style="color:var(--text)">SL:</b> 10&ndash;15 pts beyond VWAP on other side (Nifty); scale with ATR for
+            BankNifty.<br>
+            <b style="color:var(--text)">TARGET:</b> Nearest pivot level (R1/S1) or prior session high/low; 1:2 RR
+            minimum.<br>
+            <b style="color:var(--neutral)">TIMEFRAME:</b> 5-min only (VWAP resets daily).<br>
+            <b style="color:var(--bear)">AVOID:</b> Flat / sideways VWAP days (no edge) &middot; first 15 min (VWAP
+            unstable).
+          </div>
+          <div class="action ce">&rarr; Pullback to VWAP + candle + volume</div>
+        </div>
+
+        <div class="card bull">
+          <div class="cname">20 / 50 / 200 EMA</div>
+          <svg width="220" height="100" viewBox="0 0 220 100">
+            <polyline points="10,85 30,70 55,75 80,58 105,62 130,48 155,50 180,32 210,38" fill="none" stroke="#ffffff"
+              stroke-width="1.8" />
+            <polyline points="10,82 35,73 60,68 85,62 110,56 135,50 160,44 185,40 210,36" fill="none" stroke="#09a86e"
+              stroke-width="1.8" />
+            <polyline points="10,78 40,74 70,70 100,66 130,62 160,58 190,54 210,50" fill="none" stroke="#d4941a"
+              stroke-width="1.8" />
+            <polyline points="10,72 50,70 100,68 150,66 210,63" fill="none" stroke="#c91f3a" stroke-width="1.8" />
+            <text x="170" y="28" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="8">20</text>
+            <text x="170" y="52" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="8">50</text>
+            <text x="170" y="68" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="8">200</text>
+          </svg>
+          <div class="badge bull">DYNAMIC S/R</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">WHY IT MATTERS:</b> Smooths noise, reveals the real trend. Alignment of EMAs
+            (stacking) tells you whether the trend is strong or weakening.<br><br>
+            <b style="color:var(--text)">HOW TO READ:</b><br>
+            &bull; <b>20 EMA</b> = short-term pulse (scalping S/R)<br>
+            &bull; <b>50 EMA</b> = intraday swing trend<br>
+            &bull; <b>200 EMA</b> = major regime filter<br>
+            &bull; Stack <b>20 &gt; 50 &gt; 200</b> = strong uptrend &middot; reverse = strong downtrend<br><br>
+            <b style="color:var(--bull)">BUY CE WHEN:</b> Price pulls back to <b>rising 20 EMA</b> on 5-min (or 50 EMA
+            on 15-min) + bullish engulfing / hammer + stack order 20 &gt; 50 &gt; 200.<br>
+            <b style="color:var(--bear)">BUY PE WHEN:</b> Price rallies to <b>falling 20 EMA</b> + bearish candle +
+            stack 20 &lt; 50 &lt; 200.<br><br>
+            <b style="color:var(--text)">SL:</b> 10&ndash;15 pts beyond the EMA used as entry.<br>
+            <b style="color:var(--text)">TARGET:</b> Prior swing high/low; 1:2 RR minimum.<br>
+            <b style="color:var(--neutral)">TIMEFRAME:</b> 5-min (20 EMA) scalping &middot; 15-min (50 EMA) intraday
+            &middot; daily (200 EMA) regime.<br>
+            <b style="color:var(--bear)">AVOID:</b> Choppy days where EMAs are flat &amp; intertwined &middot; news gaps
+            through the EMAs.
+          </div>
+          <div class="action ce">&rarr; Pullback to aligned EMA + candle</div>
+        </div>
+
+        <div class="card bull">
+          <div class="cname">SUPERTREND</div>
+          <svg width="220" height="100" viewBox="0 0 220 100">
+            <polyline points="10,80 30,70 55,58 80,42 105,35 130,28 155,22 180,18 210,14" fill="none" stroke="#ffffff"
+              stroke-width="2" />
+            <polyline points="10,90 30,82 55,72 80,58 105,48 125,40" fill="none" stroke="#09a86e" stroke-width="2.5" />
+            <polyline points="125,40 140,52 155,45 180,35 210,28" fill="none" stroke="#c91f3a" stroke-width="2.5" />
+            <circle cx="125" cy="40" r="4" fill="#d4941a" />
+            <text x="132" y="55" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="8">FLIP</text>
+          </svg>
+          <div class="badge bull">TREND FOLLOWING</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">WHY IT MATTERS:</b> The simplest visual trend filter in existence &mdash; one
+            line, one colour, one rule: green = long only, red = short only. Removes bias ambiguity.<br><br>
+            <b style="color:var(--text)">HOW TO READ:</b><br>
+            &bull; Line <b>below price, green</b> &rarr; uptrend active<br>
+            &bull; Line <b>above price, red</b> &rarr; downtrend active<br>
+            &bull; <b>Colour flip</b> = structural trend change<br>
+            &bull; Default: 10 period, 3 multiplier<br><br>
+            <b style="color:var(--bull)">BUY CE WHEN:</b> Supertrend flips red &rarr; green + the next candle closes
+            <b>above the flip candle's high</b> + volume spike. 15-min chart.<br>
+            <b style="color:var(--bear)">BUY PE WHEN:</b> Supertrend flips green &rarr; red + next candle closes
+            <b>below the flip candle's low</b> + volume.<br><br>
+            <b style="color:var(--text)">SL:</b> Opposite side of the Supertrend line at entry (auto-trails).<br>
+            <b style="color:var(--text)">TARGET:</b> <b>Trail with Supertrend</b> &mdash; exit only on colour flip
+            back.<br>
+            <b style="color:var(--neutral)">TIMEFRAME:</b> 15-min / 1-hour. Avoid &lt; 5-min (whippy).<br>
+            <b style="color:var(--bear)">AVOID:</b> Ranging / choppy markets (constant whipsaws). Check CPR width first
+            &mdash; wide CPR = skip Supertrend signals.
+          </div>
+          <div class="action ce">&rarr; Wait for flip + next-candle close + volume</div>
+        </div>
+      </div>
+
+    </div>
+  

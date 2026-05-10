@@ -1,0 +1,139 @@
+    <div class="wrap">
+      <div class="shead">
+        <h2>BIAS CALCULATOR <span class="count-badge">CE / PE / NO-TRADE</span></h2>
+      </div>
+
+      <div style="margin:6px 0 18px;font-size:14.5px;line-height:1.75">
+        A <b>bias calculator</b> is a 30-second pre-market checklist. Feed it yesterday's Nifty <b>H, L, C</b> + current
+        spot, and it applies the rules from this app (CPR shape, width, price location, VIX, PCR, higher-TF trend) to
+        give one structured answer: <b style="color:var(--bull)">STRONG CE</b> &middot; <b style="color:var(--bull)">CE
+          BIAS</b> &middot; <b style="color:var(--neutral)">NO TRADE</b> &middot; <b style="color:var(--bear)">PE
+          BIAS</b> &middot; <b style="color:var(--bear)">STRONG PE</b>.
+      </div>
+
+      <div
+        style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;font-size:13px;line-height:1.65">
+        <div
+          style="padding:12px 14px;background:rgba(9,168,110,0.07);border-left:3px solid var(--bull);border-radius:5px">
+          <b style="color:var(--bull);letter-spacing:0.5px">WHAT IT IS</b><br>
+          A rules engine, not a predictor. The same CPR / VIX / PCR / trend logic you've already learned, automated into
+          one click.
+        </div>
+        <div
+          style="padding:12px 14px;background:rgba(33,142,247,0.07);border-left:3px solid var(--info);border-radius:5px">
+          <b style="color:var(--info);letter-spacing:0.5px">WHEN TO USE</b><br>
+          9:00 AM daily, before market opens. Sets your bias for the day in 30 seconds. Re-check intraday whenever spot
+          moves significantly.
+        </div>
+        <div
+          style="padding:12px 14px;background:rgba(201,31,58,0.07);border-left:3px solid var(--bear);border-radius:5px">
+          <b style="color:var(--bear);letter-spacing:0.5px">WHAT IT ISN'T</b><br>
+          Not a buy/sell signal. Not advice. Not live data. Always wait for a candle trigger at TC / BC / VWAP / Fib
+          confluence before any trade.
+        </div>
+      </div>
+
+      <div class="calc-card" style="max-width:none">
+        <h3>INPUTS</h3>
+        <div class="calc-row">
+          <div class="calc-field"><label>Yesterday H</label><input type="number" id="bc-prevH" value="24170" step="0.05"
+              oninput="calcBias()"></div>
+          <div class="calc-field"><label>Yesterday L</label><input type="number" id="bc-prevL" value="24125" step="0.05"
+              oninput="calcBias()"></div>
+          <div class="calc-field"><label>Yesterday C</label><input type="number" id="bc-prevC" value="24119" step="0.05"
+              oninput="calcBias()"></div>
+          <div class="calc-field"><label>Current Spot</label><input type="number" id="bc-spot" value="24067" step="0.05"
+              oninput="calcBias()"></div>
+        </div>
+        <div class="calc-row">
+          <div class="calc-field"><label>Higher-TF Trend</label>
+            <select id="bc-trend" onchange="calcBias()">
+              <option value="2">Strong Up</option>
+              <option value="1">Up</option>
+              <option value="0">Sideways</option>
+              <option value="-1" selected>Down</option>
+              <option value="-2">Strong Down</option>
+            </select>
+          </div>
+          <div class="calc-field"><label>India VIX <span
+                style="opacity:0.6;font-weight:400">(optional)</span></label><input type="number" id="bc-vix"
+              value="14.5" step="0.1" oninput="calcBias()"></div>
+          <div class="calc-field"><label>PCR <span style="opacity:0.6;font-weight:400">(optional)</span></label><input
+              type="number" id="bc-pcr" value="0.92" step="0.01" oninput="calcBias()"></div>
+          <div class="calc-field"><label>&nbsp;</label><button class="bias-reset-btn" onclick="loadBiasExample()"
+              type="button">LOAD EXAMPLE</button></div>
+        </div>
+        <input type="hidden" id="bc-todayH" value="0">
+        <input type="hidden" id="bc-todayL" value="0">
+        <input type="hidden" id="bc-inst" value="0.20">
+      </div>
+
+      <div class="calc-card" style="max-width:none;margin-top:18px;padding:0;overflow:hidden">
+        <div id="bc-result-card">&mdash;</div>
+      </div>
+
+      <!-- ─── AFFILIATE: BIAS CALCULATOR FOLLOW-THROUGH ─── -->
+      <div class="aff-card">
+        <span class="aff-tag">Recommended Broker</span>
+        <h4>Got your bias? You'll need a broker to act on it.</h4>
+        <p>The calculator gives you the framework &mdash; you still need a low-brokerage F&amp;O account with fast
+          execution to act on it. Both <b>Upstox</b> and <b>Dhan</b> charge <b>flat &#8377;20/order</b>, give you free
+          TradingView charts, and have lightning-fast option-chain apps. Open one in 5 minutes:</p>
+        <div class="aff-row">
+          <a class="aff-btn" href="#" onclick="this.href=aff('upstox','biascalc');return affClick('upstox','biascalc');"
+            target="_blank" rel="noopener nofollow sponsored">Open Free Upstox Account &rarr;</a>
+          <a class="aff-btn alt" href="#" onclick="this.href=aff('dhan','biascalc');return affClick('dhan','biascalc');"
+            target="_blank" rel="noopener nofollow sponsored">Open Free Dhan Account &rarr;</a>
+        </div>
+      </div>
+
+      <details style="margin-top:14px">
+        <summary
+          style="cursor:pointer;padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);user-select:none">
+          &#9656; Show score breakdown &amp; methodology</summary>
+        <div style="padding:14px 4px 4px">
+          <div id="bc-breakdown" class="calc-result">&mdash;</div>
+          <div
+            style="margin-top:14px;padding:14px 16px;background:var(--hover-bg);border-left:3px solid var(--neutral);border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.75">
+            <b>How the score is computed:</b><br>
+            &bull; CPR shape (&plusmn;1): Normal +1 / Inverted -1<br>
+            &bull; Price vs CPR band (&plusmn;2): Above +2 / Inside 0 / Below -2<br>
+            &bull; CPR width (&plusmn;1): Narrow boosts existing bias / Wide softens it<br>
+            &bull; VIX (&plusmn;1): &lt;13 boosts trend / &gt;20 = -1 caution<br>
+            &bull; PCR (&plusmn;1): &gt;1.2 = +1 CE / &lt;0.8 = -1 PE / 0.8&ndash;1.2 = neutral<br>
+            &bull; Higher-TF trend (&plusmn;2): Strong Up +2 to Strong Down -2<br>
+            &bull; Buckets: &ge;+4 STRONG CE / +1 to +3 CE BIAS / 0 NO TRADE / -1 to -3 PE BIAS / &le;-4 STRONG PE
+          </div>
+        </div>
+      </details>
+
+      <details style="margin-top:8px">
+        <summary
+          style="cursor:pointer;padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--muted);user-select:none">
+          &#9656; Live TradingView / Upstox Pine Script</summary>
+        <div style="padding:14px 4px 4px">
+          <div style="font-size:13.5px;line-height:1.75;margin-bottom:12px">
+            <b>Install in 60 seconds:</b> TradingView/Upstox &rarr; Pine Editor tab &rarr; paste &rarr; Save &rarr; Add
+            to chart. Plots CPR, VWAP, and a top-right bias label live on every bar.
+          </div>
+          <div style="position:relative">
+            <button class="pine-copy-btn" onclick="copyPine()" type="button">COPY PINE</button>
+            <pre id="pine-code"><code>(loading...)</code></pre>
+          </div>
+          <div style="margin-top:10px;font-size:12.5px;color:var(--muted);font-family:'IBM Plex Mono',monospace">Note:
+            on-chart Pine uses CPR+VWAP only (no PCR / VIX / higher-TF). Its score range is &plusmn;5 vs the
+            calculator's &plusmn;8, so its STRONG threshold is &ge;&plusmn;3 (vs &ge;&plusmn;4 in the calculator). The
+            two tools are <b>calibrated to give similar conclusions, not identical scores</b> &mdash; treat them as
+            cross-checks, not as a single number.</div>
+          <div class="aff-inline" style="margin-top:14px">
+            <span><b>Don't have TradingView yet?</b> The Pine script above runs on the free plan, but the paid plan
+              gives you multi-chart layouts, custom timeframes, and saved templates &mdash; ideal for serious intraday
+              traders. <a href="#"
+                onclick="this.href=aff('tradingview','pinescript');return affClick('tradingview','pinescript');"
+                target="_blank" rel="noopener nofollow sponsored">Get TradingView (free + paid plans) &rarr;</a></span>
+          </div>
+        </div>
+      </details>
+
+    </div>
+  

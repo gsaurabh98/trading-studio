@@ -1,0 +1,36 @@
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.Python
+
+# ── Node / build ─────────────────────────────────────────
+node_modules/
+dist/
+build/
+*.log
+.npm
+
+# ── Cloudflare Wrangler ──────────────────────────────────
+.wrangler/
+.dev.vars
+.env
+.env.local
+
+# ── Editor / OS junk ─────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Cursor agent state (per-machine) ─────────────────────
+.cursor/
+
+# ── Backups / dead code (kept locally, not committed) ───
+candlestick-patterns-before-split.html
+*.bak
+*.orig

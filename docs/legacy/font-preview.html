@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Font Comparison · Inter vs IBM Plex Sans vs Geist</title>
+
+<!-- Load all three fonts + their mono companions -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#07090f; --text:#e8ecf2; --text-soft:#b0c4e8; --text-dim:#7a8aa5;
+  --s1:#0f141c; --s2:#151b26; --s3:#1d2532; --bd:#1f2733;
+  --bull:#09a86e; --bear:#c91f3a; --neutral:#d4941a; --info:#4db8ff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:16px;}
+body{
+  background:var(--bg);color:var(--text);min-height:100vh;padding:30px 18px 60px;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+
+.page-header{max-width:1600px;margin:0 auto 36px;font-family:'Inter',system-ui,sans-serif;}
+.page-header h1{font-size:1.6rem;font-weight:700;letter-spacing:-0.015em;margin-bottom:8px;}
+.page-header p{color:var(--text-soft);font-size:0.95rem;line-height:1.55;max-width:720px;}
+.page-header code{background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:1px 6px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:0.85rem;color:var(--bull);}
+
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;max-width:1600px;margin:0 auto;}
+@media (max-width:1200px){.grid{grid-template-columns:1fr;}}
+
+.col{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:26px;min-width:0;}
+
+/* ─── Font application per column ─── */
+.inter      {font-family:'Inter',system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum","ss01","cv11";}
+.inter .mono{font-family:'JetBrains Mono','SF Mono',ui-monospace,Menlo,monospace;}
+
+.plex       {font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;}
+.plex .mono {font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace;}
+
+.geist      {font-family:'Geist',system-ui,-apple-system,sans-serif;font-variant-numeric:tabular-nums;}
+.geist .mono{font-family:'Geist Mono',ui-monospace,Menlo,monospace;}
+
+/* ─── Column header ─── */
+.fname{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.fname-main{font-size:1.3rem;font-weight:700;letter-spacing:-0.015em;}
+.fname-sub{font-size:0.72rem;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;font-weight:500;}
+.fdesigner{color:var(--text-soft);font-size:0.82rem;line-height:1.5;margin-bottom:2px;}
+.fuse{color:var(--text-dim);font-size:0.78rem;line-height:1.5;margin-bottom:20px;}
+.fuse strong{color:var(--bull);font-weight:600;}
+
+/* ─── Sample sections ─── */
+.lbl{font-size:0.66rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;border-bottom:1px dashed var(--bd);padding-bottom:4px;font-weight:600;}
+.sample{margin-bottom:22px;}
+
+/* Headings */
+.h1{font-size:1.9rem;font-weight:700;letter-spacing:-0.02em;line-height:1.1;margin-bottom:6px;}
+.h2{font-size:1.15rem;font-weight:600;letter-spacing:-0.01em;line-height:1.25;margin-bottom:4px;}
+.h3{font-size:0.78rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-soft);}
+
+/* Body paragraph */
+.prose{font-size:0.95rem;line-height:1.6;color:var(--text);}
+.prose p + p{margin-top:10px;}
+.prose b{font-weight:600;color:var(--text);}
+.prose i{color:var(--text-soft);}
+
+/* Data table (monospace numbers) */
+.dt{font-size:0.84rem;width:100%;border-collapse:collapse;}
+.dt th{text-align:left;font-weight:600;font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);padding:7px 8px;background:var(--s2);border-bottom:1px solid var(--bd);}
+.dt td{padding:8px;border-bottom:1px solid var(--bd);}
+.dt .n{font-family:inherit;font-variant-numeric:tabular-nums;text-align:right;}
+.dt .tc{color:var(--bull);font-weight:600;}
+.dt .tp{color:var(--bear);font-weight:600;}
+.dt tr:last-child td{border-bottom:none;}
+
+/* Badge / pill row */
+.badges{display:flex;flex-wrap:wrap;gap:8px;}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:4px;font-size:0.72rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;}
+.badge.bull{background:rgba(9,168,110,0.12);color:var(--bull);border:1px solid rgba(9,168,110,0.3);}
+.badge.bear{background:rgba(201,31,58,0.12);color:var(--bear);border:1px solid rgba(201,31,58,0.3);}
+.badge.neutral{background:rgba(212,148,26,0.12);color:var(--neutral);border:1px solid rgba(212,148,26,0.3);}
+.badge.info{background:rgba(77,184,255,0.12);color:var(--info);border:1px solid rgba(77,184,255,0.3);}
+
+/* Inline mono block */
+.kbd-row{display:flex;gap:6px;align-items:center;font-size:0.85rem;color:var(--text-soft);}
+kbd{display:inline-block;padding:2px 7px;background:var(--s2);border:1px solid var(--bd);border-bottom-width:2px;border-radius:4px;font-size:0.78rem;color:var(--text);}
+
+/* Code-ish row for mono preview */
+.mono-preview{background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:12px 14px;font-size:0.85rem;line-height:1.65;}
+.mono-preview .comment{color:var(--text-dim);}
+.mono-preview .num{color:var(--bull);}
+.mono-preview .neg{color:var(--bear);}
+.mono-preview .key{color:var(--info);}
+
+/* Distinguishable chars row */
+.chars{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:1.4rem;text-align:center;background:var(--s2);padding:10px;border-radius:6px;border:1px solid var(--bd);font-weight:500;}
+.chars span{padding:4px 0;color:var(--text);}
+
+.divider{height:1px;background:var(--bd);margin:22px 0;}
+
+/* Footer pick row */
+.pick{max-width:1600px;margin:40px auto 0;text-align:center;color:var(--text-dim);font-family:'Inter',system-ui,sans-serif;font-size:0.88rem;}
+.pick b{color:var(--bull);font-weight:600;}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Font comparison — Inter vs IBM Plex Sans vs Geist</h1>
+  <p>Every column below uses its font for <b>all</b> visible text, including the column header. The samples mirror what you'd actually see in the app — long-form prose, a dense options table with numeric data, section headings, bull/bear badges, keyboard shortcuts, and a code-like block rendered in the font's monospace companion. Scroll through all three and pick whichever feels most <code>readable</code> and in-character for a trading pattern encyclopedia.</p>
+</div>
+
+<div class="grid">
+
+<!-- ═══════════════ COLUMN 1: INTER ═══════════════ -->
+<div class="col inter">
+  <div class="fname">
+    <span class="fname-main">Inter</span>
+    <span class="fname-sub">Current · Sans-serif</span>
+  </div>
+  <div class="fdesigner">Rasmus Andersson · 2016 → 2024 (v4.0)</div>
+  <div class="fuse"><strong>Used by:</strong> Linear, GitHub, Notion, Vercel (pre-Geist), Figma, Stripe, Arc. The default "SaaS-modern" workhorse.</div>
+
+  <div class="sample">
+    <div class="lbl">Display heading (1.9rem)</div>
+    <div class="h1">Morning Star Reversal</div>
+    <div class="h3">THREE-CANDLE BULLISH PATTERN · RELIABILITY ★★★</div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Body paragraph (0.95rem, 1.6 line-height)</div>
+    <div class="prose">
+      <p>The <b>Morning Star</b> is one of the most reliable three-candle bullish reversal patterns in technical analysis. It typically appears at the bottom of a downtrend, where the market has been under pressure from sustained selling, and signals that sentiment is shifting. The pattern consists of a long bearish candle, followed by a small-bodied candle (the "star") that gaps lower, and finally a long bullish candle that closes well into the body of the first candle.</p>
+      <p>For Indian option traders, the key insight is <i>where</i> this pattern forms. A Morning Star at a prior support level or a CPR bottom carries much more weight than one appearing randomly in a consolidation range. Confirm with volume: the third candle should show noticeably higher turnover than the first two. Without volume, the setup is suspect.</p>
+    </div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Section header (1.15rem)</div>
+    <div class="h2">Entry, Stop-Loss, Target</div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Options table — Nifty option chain</div>
+    <table class="dt mono">
+      <thead>
+        <tr><th>Strike</th><th class="n">CE LTP</th><th class="n">CE OI</th><th class="n">IV%</th><th class="n">PE LTP</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>24,000</td><td class="n tc">425.80</td><td class="n">18.2L</td><td class="n">11.2</td><td class="n tp">12.40</td></tr>
+        <tr><td>24,200</td><td class="n tc">238.20</td><td class="n">32.8L</td><td class="n">10.5</td><td class="n tp">28.50</td></tr>
+        <tr><td>24,400</td><td class="n tc">128.40</td><td class="n">58.6L</td><td class="n">10.1</td><td class="n tp">112.60</td></tr>
+        <tr><td>24,600</td><td class="n tc">58.20</td><td class="n">41.2L</td><td class="n">10.4</td><td class="n tp">245.50</td></tr>
+        <tr><td>24,800</td><td class="n tc">22.80</td><td class="n">28.5L</td><td class="n">10.9</td><td class="n tp">418.20</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Pills & badges</div>
+    <div class="badges">
+      <span class="badge bull">Bullish Reversal</span>
+      <span class="badge bear">Short Signal</span>
+      <span class="badge neutral">Doji · Indecision</span>
+      <span class="badge info">Reference</span>
+    </div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Keyboard shortcut row</div>
+    <div class="kbd-row">Open search <kbd>/</kbd> or <kbd>⌘</kbd><kbd>K</kbd> · Toggle theme <kbd>T</kbd> · Next section <kbd>]</kbd></div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Monospace companion — JetBrains Mono</div>
+    <div class="mono-preview mono">
+      <span class="comment"># Nifty ATM Call P&amp;L simulation</span><br>
+      entry_premium  = <span class="num">80.00</span><br>
+      target_premium = <span class="num">120.00</span><br>
+      stop_premium   = <span class="num">56.00</span>  <span class="comment"># 30% rule</span><br>
+      lot_size       = <span class="num">65</span><br>
+      max_profit     = (120 - 80) * 65 = <span class="num">2,600</span><br>
+      max_loss       = (56 - 80) * 65  = <span class="neg">-1,560</span>
+    </div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Character disambiguation (0 O 1 I l g a)</div>
+    <div class="chars">
+      <span>0</span><span>O</span><span>1</span><span>I</span><span>l</span><span>g</span><span>a</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ COLUMN 2: IBM PLEX SANS ═══════════════ -->
+<div class="col plex">
+  <div class="fname">
+    <span class="fname-main">IBM Plex Sans</span>
+    <span class="fname-sub">Bloomberg-like · Serious</span>
+  </div>
+  <div class="fdesigner">Mike Abbink + Bold Monday · 2017</div>
+  <div class="fuse"><strong>Used by:</strong> IBM, Bloomberg-style fintech dashboards, Cloudflare dashboards, TIDAL. Conveys authority and technical rigour.</div>
+
+  <div class="sample">
+    <div class="lbl">Display heading (1.9rem)</div>
+    <div class="h1">Morning Star Reversal</div>
+    <div class="h3">THREE-CANDLE BULLISH PATTERN · RELIABILITY ★★★</div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Body paragraph (0.95rem, 1.6 line-height)</div>
+    <div class="prose">
+      <p>The <b>Morning Star</b> is one of the most reliable three-candle bullish reversal patterns in technical analysis. It typically appears at the bottom of a downtrend, where the market has been under pressure from sustained selling, and signals that sentiment is shifting. The pattern consists of a long bearish candle, followed by a small-bodied candle (the "star") that gaps lower, and finally a long bullish candle that closes well into the body of the first candle.</p>
+      <p>For Indian option traders, the key insight is <i>where</i> this pattern forms. A Morning Star at a prior support level or a CPR bottom carries much more weight than one appearing randomly in a consolidation range. Confirm with volume: the third candle should show noticeably higher turnover than the first two. Without volume, the setup is suspect.</p>
+    </div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Section header (1.15rem)</div>
+    <div class="h2">Entry, Stop-Loss, Target</div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Options table — Nifty option chain</div>
+    <table class="dt mono">
+      <thead>
+        <tr><th>Strike</th><th class="n">CE LTP</th><th class="n">CE OI</th><th class="n">IV%</th><th class="n">PE LTP</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>24,000</td><td class="n tc">425.80</td><td class="n">18.2L</td><td class="n">11.2</td><td class="n tp">12.40</td></tr>
+        <tr><td>24,200</td><td class="n tc">238.20</td><td class="n">32.8L</td><td class="n">10.5</td><td class="n tp">28.50</td></tr>
+        <tr><td>24,400</td><td class="n tc">128.40</td><td class="n">58.6L</td><td class="n">10.1</td><td class="n tp">112.60</td></tr>
+        <tr><td>24,600</td><td class="n tc">58.20</td><td class="n">41.2L</td><td class="n">10.4</td><td class="n tp">245.50</td></tr>
+        <tr><td>24,800</td><td class="n tc">22.80</td><td class="n">28.5L</td><td class="n">10.9</td><td class="n tp">418.20</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Pills & badges</div>
+    <div class="badges">
+      <span class="badge bull">Bullish Reversal</span>
+      <span class="badge bear">Short Signal</span>
+      <span class="badge neutral">Doji · Indecision</span>
+      <span class="badge info">Reference</span>
+    </div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Keyboard shortcut row</div>
+    <div class="kbd-row">Open search <kbd>/</kbd> or <kbd>⌘</kbd><kbd>K</kbd> · Toggle theme <kbd>T</kbd> · Next section <kbd>]</kbd></div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Monospace companion — IBM Plex Mono</div>
+    <div class="mono-preview mono">
+      <span class="comment"># Nifty ATM Call P&amp;L simulation</span><br>
+      entry_premium  = <span class="num">80.00</span><br>
+      target_premium = <span class="num">120.00</span><br>
+      stop_premium   = <span class="num">56.00</span>  <span class="comment"># 30% rule</span><br>
+      lot_size       = <span class="num">65</span><br>
+      max_profit     = (120 - 80) * 65 = <span class="num">2,600</span><br>
+      max_loss       = (56 - 80) * 65  = <span class="neg">-1,560</span>
+    </div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Character disambiguation (0 O 1 I l g a)</div>
+    <div class="chars">
+      <span>0</span><span>O</span><span>1</span><span>I</span><span>l</span><span>g</span><span>a</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ COLUMN 3: GEIST ═══════════════ -->
+<div class="col geist">
+  <div class="fname">
+    <span class="fname-main">Geist</span>
+    <span class="fname-sub">Modern · 2024</span>
+  </div>
+  <div class="fdesigner">Vercel Design team · 2024</div>
+  <div class="fuse"><strong>Used by:</strong> Vercel, v0.dev, the newest generation of AI/dev-tool interfaces. Described as "Inter, upgraded" with better rendering and more refined shapes.</div>
+
+  <div class="sample">
+    <div class="lbl">Display heading (1.9rem)</div>
+    <div class="h1">Morning Star Reversal</div>
+    <div class="h3">THREE-CANDLE BULLISH PATTERN · RELIABILITY ★★★</div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Body paragraph (0.95rem, 1.6 line-height)</div>
+    <div class="prose">
+      <p>The <b>Morning Star</b> is one of the most reliable three-candle bullish reversal patterns in technical analysis. It typically appears at the bottom of a downtrend, where the market has been under pressure from sustained selling, and signals that sentiment is shifting. The pattern consists of a long bearish candle, followed by a small-bodied candle (the "star") that gaps lower, and finally a long bullish candle that closes well into the body of the first candle.</p>
+      <p>For Indian option traders, the key insight is <i>where</i> this pattern forms. A Morning Star at a prior support level or a CPR bottom carries much more weight than one appearing randomly in a consolidation range. Confirm with volume: the third candle should show noticeably higher turnover than the first two. Without volume, the setup is suspect.</p>
+    </div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Section header (1.15rem)</div>
+    <div class="h2">Entry, Stop-Loss, Target</div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Options table — Nifty option chain</div>
+    <table class="dt mono">
+      <thead>
+        <tr><th>Strike</th><th class="n">CE LTP</th><th class="n">CE OI</th><th class="n">IV%</th><th class="n">PE LTP</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>24,000</td><td class="n tc">425.80</td><td class="n">18.2L</td><td class="n">11.2</td><td class="n tp">12.40</td></tr>
+        <tr><td>24,200</td><td class="n tc">238.20</td><td class="n">32.8L</td><td class="n">10.5</td><td class="n tp">28.50</td></tr>
+        <tr><td>24,400</td><td class="n tc">128.40</td><td class="n">58.6L</td><td class="n">10.1</td><td class="n tp">112.60</td></tr>
+        <tr><td>24,600</td><td class="n tc">58.20</td><td class="n">41.2L</td><td class="n">10.4</td><td class="n tp">245.50</td></tr>
+        <tr><td>24,800</td><td class="n tc">22.80</td><td class="n">28.5L</td><td class="n">10.9</td><td class="n tp">418.20</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Pills & badges</div>
+    <div class="badges">
+      <span class="badge bull">Bullish Reversal</span>
+      <span class="badge bear">Short Signal</span>
+      <span class="badge neutral">Doji · Indecision</span>
+      <span class="badge info">Reference</span>
+    </div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Keyboard shortcut row</div>
+    <div class="kbd-row">Open search <kbd>/</kbd> or <kbd>⌘</kbd><kbd>K</kbd> · Toggle theme <kbd>T</kbd> · Next section <kbd>]</kbd></div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Monospace companion — Geist Mono</div>
+    <div class="mono-preview mono">
+      <span class="comment"># Nifty ATM Call P&amp;L simulation</span><br>
+      entry_premium  = <span class="num">80.00</span><br>
+      target_premium = <span class="num">120.00</span><br>
+      stop_premium   = <span class="num">56.00</span>  <span class="comment"># 30% rule</span><br>
+      lot_size       = <span class="num">65</span><br>
+      max_profit     = (120 - 80) * 65 = <span class="num">2,600</span><br>
+      max_loss       = (56 - 80) * 65  = <span class="neg">-1,560</span>
+    </div>
+  </div>
+
+  <div class="sample">
+    <div class="lbl">Character disambiguation (0 O 1 I l g a)</div>
+    <div class="chars">
+      <span>0</span><span>O</span><span>1</span><span>I</span><span>l</span><span>g</span><span>a</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /.grid -->
+
+<div class="pick">
+  Pick the one that feels most readable at a glance. Tell me <b>Inter / Plex / Geist</b> and I'll apply it across the whole app.
+</div>
+
+</body>
+</html>

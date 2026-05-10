@@ -1,0 +1,514 @@
+    <div class="wrap">
+      <div class="shead">
+        <h2>PICK YOUR STRATEGY <span class="count-badge">DECISION TREE · 6 PLAYBOOKS</span></h2>
+      </div>
+
+      <div class="catdiv">STEP 1 · WHAT KIND OF DAY IS IT?</div>
+      <div class="infobox"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M16.5 7.5 10 10l-2.5 6.5L14 14z" />
+        </svg> The single biggest edge in intraday trading: <b>diagnosing the day before you trade it.</b> Different
+        days need different strategies. Trying to trade a range-bound day with a breakout strategy = guaranteed losses.
+      </div>
+
+      <div class="pgrid md">
+        <div class="card bull">
+          <div class="cname" style="color:var(--bull)">TRENDING DAY</div>
+          <div class="badge bull">DIRECTIONAL FLOW</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">How to recognise:</b><br>
+            • Narrow CPR (&lt;0.2%)<br>
+            • Gap up/down opening with follow-through<br>
+            • Price above/below VWAP for most of the day<br>
+            • India VIX between 12–16<br>
+            • All EMAs (20/50/200) stacked in one direction on 15-min<br><br>
+            <b style="color:var(--bull)">Best strategies:</b> ORB Breakout · CPR Breakout · VWAP Bounce · Flag Breakout
+            · BB Squeeze
+          </div>
+        </div>
+
+        <div class="card neu">
+          <div class="cname" style="color:var(--neutral)">RANGE-BOUND DAY</div>
+          <div class="badge neu">OSCILLATING</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">How to recognise:</b><br>
+            • Wide CPR (&gt;0.5%)<br>
+            • Price crossing VWAP 5+ times<br>
+            • 60-min EMAs flat and interleaved<br>
+            • India VIX 14–19<br>
+            • Clear horizontal ceiling + floor visible<br><br>
+            <b style="color:var(--neutral)">Best strategies:</b> S/R Reversal + Candle (fade extremes) · BB Squeeze
+            (wait for volatility breakout). AVOID directional breakout trades mid-range.
+          </div>
+        </div>
+
+        <div class="card bear">
+          <div class="cname" style="color:var(--bear)">CHOPPY / NEWS DAY</div>
+          <div class="badge bear">STAY OUT</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">How to recognise:</b><br>
+            • India VIX &gt; 20<br>
+            • Consecutive wick-heavy candles both sides<br>
+            • Major event scheduled (RBI, Fed, Budget, US CPI)<br>
+            • Price whipsaws through S/R without commitment<br><br>
+            <b style="color:var(--bear)">Best action:</b> <b>Don't trade.</b> Sit in cash. Protecting capital on these
+            days is an edge — 80% of big drawdowns happen on choppy days.
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv">STEP 2 · DECISION TREE</div>
+      <div
+        style="background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:20px;margin:16px 0;overflow-x:auto">
+        <svg width="100%" height="480" viewBox="0 0 900 480" style="min-width:640px;max-width:960px"
+          preserveAspectRatio="xMidYMid meet">
+          <!-- ─── LEVEL 1 · PRE-MARKET ─── -->
+          <rect x="300" y="14" width="300" height="52" rx="8" fill="rgba(77,184,255,0.15)" stroke="#4db8ff"
+            stroke-width="1.5" />
+          <text x="450" y="36" text-anchor="middle" fill="#4db8ff" font-family="'IBM Plex Mono',monospace"
+            font-size="12" font-weight="bold">PRE-MARKET</text>
+          <text x="450" y="56" text-anchor="middle" fill="#fff" font-family="'IBM Plex Mono',monospace"
+            font-size="10">Is India VIX &gt; 20 OR big event today?</text>
+
+          <!-- YES branch (left) -->
+          <line x1="400" y1="66" x2="200" y2="110" stroke="#c91f3a" stroke-width="1.5" />
+          <text x="290" y="88" text-anchor="middle" fill="#c91f3a" font-family="'IBM Plex Mono',monospace"
+            font-size="11" font-weight="bold">YES</text>
+
+          <!-- NO branch (right) -->
+          <line x1="500" y1="66" x2="680" y2="110" stroke="#09a86e" stroke-width="1.5" />
+          <text x="600" y="88" text-anchor="middle" fill="#09a86e" font-family="'IBM Plex Mono',monospace"
+            font-size="11" font-weight="bold">NO</text>
+
+          <!-- ─── LEVEL 2a · STAY IN CASH ─── -->
+          <rect x="100" y="110" width="200" height="52" rx="8" fill="rgba(201,31,58,0.15)" stroke="#c91f3a"
+            stroke-width="1.5" />
+          <text x="200" y="132" text-anchor="middle" fill="#c91f3a" font-family="'IBM Plex Mono',monospace"
+            font-size="12" font-weight="bold">STAY IN CASH</text>
+          <text x="200" y="150" text-anchor="middle" fill="#fff" font-family="'IBM Plex Mono',monospace"
+            font-size="10">Protect capital. No trades.</text>
+
+          <!-- ─── LEVEL 2b · CHECK CPR WIDTH ─── -->
+          <rect x="580" y="110" width="200" height="52" rx="8" fill="rgba(77,184,255,0.15)" stroke="#4db8ff"
+            stroke-width="1.5" />
+          <text x="680" y="132" text-anchor="middle" fill="#4db8ff" font-family="'IBM Plex Mono',monospace"
+            font-size="12" font-weight="bold">Check CPR width</text>
+          <text x="680" y="150" text-anchor="middle" fill="#fff" font-family="'IBM Plex Mono',monospace"
+            font-size="10">Narrow / Normal / Wide?</text>
+
+          <!-- ─── ELBOW: stem + horizontal bus + three drops ─── -->
+          <line x1="680" y1="162" x2="680" y2="190" stroke="#6b7d9e" stroke-width="1.4" />
+          <line x1="290" y1="190" x2="770" y2="190" stroke="#6b7d9e" stroke-width="1.4" />
+          <line x1="290" y1="190" x2="290" y2="230" stroke="#09a86e" stroke-width="1.5" />
+          <line x1="530" y1="190" x2="530" y2="230" stroke="#d4941a" stroke-width="1.5" />
+          <line x1="770" y1="190" x2="770" y2="230" stroke="#c91f3a" stroke-width="1.5" />
+
+          <!-- Branch labels: placed next to each drop in the bus-to-child gap -->
+          <text x="298" y="212" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="10"
+            font-weight="bold">NARROW</text>
+          <text x="538" y="212" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="10"
+            font-weight="bold">NORMAL</text>
+          <text x="778" y="212" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="10"
+            font-weight="bold">WIDE</text>
+
+          <!-- ─── LEVEL 3 · THREE DAY-TYPE BOXES ─── -->
+          <rect x="200" y="230" width="180" height="88" rx="8" fill="rgba(9,168,110,0.15)" stroke="#09a86e"
+            stroke-width="1.5" />
+          <text x="290" y="252" text-anchor="middle" fill="#09a86e" font-family="'IBM Plex Mono',monospace"
+            font-size="12" font-weight="bold">TRENDING DAY</text>
+          <text x="290" y="274" text-anchor="middle" fill="#fff" font-family="'IBM Plex Mono',monospace" font-size="9">→
+            CPR Breakout (first 90 min)</text>
+          <text x="290" y="292" text-anchor="middle" fill="#fff" font-family="'IBM Plex Mono',monospace" font-size="9">→
+            ORB if CPR fails</text>
+
+          <rect x="440" y="230" width="180" height="88" rx="8" fill="rgba(212,148,26,0.15)" stroke="#d4941a"
+            stroke-width="1.5" />
+          <text x="530" y="252" text-anchor="middle" fill="#d4941a" font-family="'IBM Plex Mono',monospace"
+            font-size="12" font-weight="bold">WAIT &amp; WATCH</text>
+          <text x="530" y="274" text-anchor="middle" fill="#fff" font-family="'IBM Plex Mono',monospace" font-size="9">→
+            VWAP Bounce (mid-day)</text>
+          <text x="530" y="292" text-anchor="middle" fill="#fff" font-family="'IBM Plex Mono',monospace" font-size="9">→
+            Flag Break on strong move</text>
+
+          <rect x="680" y="230" width="180" height="88" rx="8" fill="rgba(201,31,58,0.15)" stroke="#c91f3a"
+            stroke-width="1.5" />
+          <text x="770" y="252" text-anchor="middle" fill="#c91f3a" font-family="'IBM Plex Mono',monospace"
+            font-size="12" font-weight="bold">RANGE DAY</text>
+          <text x="770" y="274" text-anchor="middle" fill="#fff" font-family="'IBM Plex Mono',monospace" font-size="9">→
+            S/R Reversal + Candle</text>
+          <text x="770" y="292" text-anchor="middle" fill="#fff" font-family="'IBM Plex Mono',monospace" font-size="9">→
+            No breakouts!</text>
+
+          <!-- ─── GATHER: children converge toward BEFORE-ENTERING box ─── -->
+          <line x1="290" y1="318" x2="290" y2="338" stroke="#6b7d9e" stroke-width="1.2" stroke-dasharray="4,3" />
+          <line x1="530" y1="318" x2="530" y2="338" stroke="#6b7d9e" stroke-width="1.2" stroke-dasharray="4,3" />
+          <line x1="770" y1="318" x2="770" y2="338" stroke="#6b7d9e" stroke-width="1.2" stroke-dasharray="4,3" />
+          <line x1="290" y1="338" x2="770" y2="338" stroke="#6b7d9e" stroke-width="1.2" />
+          <line x1="530" y1="338" x2="530" y2="356" stroke="#6b7d9e" stroke-width="1.2" />
+
+          <!-- ─── LEVEL 4 · BEFORE ENTERING ANY TRADE ─── -->
+          <rect x="120" y="356" width="660" height="54" rx="8" fill="rgba(192,212,240,0.08)" stroke="#c0d4f0"
+            stroke-width="1.5" />
+          <text x="450" y="378" text-anchor="middle" fill="#fff" font-family="'IBM Plex Mono',monospace" font-size="12"
+            font-weight="bold">BEFORE ENTERING ANY TRADE</text>
+          <text x="450" y="397" text-anchor="middle" fill="#c0d4f0" font-family="'IBM Plex Mono',monospace"
+            font-size="10">Candle confirmation &middot; Volume surge &middot; R:R &ge; 1:2 &middot; SL &lt; 2% of
+            capital</text>
+
+          <!-- Arrow to final box -->
+          <line x1="450" y1="412" x2="450" y2="424" stroke="#09a86e" stroke-width="1.5" />
+          <polygon points="445,422 455,422 450,430" fill="#09a86e" />
+
+          <!-- ─── LEVEL 5 · IF ALL CONDITIONS MET ─── -->
+          <rect x="80" y="430" width="740" height="48" rx="8" fill="rgba(9,168,110,0.12)" stroke="#09a86e"
+            stroke-width="1.5" />
+          <text x="450" y="452" text-anchor="middle" fill="#09a86e" font-family="'IBM Plex Mono',monospace"
+            font-size="12" font-weight="bold">IF ALL CONDITIONS MET &rarr; TAKE THE TRADE</text>
+          <text x="450" y="470" text-anchor="middle" fill="#c0d4f0" font-family="'IBM Plex Mono',monospace"
+            font-size="9">Otherwise, wait. Missing a trade is free. Bad trades cost money.</text>
+        </svg>
+      </div>
+
+      <div class="catdiv">STEP 3 · MATCH STRATEGY TO YOUR PROFILE</div>
+      <table class="strat-table">
+        <thead>
+          <tr>
+            <th>Profile</th>
+            <th>Best Strategies</th>
+            <th>Avoid</th>
+            <th>Reasoning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Beginner</b> (&lt;6 months)</td>
+            <td class="tc">S/R Reversal · ORB</td>
+            <td class="tp">Flag Break · CPR Breakout</td>
+            <td>Clearest signals, easiest to backtest, forces patience.</td>
+          </tr>
+          <tr>
+            <td><b>Intermediate</b> (6–24 months)</td>
+            <td class="tc">ORB · CPR Break · VWAP Bounce</td>
+            <td class="tw">Scalping &lt; 5-min</td>
+            <td>Build on breakout mechanics + dynamic S/R with VWAP.</td>
+          </tr>
+          <tr>
+            <td><b>Advanced</b> (2+ years)</td>
+            <td class="tc">All 6 + chart patterns + OI plays</td>
+            <td class="tp">Random "gut feel" trades</td>
+            <td>Earn the right to add strategies by tracking 6 months of data per setup.</td>
+          </tr>
+          <tr>
+            <td><b>Part-timer</b> (1–2 hrs/day)</td>
+            <td class="tc">ORB (9:30–10:30) · CPR Break (early) · BB Squeeze (morning)</td>
+            <td class="tw">VWAP Bounce (mid-day)</td>
+            <td>Front-loaded strategies fit limited screen time.</td>
+          </tr>
+          <tr>
+            <td><b>Full-timer</b> (all day)</td>
+            <td class="tc">All 6 strategies</td>
+            <td class="tp">Overtrading (cap at 3/day)</td>
+            <td>Can wait for A+ setups across all sessions.</td>
+          </tr>
+          <tr>
+            <td><b>Small capital</b> (&lt; ₹2L)</td>
+            <td class="tc">Nifty ATM only · 1 lot</td>
+            <td class="tp">BankNifty · Hedged plays</td>
+            <td>Post-lot revision, 1 lot already ties up ~₹10K premium.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="catdiv">THE 6 BATTLE-TESTED PLAYBOOKS</div>
+      <div class="infobox"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg> Each playbook below has <b>exact entry / SL / target rules</b>. No subjectivity. If the conditions aren't
+        met, you don't trade. Pick ONE playbook, master it for 30 days, then expand.</div>
+
+      <!-- PLAYBOOK 1: ORB -->
+      <div class="pgrid c3">
+        <div class="card bull" style="border-left:4px solid var(--bull)">
+          <div class="cname" style="color:var(--bull);font-size:1.1rem"><span class="cnum">1</span> ORB — OPENING RANGE
+            BREAKOUT</div>
+          <svg width="100%" height="140" viewBox="0 0 320 140" style="margin:8px 0">
+            <rect x="10" y="40" width="60" height="40" fill="rgba(212,148,26,0.2)" stroke="#d4941a" stroke-width="1.5"
+              stroke-dasharray="3,2" />
+            <text x="20" y="34" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="9">OR
+              (9:15–9:30)</text>
+            <line x1="10" y1="40" x2="310" y2="40" stroke="#c91f3a" stroke-width="1" stroke-dasharray="3,3" />
+            <text x="275" y="36" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="9">ORH</text>
+            <line x1="10" y1="80" x2="310" y2="80" stroke="#09a86e" stroke-width="1" stroke-dasharray="3,3" />
+            <text x="275" y="94" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">ORL</text>
+            <rect x="15" y="50" width="8" height="22" fill="#09a86e" />
+            <line x1="19" y1="42" x2="19" y2="78" stroke="#09a86e" stroke-width="1" />
+            <rect x="30" y="55" width="8" height="20" fill="#c91f3a" />
+            <line x1="34" y1="48" x2="34" y2="80" stroke="#c91f3a" stroke-width="1" />
+            <rect x="45" y="48" width="8" height="26" fill="#09a86e" />
+            <line x1="49" y1="42" x2="49" y2="78" stroke="#09a86e" stroke-width="1" />
+            <rect x="80" y="42" width="8" height="32" fill="#09a86e" />
+            <line x1="84" y1="38" x2="84" y2="78" stroke="#09a86e" stroke-width="1" />
+            <rect x="100" y="30" width="8" height="18" fill="#09a86e" />
+            <line x1="104" y1="24" x2="104" y2="50" stroke="#09a86e" stroke-width="1" />
+            <rect x="120" y="20" width="8" height="14" fill="#09a86e" />
+            <line x1="124" y1="14" x2="124" y2="38" stroke="#09a86e" stroke-width="1" />
+            <circle cx="85" cy="40" r="6" fill="none" stroke="#09a86e" stroke-width="2" />
+            <text x="92" y="56" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">BREAK + VOL</text>
+            <line x1="10" y1="15" x2="310" y2="15" stroke="#09a86e" stroke-width="1" stroke-dasharray="2,2" />
+            <text x="265" y="11" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">T2 = 2× OR</text>
+          </svg>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">WHEN:</b> Trending day, narrow CPR, first 60 minutes<br>
+            <b style="color:var(--text)">SETUP:</b> Mark ORH and ORL from 9:15–9:30 candle (15-min)<br>
+            <b style="color:var(--bull)">ENTRY CE:</b> 15-min close above ORH + volume &gt; 1.5× avg → Buy ATM CE<br>
+            <b style="color:var(--bear)">ENTRY PE:</b> 15-min close below ORL + volume → Buy ATM PE<br>
+            <b style="color:var(--text)">SL:</b> Opposite side of the OR candle wick<br>
+            <b style="color:var(--text)">T1:</b> 1× OR range projected (book 50%) &nbsp;|&nbsp; <b>T2:</b> 2× OR range
+            (trail SL to BE)<br>
+            <b style="color:var(--bear)">SKIP IF:</b> OR range &gt; 1% of index · Breakout without volume · After
+            11:00<br>
+            <b style="color:var(--neutral)">WHY IT WORKS:</b> First hour volatility sets the day's rails. Breaking them
+            = institutional positioning for direction.
+          </div>
+        </div>
+
+        <!-- PLAYBOOK 2: CPR BREAKOUT -->
+        <div class="card bull" style="border-left:4px solid var(--bull)">
+          <div class="cname" style="color:var(--bull);font-size:1.1rem"><span class="cnum">2</span> CPR BREAKOUT</div>
+          <svg width="100%" height="140" viewBox="0 0 320 140" style="margin:8px 0">
+            <rect x="10" y="70" width="300" height="12" fill="rgba(77,184,255,0.2)" stroke="#4db8ff" stroke-width="1" />
+            <text x="12" y="94" fill="#4db8ff" font-family="'IBM Plex Mono',monospace" font-size="9">BC</text>
+            <text x="12" y="66" fill="#4db8ff" font-family="'IBM Plex Mono',monospace" font-size="9">TC</text>
+            <line x1="10" y1="76" x2="310" y2="76" stroke="#4db8ff" stroke-width="1" stroke-dasharray="2,2" />
+            <line x1="10" y1="40" x2="310" y2="40" stroke="#c91f3a" stroke-width="1" stroke-dasharray="3,2" />
+            <text x="275" y="36" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="9">R1</text>
+            <line x1="10" y1="20" x2="310" y2="20" stroke="#c91f3a" stroke-width="1" stroke-dasharray="3,2" />
+            <text x="275" y="16" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="9">R2</text>
+            <rect x="40" y="75" width="8" height="20" fill="#c91f3a" />
+            <rect x="55" y="72" width="8" height="16" fill="#09a86e" />
+            <rect x="70" y="65" width="8" height="18" fill="#09a86e" />
+            <rect x="90" y="50" width="8" height="20" fill="#09a86e" />
+            <rect x="110" y="42" width="8" height="12" fill="#09a86e" />
+            <circle cx="74" cy="70" r="7" fill="none" stroke="#09a86e" stroke-width="2" />
+            <text x="82" y="64" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">BREAK TC</text>
+            <rect x="135" y="38" width="8" height="10" fill="#09a86e" />
+            <rect x="155" y="32" width="8" height="12" fill="#09a86e" />
+          </svg>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">WHEN:</b> Narrow CPR day (width &lt;0.2% of index) — highest edge<br>
+            <b style="color:var(--text)">SETUP:</b> Plot Classical Pivot + CPR on 15-min chart pre-market<br>
+            <b style="color:var(--bull)">ENTRY CE:</b> 15-min candle CLOSE above TC + retest + bullish confirmation →
+            Buy ATM CE<br>
+            <b style="color:var(--bear)">ENTRY PE:</b> 15-min close below BC + retest + bearish confirmation → Buy ATM
+            PE<br>
+            <b style="color:var(--text)">SL:</b> Back inside CPR (below TC for CE / above BC for PE)<br>
+            <b style="color:var(--text)">T1:</b> R1 / S1 (book 50%) &nbsp;|&nbsp; <b>T2:</b> R2 / S2<br>
+            <b style="color:var(--bear)">SKIP IF:</b> CPR is wide (&gt;0.5%) · Price rejected TC/BC twice · No retest
+            after break<br>
+            <b style="color:var(--neutral)">WHY IT WORKS:</b> Narrow CPR = previous day was indecisive = today expects
+            directional resolution. Break of CPR = the resolution.
+          </div>
+        </div>
+
+        <!-- PLAYBOOK 3: VWAP BOUNCE -->
+        <div class="card bull" style="border-left:4px solid var(--bull)">
+          <div class="cname" style="color:var(--bull);font-size:1.1rem"><span class="cnum">3</span> VWAP BOUNCE (Trend
+            Pullback)</div>
+          <svg width="100%" height="140" viewBox="0 0 320 140" style="margin:8px 0">
+            <path d="M 10 110 Q 80 95 160 75 T 310 40" fill="none" stroke="#d4941a" stroke-width="2" />
+            <text x="280" y="52" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="9">VWAP</text>
+            <rect x="20" y="105" width="8" height="15" fill="#09a86e" />
+            <rect x="40" y="90" width="8" height="20" fill="#09a86e" />
+            <rect x="60" y="82" width="8" height="14" fill="#09a86e" />
+            <rect x="80" y="88" width="8" height="12" fill="#c91f3a" />
+            <rect x="100" y="80" width="8" height="14" fill="#c91f3a" />
+            <rect x="120" y="76" width="8" height="18" fill="#09a86e" />
+            <circle cx="124" cy="76" r="7" fill="none" stroke="#09a86e" stroke-width="2" />
+            <text x="60" y="72" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">BOUNCE OFF
+              VWAP</text>
+            <rect x="145" y="65" width="8" height="22" fill="#09a86e" />
+            <rect x="170" y="55" width="8" height="16" fill="#09a86e" />
+            <rect x="195" y="45" width="8" height="14" fill="#09a86e" />
+            <rect x="220" y="38" width="8" height="12" fill="#09a86e" />
+            <line x1="10" y1="20" x2="310" y2="20" stroke="#c91f3a" stroke-width="1" stroke-dasharray="3,3" />
+            <text x="240" y="16" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="9">PDH /
+              RESISTANCE</text>
+          </svg>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">WHEN:</b> Trending day — price clearly above/below VWAP on 15-min<br>
+            <b style="color:var(--text)">SETUP:</b> Wait for pullback TO VWAP during the trend<br>
+            <b style="color:var(--bull)">ENTRY CE:</b> Price in uptrend touches VWAP + hammer/bullish engulfing on 5 or
+            15-min → Buy ATM CE<br>
+            <b style="color:var(--bear)">ENTRY PE:</b> Mirror in downtrend — bearish candle at VWAP → Buy ATM PE<br>
+            <b style="color:var(--text)">SL:</b> Below the bounce candle low (10–20 pts away)<br>
+            <b style="color:var(--text)">T1:</b> Prior day high/low or pivot R1/S1 &nbsp;|&nbsp; <b>T2:</b> 1:3 R:R with
+            trailing SL<br>
+            <b style="color:var(--bear)">SKIP IF:</b> Price has crossed VWAP 5+ times (no trend) · Choppy day · Late
+            session (after 2:30 PM)<br>
+            <b style="color:var(--neutral)">WHY IT WORKS:</b> VWAP = institutional fair-value line. Pullbacks to VWAP in
+            strong trends are where the big players add to positions.
+          </div>
+        </div>
+
+        <!-- PLAYBOOK 4: S/R REVERSAL + CANDLE -->
+        <div class="card bull" style="border-left:4px solid var(--bull)">
+          <div class="cname" style="color:var(--bull);font-size:1.1rem"><span class="cnum">4</span> S/R REVERSAL +
+            CANDLE</div>
+          <svg width="100%" height="140" viewBox="0 0 320 140" style="margin:8px 0">
+            <line x1="10" y1="20" x2="310" y2="20" stroke="#c91f3a" stroke-width="2" stroke-dasharray="4,3" />
+            <text x="275" y="16" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="9">RESISTANCE</text>
+            <line x1="10" y1="110" x2="310" y2="110" stroke="#09a86e" stroke-width="2" stroke-dasharray="4,3" />
+            <text x="275" y="124" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">SUPPORT</text>
+            <rect x="25" y="65" width="8" height="30" fill="#c91f3a" />
+            <rect x="45" y="75" width="8" height="28" fill="#c91f3a" />
+            <rect x="65" y="85" width="8" height="20" fill="#09a86e" />
+            <rect x="85" y="96" width="8" height="12" fill="#09a86e" />
+            <line x1="89" y1="108" x2="89" y2="118" stroke="#09a86e" stroke-width="1.5" />
+            <circle cx="89" cy="105" r="7" fill="none" stroke="#09a86e" stroke-width="2" />
+            <text x="95" y="96" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">HAMMER AT
+              SUPPORT</text>
+            <rect x="120" y="78" width="8" height="22" fill="#09a86e" />
+            <rect x="150" y="60" width="8" height="22" fill="#09a86e" />
+            <rect x="180" y="44" width="8" height="20" fill="#09a86e" />
+            <rect x="210" y="28" width="8" height="18" fill="#09a86e" />
+            <rect x="240" y="22" width="8" height="10" fill="#c91f3a" />
+            <line x1="244" y1="14" x2="244" y2="34" stroke="#c91f3a" stroke-width="1.5" />
+          </svg>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">WHEN:</b> Range-bound day (wide CPR, price oscillating) OR strong S/R on daily
+            TF<br>
+            <b style="color:var(--text)">SETUP:</b> Identify major horizontal S/R from daily + 60-min confluence<br>
+            <b style="color:var(--bull)">ENTRY CE:</b> Price tags major support + hammer/bull engulfing/morning star on
+            15-min + volume → Buy ATM CE<br>
+            <b style="color:var(--bear)">ENTRY PE:</b> Mirror at resistance → Buy ATM PE<br>
+            <b style="color:var(--text)">SL:</b> 10–20 pts beyond wick of reversal candle<br>
+            <b style="color:var(--text)">T1:</b> 50% of the range (book 50%) &nbsp;|&nbsp; <b>T2:</b> Opposite side of
+            range<br>
+            <b style="color:var(--bear)">SKIP IF:</b> Strong trend in progress (don't fade strength) · No candle
+            confirmation · S/R is fresh (needs ≥2 prior tests)<br>
+            <b style="color:var(--neutral)">WHY IT WORKS:</b> Well-tested S/R = high memory. Reversal candle at S/R =
+            institutional absorption showing itself.
+          </div>
+        </div>
+
+        <!-- PLAYBOOK 5: FLAG BREAKOUT -->
+        <div class="card bull" style="border-left:4px solid var(--bull)">
+          <div class="cname" style="color:var(--bull);font-size:1.1rem"><span class="cnum">5</span> FLAG BREAKOUT
+            (Momentum Continuation)</div>
+          <svg width="100%" height="140" viewBox="0 0 320 140" style="margin:8px 0">
+            <line x1="20" y1="110" x2="80" y2="30" stroke="#09a86e" stroke-width="2.5" />
+            <text x="28" y="78" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">POLE</text>
+            <line x1="80" y1="40" x2="180" y2="55" stroke="#d4941a" stroke-width="1.5" />
+            <line x1="80" y1="60" x2="180" y2="75" stroke="#d4941a" stroke-width="1.5" />
+            <text x="105" y="42" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="9">FLAG
+              (consolidation)</text>
+            <rect x="90" y="55" width="6" height="16" fill="#c91f3a" />
+            <rect x="110" y="50" width="6" height="20" fill="#09a86e" />
+            <rect x="130" y="58" width="6" height="14" fill="#c91f3a" />
+            <rect x="150" y="54" width="6" height="18" fill="#09a86e" />
+            <rect x="170" y="50" width="6" height="18" fill="#09a86e" />
+            <circle cx="180" cy="55" r="7" fill="none" stroke="#09a86e" stroke-width="2" />
+            <text x="190" y="42" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">BREAK + VOL</text>
+            <line x1="180" y1="55" x2="260" y2="10" stroke="#09a86e" stroke-width="2" stroke-dasharray="3,2" />
+            <text x="220" y="18" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">POLE =
+              TARGET</text>
+          </svg>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">WHEN:</b> After a strong momentum move (pole) + tight consolidation (flag) —
+            best post-news or strong opening<br>
+            <b style="color:var(--text)">SETUP:</b> Identify pole (≥0.8% move in &lt;30 min) + flag (5–12 candles, tight
+            range, against trend slope)<br>
+            <b style="color:var(--bull)">ENTRY CE:</b> Break of flag high + volume surge &gt; 1.5× avg → Buy ATM CE
+            (bull flag)<br>
+            <b style="color:var(--bear)">ENTRY PE:</b> Break of flag low + volume → Buy ATM PE (bear flag)<br>
+            <b style="color:var(--text)">SL:</b> Opposite side of the flag (below flag low for CE / above flag high for
+            PE)<br>
+            <b style="color:var(--text)">TARGET:</b> Pole length projected from the breakout point (measured-move
+            rule)<br>
+            <b style="color:var(--bear)">SKIP IF:</b> Flag &gt; 15 candles (loses momentum) · Flag wider than 50% of
+            pole height · No volume on break<br>
+            <b style="color:var(--neutral)">WHY IT WORKS:</b> Flags are pauses where smart money accumulates before the
+            next leg. The tighter the flag, the bigger the follow-through.
+          </div>
+        </div>
+
+        <!-- PLAYBOOK 6: BB SQUEEZE -->
+        <div class="card bull" style="border-left:4px solid var(--bull)">
+          <div class="cname" style="color:var(--bull);font-size:1.1rem"><span class="cnum">7</span> BB SQUEEZE BREAKOUT
+            (Volatility Expansion)</div>
+          <svg width="100%" height="140" viewBox="0 0 320 140" style="margin:8px 0">
+            <path d="M 10 35 Q 60 55 110 62 Q 160 65 210 62 Q 260 55 310 20" fill="none" stroke="#4db8ff"
+              stroke-width="1.5" stroke-dasharray="2,2" />
+            <path d="M 10 105 Q 60 85 110 78 Q 160 75 210 78 Q 260 85 310 120" fill="none" stroke="#4db8ff"
+              stroke-width="1.5" stroke-dasharray="2,2" />
+            <path d="M 10 70 Q 60 70 110 70 Q 160 70 210 70 Q 260 70 310 70" fill="none" stroke="#d4941a"
+              stroke-width="1" stroke-dasharray="1,3" />
+            <text x="12" y="134" fill="#4db8ff" font-family="'IBM Plex Mono',monospace" font-size="9">BB(20,2)</text>
+            <text x="135" y="55" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="9">SQUEEZE</text>
+            <rect x="125" y="62" width="6" height="14" fill="#09a86e" />
+            <rect x="140" y="64" width="6" height="12" fill="#c91f3a" />
+            <rect x="155" y="60" width="6" height="16" fill="#09a86e" />
+            <rect x="170" y="63" width="6" height="13" fill="#c91f3a" />
+            <rect x="185" y="58" width="6" height="16" fill="#09a86e" />
+            <rect x="200" y="55" width="6" height="18" fill="#09a86e" />
+            <rect x="220" y="45" width="6" height="20" fill="#09a86e" />
+            <rect x="240" y="35" width="6" height="20" fill="#09a86e" />
+            <rect x="260" y="25" width="6" height="18" fill="#09a86e" />
+            <circle cx="215" cy="50" r="7" fill="none" stroke="#09a86e" stroke-width="2" />
+            <text x="225" y="38" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">BREAK + VOL</text>
+          </svg>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">WHEN:</b> Low-volatility day, BB Width at 4-week low, post-consolidation
+            &mdash; best on BankNifty mornings<br>
+            <b style="color:var(--text)">SETUP:</b> Bollinger Bands (20, 2) visibly contracting for 10+ candles + BB
+            Width indicator near its 4-week minimum + Keltner Channel (20, 1.5) fully engulfs the bands (official
+            squeeze)<br>
+            <b style="color:var(--bull)">ENTRY CE:</b> 15-min candle closes <b>above upper band</b> + volume &gt;
+            1.5&times; avg + RSI &gt; 55 &rarr; Buy ATM CE<br>
+            <b style="color:var(--bear)">ENTRY PE:</b> 15-min candle closes <b>below lower band</b> + volume + RSI &lt;
+            45 &rarr; Buy ATM PE<br>
+            <b style="color:var(--text)">SL:</b> Back inside the bands (specifically below middle band / 20 EMA for CE,
+            above 20 EMA for PE)<br>
+            <b style="color:var(--text)">T1:</b> 1&times; the band-width at breakout (book 50%) &nbsp;|&nbsp; <b>T2:</b>
+            2&times; band-width or trail to 20 EMA<br>
+            <b style="color:var(--bear)">SKIP IF:</b> Breakout after 2:00 PM (theta kills it) &middot; No Keltner
+            engulfment &middot; Bands already expanding &middot; &gt;50% of the expected move already happened before
+            your entry<br>
+            <b style="color:var(--neutral)">WHY IT WORKS:</b> Volatility mean-reverts. A tight squeeze builds compressed
+            energy. The direction of the break is the direction of the next expansion &mdash; and expansion moves are
+            the fastest, cleanest intraday moves available.
+          </div>
+        </div>
+      </div>
+
+      <div class="infobox" style="margin-top:18px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9 12h6" />
+          <path d="M12 9v6" />
+        </svg> <b>Pre-trade capital sizing, R:R, daily stops &amp; allocation rules</b> apply to every playbook above.
+        Read them in one place &rarr; <a href="#" onclick="gotoId('risk');return false;"
+          style="color:var(--info);font-weight:600">Discipline &rarr; Risk Mgmt</a>.</div>
+
+      <div class="catdiv"><svg class="ico ico-star" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" stroke="currentColor"
+            d="m12 2 3 7 7 .8-5.4 4.7 1.7 6.9L12 17.8 5.7 21.4l1.7-6.9L2 9.8 9 9z" />
+        </svg> THE BOTTOM LINE — PICK ONE PLAYBOOK</div>
+      <div class="infobox">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="5" />
+          <circle cx="12" cy="12" r="1.5" />
+        </svg> <b>The #1 mistake new traders make:</b> trying all 6 strategies in the first week, mastering none.
+        <b>Real edge comes from repetition</b>, not variety.<br><br>
+        <b style="color:var(--bull)">Our suggestion for most traders:</b><br>
+        → Week 1–4: Paper-trade <b>ORB</b> only. Log every setup (took / skipped / outcome).<br>
+        → Month 2: Add <b>S/R Reversal</b> when clear range-bound days appear.<br>
+        → Month 3+: Add <b>VWAP Bounce</b> and <b>CPR Breakout</b>.<br>
+        → Month 6+: Add <b>Flag Breakout</b> after you've mastered reading momentum.<br>
+        → Month 9+: Add <b>BB Squeeze</b> once you can identify true volatility contraction on the BB Width
+        indicator.<br><br>
+        Consistency with ONE strategy beats mediocrity across six. Every professional trader you admire trades 2–3
+        setups, not 10.
+      </div>
+    </div>
+  

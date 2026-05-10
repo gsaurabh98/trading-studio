@@ -1,0 +1,1138 @@
+    <div class="wrap">
+      <div class="shead">
+        <h2>OPTION CHAIN READING <span class="count-badge">THE MARKET'S X-RAY</span></h2>
+      </div>
+
+      <div class="infobox"><svg class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg> If you take ONE thing from this page: the option chain is the <b>only free, real-time intel</b> retail
+        has that tells you what big players are betting on. Master it and you trade <i>with</i> them. Ignore it and you
+        fight them blind.</div>
+
+      <div class="catdiv">ANATOMY OF A NIFTY OPTION CHAIN</div>
+      <div class="anat-card" style="padding:18px;align-items:stretch">
+        <div class="table-scroll">
+          <table
+            style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.85rem;min-width:720px;margin:0">
+            <thead>
+              <tr>
+                <th colspan="4" style="text-align:center;background:rgba(9,168,110,0.08);color:var(--bull);">CALLS (CE)
+                </th>
+                <th style="text-align:center;background:var(--s3);color:var(--neutral);">STRIKE</th>
+                <th colspan="4" style="text-align:center;background:rgba(201,31,58,0.08);color:var(--bear);">PUTS (PE)
+                </th>
+              </tr>
+              <tr>
+                <th>OI</th>
+                <th>Chg OI</th>
+                <th>IV%</th>
+                <th>LTP</th>
+                <th style="background:var(--s3)">&mdash;</th>
+                <th>LTP</th>
+                <th>IV%</th>
+                <th>Chg OI</th>
+                <th>OI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>18.2L</td>
+                <td>+2.4L</td>
+                <td>11.2</td>
+                <td>425.8</td>
+                <td style="background:var(--s3);color:var(--neutral);font-weight:700">24,000</td>
+                <td>12.4</td>
+                <td>10.8</td>
+                <td>-0.8L</td>
+                <td>9.5L</td>
+              </tr>
+              <tr>
+                <td>32.8L</td>
+                <td>+4.1L</td>
+                <td>10.5</td>
+                <td>238.2</td>
+                <td style="background:var(--s3);color:var(--neutral);font-weight:700">24,200</td>
+                <td>28.5</td>
+                <td>10.2</td>
+                <td>+1.2L</td>
+                <td>22.1L</td>
+              </tr>
+              <tr style="background:rgba(212,148,26,0.08)">
+                <td class="tc"><b>58.6L</b></td>
+                <td>+8.2L</td>
+                <td>10.1</td>
+                <td>128.4</td>
+                <td style="background:rgba(212,148,26,0.2);color:var(--neutral);font-weight:700">24,400 (ATM)</td>
+                <td>112.6</td>
+                <td>10.0</td>
+                <td>+6.8L</td>
+                <td class="tp"><b>52.3L</b></td>
+              </tr>
+              <tr>
+                <td>41.2L</td>
+                <td>+5.1L</td>
+                <td>10.4</td>
+                <td>58.2</td>
+                <td style="background:var(--s3);color:var(--neutral);font-weight:700">24,600</td>
+                <td>245.5</td>
+                <td>10.6</td>
+                <td>+2.1L</td>
+                <td>38.8L</td>
+              </tr>
+              <tr>
+                <td>28.5L</td>
+                <td>+1.8L</td>
+                <td>10.9</td>
+                <td>22.8</td>
+                <td style="background:var(--s3);color:var(--neutral);font-weight:700">24,800</td>
+                <td>418.2</td>
+                <td>11.4</td>
+                <td>+0.5L</td>
+                <td>18.4L</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:0.88rem;color:var(--text-dim);margin-top:14px;line-height:1.6">
+          <b style="color:var(--text)">How to read each column:</b><br>
+          <b>OI</b> (Open Interest): total live contracts at that strike &mdash; bigger = more conviction<br>
+          <b>Chg OI</b>: OI change today &mdash; positive = fresh positioning, negative = unwinding<br>
+          <b>IV%</b>: Implied Volatility &mdash; higher = more expensive premium<br>
+          <b>LTP</b>: last traded price (premium). <b>Strike</b> is the middle anchor column. ATM = closest to spot.
+        </p>
+      </div>
+
+      <div class="catdiv">THE 6 SIGNALS YOU MUST READ</div>
+
+      <div class="pgrid md c3">
+        <div class="card bull">
+          <div class="cname"><span class="cnum">1</span> MAX OI STRIKE (Support / Resistance)</div>
+          <div class="cdesc" style="text-align:left">
+            <b>Highest PE OI</b> = strongest <b>support</b>. Option writers have sold puts there and will defend that
+            level.<br>
+            <b>Highest CE OI</b> = strongest <b>resistance</b>. Option writers have sold calls there.<br><br>
+            <b style="color:var(--bull)">How to use:</b> If Nifty is at 24,400, Max PE OI at 24,000 and Max CE OI at
+            24,800 &rarr; expected range <b>24,000&ndash;24,800</b>. Trade inside the range until one side breaks with
+            volume.
+          </div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><span class="cnum">2</span> MAX PAIN (Expiry Magnet)</div>
+          <div class="cdesc" style="text-align:left">
+            The strike where option <b>writers collectively make the most money</b> if price closes there on expiry.
+            Writers (operators with capital) <b>actively defend this level</b> because it is their optimal
+            outcome.<br><br>
+            <b style="color:var(--bear)">How to use:</b> On expiry day (Tue for Nifty, Thu for Sensex), price
+            <b>gravitates toward Max Pain</b> unless a major news event hits. Free Max Pain data on
+            <code>sensibull.com</code>, <code>opstra</code>, <code>nseindia.com</code>.
+          </div>
+        </div>
+        <div class="card neu">
+          <div class="cname"><span class="cnum">3</span> PUT-CALL RATIO (PCR)</div>
+          <div class="cdesc" style="text-align:left">
+            <b>PCR = Total PE OI &divide; Total CE OI</b><br><br>
+            <b>PCR &gt; 1.3</b> = bullish (more puts being written than calls)<br>
+            <b>PCR &lt; 0.7</b> = bearish (more calls being written than puts)<br>
+            <b>PCR 0.8&ndash;1.2</b> = neutral / range-bound<br><br>
+            <b style="color:var(--neutral)">Contrarian rule:</b> Extreme PCR (&gt;1.8 or &lt;0.5) often signals a
+            <b>reversal</b> &mdash; sentiment has become one-sided.
+          </div>
+        </div>
+        <div class="card info">
+          <div class="cname"><span class="cnum">4</span> OI CHANGE % (Fresh Positioning)</div>
+          <div class="cdesc" style="text-align:left">
+            What matters most is <b>how OI is changing today</b>, not total OI. Below, "Price" = the <i>option's
+              premium</i> (LTP), not the index spot. Reading premium &amp; OI together tells you <b>which side is
+              initiating</b>.<br><br>
+            <b style="color:var(--text)">CE strike (resistance side):</b><br>
+            &bull; CE premium &uarr; + CE OI &uarr; &rarr; <b>aggressive call buyers</b> (bullish for index, stronger if
+            at strikes near or below spot)<br>
+            &bull; CE premium &darr; + CE OI &uarr; &rarr; <b>aggressive call writers building resistance</b> (bearish
+            bias at that strike &mdash; ceiling forming)<br>
+            &bull; CE premium &uarr; + CE OI &darr; &rarr; <b>short covering by writers</b> (weak rally, often
+            fades)<br>
+            &bull; CE premium &darr; + CE OI &darr; &rarr; <b>long unwind</b> (CE buyers bailing)<br><br>
+            <b style="color:var(--text)">PE strike (support side):</b><br>
+            &bull; PE premium &uarr; + PE OI &uarr; &rarr; <b>aggressive put buyers</b> (bearish for index)<br>
+            &bull; PE premium &darr; + PE OI &uarr; &rarr; <b>aggressive put writers building support</b> (bullish bias
+            at that strike &mdash; floor forming)<br>
+            &bull; PE premium &uarr; + PE OI &darr; &rarr; <b>short covering by put writers</b> (weak decline, often
+            fades)<br>
+            &bull; PE premium &darr; + PE OI &darr; &rarr; <b>long unwind</b> (PE buyers bailing)<br><br>
+            <b style="color:var(--bull)">Quick rule:</b> rising CE OI <i>above</i> spot = resistance; rising PE OI
+            <i>below</i> spot = support. The premium direction tells you whether buyers or writers are doing the
+            building.
+          </div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><span class="cnum">5</span> IV SKEW (Fear Index)</div>
+          <div class="cdesc" style="text-align:left">
+            Compare ATM PE IV vs ATM CE IV. Normally they are similar. When they diverge it reveals <b>asymmetric
+              fear</b>.<br><br>
+            <b>PE IV &gt;&gt; CE IV</b> = market fears a crash &rarr; put protection in demand &rarr; often precedes a
+            bottom<br>
+            <b>CE IV &gt; PE IV</b> = chasing upside, euphoric &rarr; often precedes a top<br>
+            <b>Both IV surging</b> = event priced in, expect IV crush post-event
+          </div>
+        </div>
+        <div class="card neu">
+          <div class="cname"><span class="cnum">6</span> LIQUIDITY (Bid-Ask Spread)</div>
+          <div class="cdesc" style="text-align:left">
+            A strike with wide bid-ask spread (&gt;1&ndash;2% of premium) is <b>illiquid</b>. You bleed entry + exit
+            slippage.<br><br>
+            <b style="color:var(--neutral)">Rule:</b> Trade only strikes with spread &lt;0.5% of premium. For
+            Nifty/BankNifty, only ATM &plusmn; 3 strikes are safe for intraday. Deep OTM looks cheap but you lose
+            &#8377;5&ndash;&#8377;15 per contract just to exit.
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── AFFILIATE: OPTION-CHAIN TOOL ─── -->
+      <div class="aff-inline">
+        <span><b>Need a faster option-chain tool?</b> The NSE option chain is free but slow. <b>Sensibull</b> gives you
+          a fast option chain, free Max Pain, PCR, OI build-up heatmaps, and IV surface visualisation &mdash; built
+          specifically for Indian option buyers. <a href="#"
+            onclick="this.href=aff('sensibull','optionchain');return affClick('sensibull','optionchain');"
+            target="_blank" rel="noopener nofollow sponsored">Try Sensibull (free + paid plans) &rarr;</a></span>
+      </div>
+
+      <div class="catdiv">READING THE CHAIN BY MARKET TYPE</div>
+      <table class="strat-table">
+        <thead>
+          <tr>
+            <th>Market Type</th>
+            <th>What Chain Shows</th>
+            <th>Trade Accordingly</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Trending Up</b></td>
+            <td>CE OI rising at higher strikes, PE OI being written below</td>
+            <td class="tc">BUY CE on dips to PE-OI support strike</td>
+          </tr>
+          <tr>
+            <td><b>Trending Down</b></td>
+            <td>PE OI rising at lower strikes, CE OI being written above</td>
+            <td class="tp">BUY PE on rallies to CE-OI resistance strike</td>
+          </tr>
+          <tr>
+            <td><b>Range-bound</b></td>
+            <td>Heavy CE OI at top of range, heavy PE OI at bottom</td>
+            <td class="tw">Fade extremes. Sell premium if able.</td>
+          </tr>
+          <tr>
+            <td><b>Expiry Day</b></td>
+            <td>Max Pain tightening, OI unwinding at far strikes</td>
+            <td class="tw">Trade toward Max Pain. Never buy OTM.</td>
+          </tr>
+          <tr>
+            <td><b>Pre-Event (Budget / RBI)</b></td>
+            <td>Both CE + PE IV surging, OI rising on all strikes</td>
+            <td class="tp">AVOID buying &mdash; IV crush guaranteed post-event</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="catdiv">READING THE OI-CHANGE BAR CHART &rarr; CE / PE DECISION</div>
+
+      <div class="infobox">
+        <svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        The <b>OI Change</b> view (visible on Sensibull, Opstra, NSE&rsquo;s OI dashboard) plots <b>today&rsquo;s OI
+          change</b> at every strike as side-by-side bars &mdash; <b style="color:var(--bull)">green = PE OI change</b>,
+        <b style="color:var(--bear)">red = CE OI change</b>, with the dashed line at current spot. Read it visually and
+        the <b>CE / PE call comes out in 30 seconds</b>.
+      </div>
+
+      <div class="catdiv" style="margin-top:18px">THE 30-SECOND VERSION &mdash; THINK OF IT AS A TUG OF WAR</div>
+      <div class="pgrid md c2">
+        <div class="card bull">
+          <div class="cname">THE WHOLE CHART IN ONE SENTENCE</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            Two teams are pulling on Nifty's price &mdash; <b style="color:var(--bull)">put writers (green team)</b>
+            pull it <b>UP</b>, <b style="color:var(--bear)">call writers (red team)</b> pull it <b>DOWN</b>. Each bar
+            shows <b>how much money they bet</b> at that strike <i>today</i>. The <b>tallest green bar</b> is where the
+            green team has dug in &mdash; the floor. The <b>tallest red bar</b> is where the red team has dug in &mdash;
+            the ceiling. Price will mostly stay <b>between the two walls</b>.
+          </div>
+        </div>
+        <div class="card info">
+          <div class="cname">3 RULES, NOTHING ELSE</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            <b style="color:var(--bull)">1. Spot near the BIGGEST GREEN bar</b> &rarr; bounce expected &rarr; <b>BUY
+              CE</b><br>
+            <b style="color:var(--bear)">2. Spot near the BIGGEST RED bar</b> &rarr; rejection expected &rarr; <b>BUY
+              PE</b><br>
+            <b style="color:var(--neutral)">3. Spot in the middle</b> &rarr; no edge &rarr; <b>WAIT</b>
+            <br><br>
+            <b>That's it.</b> The walls move during the day, so re-check every 30 minutes. If the wall starts
+            <b>shrinking</b>, that team is giving up &mdash; expect a strong move <i>in the opposite direction</i>.
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv" style="margin-top:18px">DISTANCE FROM SPOT IS THE WHOLE GAME</div>
+      <div class="infobox">
+        <svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        The size of the green/red bar matters, but <b>where spot sits between the two walls matters more</b>. A spot
+        that is 28 points from the ceiling and 372 points from the floor is a <b>completely different trade</b> from a
+        spot that's halfway between. Always ask <b>"how far is spot from each wall?"</b> &mdash; the closer wall is the
+        one that's about to act.
+      </div>
+
+      <div class="pgrid md c3" style="margin-top:14px">
+        <div class="card bull">
+          <div class="cname">SETUP 1 &middot; SPOT NEAR PE WALL</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            Spot is close to the biggest GREEN bar. Floor is right under your feet, ceiling is far away.<br><br>
+            <b>What it means:</b> Put writers will fight to defend this strike. A bounce is the most likely next
+            move.<br><br>
+            <b style="color:var(--bull)">Trade: BUY CE</b> &mdash; small bounce scalp toward the next CE-OI strike
+            above. SL just below the PE wall.
+          </div>
+        </div>
+        <div class="card bear">
+          <div class="cname">SETUP 2 &middot; SPOT NEAR CE WALL</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            Spot is close to the biggest RED bar. Ceiling is right above your head, floor is far away.<br><br>
+            <b>What it means:</b> Call writers will fight to defend this strike. A rejection down is the most likely
+            next move.<br><br>
+            <b style="color:var(--bear)">Trade: BUY PE</b> &mdash; small rejection scalp toward the next PE-OI strike
+            below. SL just above the CE wall.
+          </div>
+        </div>
+        <div class="card neu">
+          <div class="cname">SETUP 3 &middot; SPOT IN THE MIDDLE</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            Spot is roughly equidistant from both walls. Neither side has the edge.<br><br>
+            <b>What it means:</b> Both teams are waiting. Whoever moves first wins. Range-day chop is most
+            likely.<br><br>
+            <b style="color:var(--neutral)">Trade: NO TRADE</b> &mdash; theta will eat option buyers in a sideways tape.
+            Wait for spot to drift to one side.
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv" style="margin-top:18px">WALL MIGRATION = THE BREAKOUT SIGNAL</div>
+      <div class="pgrid md c2">
+        <div class="card info">
+          <div class="cname">WHAT TO WATCH FOR</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            Refresh the OI Change view every <b>30 minutes</b>. You're looking for one specific thing: a wall that was
+            big at, say, 24,400 is now <b>shrinking</b> and a NEW big bar is appearing at 24,500.<br><br>
+            That migration tells you the writers at 24,400 have <b>given up and bought back their calls</b>. The wall
+            has fallen. The next wall (24,500) is the new ceiling.<br><br>
+            <b style="color:var(--info)">When this happens, momentum is real and the move is fast</b> &mdash; that's a
+            100&ndash;200 point squeeze in 30&ndash;60 minutes.
+          </div>
+        </div>
+        <div class="card bull">
+          <div class="cname">HOW TO TRADE A MIGRATING WALL</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            <b>CE wall migrating UP</b> (writers covering above) &rarr; aggressive <b>BUY CE</b>, target = the new
+            wall<br><br>
+            <b>PE wall migrating DOWN</b> (writers covering below) &rarr; aggressive <b>BUY PE</b>, target = the new
+            wall<br><br>
+            <b>Both walls staying still all day</b> &rarr; range day, fade extremes only, no breakout trade.<br><br>
+            <b style="color:var(--bull)">This is the highest-edge setup the option chain gives you.</b> Most beginners
+            miss it because they only check OI once at 9:30 AM and never refresh.
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv" style="margin-top:18px">REAL CHART WALK-THROUGH &mdash; NIFTY, 7 MAY 10:03 AM</div>
+
+      <div class="infobox" style="border-left-color:var(--bull)">
+        <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M8.5 12.5 11 15l4.5-6" />
+        </svg>
+        <b>The chart at this time on Sensibull:</b> Nifty spot <b>24,372</b> &middot; PCR <b>1.1</b> (slightly bullish)
+        &middot; Total CE OI 5.5Cr &middot; Total PE OI 4.81Cr &middot; Tallest GREEN bar at <b>24,000</b> (~70L PE OI)
+        &middot; Tallest RED bar at <b>24,400</b> (~70L CE OI).
+      </div>
+
+      <div class="strat-wrap">
+        <table class="strat-table" style="margin-top:8px">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Question</th>
+              <th>Answer from the chart</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>1</b></td>
+              <td>Where is the tallest GREEN bar (the floor)?</td>
+              <td>At <b>24,000</b> &mdash; that is <b>372 points BELOW</b> spot. Far away.</td>
+            </tr>
+            <tr>
+              <td><b>2</b></td>
+              <td>Where is the tallest RED bar (the ceiling)?</td>
+              <td>At <b>24,400</b> &mdash; that is just <b>28 points ABOVE</b> spot. <b>Right next door.</b></td>
+            </tr>
+            <tr>
+              <td><b>3</b></td>
+              <td>Which wall is closer?</td>
+              <td class="tp">The CE wall (24,400). Spot is sitting <b>at the ceiling</b>.</td>
+            </tr>
+            <tr>
+              <td><b>4</b></td>
+              <td>What's the most likely next move?</td>
+              <td class="tp">Rejection DOWN from 24,400 toward the next mini-support around <b>24,300</b>.</td>
+            </tr>
+            <tr>
+              <td><b>5</b></td>
+              <td>What is the trade?</td>
+              <td class="tp"><b>BUY 24,400 PE</b>. SL = above 24,420 (~&#8377;15 on premium). Target =
+                24,330&ndash;24,300 (~&#8377;30+ on premium).</td>
+            </tr>
+            <tr>
+              <td><b>6</b></td>
+              <td>What invalidates the trade?</td>
+              <td class="tc">Spot breaks 24,420 AND the red bar at 24,400 starts <b>shrinking</b>. That = wall failing.
+                <b>Flip to BUY CE</b> for a 24,500 squeeze.</td>
+            </tr>
+            <tr>
+              <td><b>7</b></td>
+              <td>Why NOT buy CE here?</td>
+              <td class="tw">Only 28 points of room before the wall slams it. Risk-reward is bad &mdash; PE has 70+
+                points of room downside vs 28 points upside for CE. <b>Asymmetry favours PE.</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="infobox" style="border-left-color:var(--info);margin-top:14px">
+        <svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <b>5-second summary of this exact chart:</b> Nifty is knocking on a <b>massive 70L call wall at 24,400</b>, and
+        the floor (24,000) is too far away to play. Default trade = <b>BUY PE</b>, target 24,300, tight SL above 24,420.
+        Only flip to CE if the 24,400 red bar starts visibly shrinking on the next 30-min refresh &mdash; that's the
+        writers giving up.
+      </div>
+
+      <!-- ═════════ WHY WALLS BREAK ═════════ -->
+      <div class="catdiv" style="margin-top:18px">WHY WALLS BREAK &mdash; THE SHORT-SQUEEZE CHAIN REACTION</div>
+
+      <div class="infobox" style="border-left-color:var(--bear)">
+        <svg class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <b>The illusion of the wall:</b> 70L Call OI at a strike does <b>NOT</b> mean Nifty cannot go above it. It only
+        means a lot of money is betting against it. When the bet starts losing, writers don't sit there and bleed
+        &mdash; they <b>cover</b>, and their forced buying becomes the fuel for the move. <b
+          style="color:var(--bear)">The wall doesn't slow the move down &mdash; it ACCELERATES it once it breaks.</b>
+      </div>
+
+      <div class="strat-wrap">
+        <table class="strat-table" style="margin-top:8px">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>What happens</th>
+              <th>Effect</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>1</b></td>
+              <td>News, FII flow, or institutional buy comes in</td>
+              <td>Spot pushes from 24,372 toward 24,400</td>
+            </tr>
+            <tr>
+              <td><b>2</b></td>
+              <td>24,400 CE buyers keep aggressively buying</td>
+              <td class="tc">Premium rises (e.g. &#8377;50 &rarr; &#8377;70)</td>
+            </tr>
+            <tr>
+              <td><b>3</b></td>
+              <td>Writers who sold at &#8377;50 are now down &#8377;20 &times; lot. Margin requirement also rises.</td>
+              <td class="tp">Pain mounting on the writer side</td>
+            </tr>
+            <tr>
+              <td><b>4</b></td>
+              <td>A few panicky writers <b>buy back</b> their short calls to cap the loss</td>
+              <td>Their buy order = upward pressure on the option AND on Nifty</td>
+            </tr>
+            <tr>
+              <td><b>5</b></td>
+              <td>Premium spikes (&#8377;70 &rarr; &#8377;110), spot pushes through 24,400</td>
+              <td class="tc">Cascade begins</td>
+            </tr>
+            <tr>
+              <td><b>6</b></td>
+              <td>All remaining writers rush to cover at once</td>
+              <td class="tc"><b>Squeeze</b> &mdash; Nifty rips through 24,400 with no resistance, often 100&ndash;200
+                pts in 30 min</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="infobox" style="border-left-color:var(--info);margin-top:10px">
+        <svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <b>Key insight:</b> It's not the BUYERS that break the wall. It's the <b>WRITERS giving up</b> that breaks the
+        wall. Their forced covering becomes the fuel for the rally. That's why the move <b>accelerates</b> after the
+        level breaks &mdash; not stalls.
+      </div>
+
+      <!-- ═════════ HATCHED / HOLLOW LEGEND (Sensibull format) ═════════ -->
+      <div class="catdiv" style="margin-top:18px">READING SOLID / HATCHED / HOLLOW BARS &mdash; THE EARLIEST WARNING
+      </div>
+
+      <div class="infobox">
+        <svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        Sensibull's <b>&quot;Show OI change&quot;</b> toggle (Opstra calls it the same) breaks every bar into <b>three
+          visual states</b>. Once you can read these, you'll catch the squeeze 10&ndash;20 minutes before the price
+        actually breaks the level.
+      </div>
+
+      <div class="pgrid md c3" style="margin-top:14px">
+        <div class="card neu">
+          <div class="cname">SOLID BAR &nbsp;
+            <svg viewBox="0 0 40 24" width="44" height="24" style="vertical-align:middle">
+              <rect x="0" y="0" width="40" height="24" fill="#c91f3a" />
+            </svg>
+          </div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            <b>What it shows:</b> Existing OI from before today (yesterday's carry-over).<br><br>
+            <b>What it means:</b> The historical wall &mdash; old positions still sitting open. <b>Stable, not a fresh
+              signal.</b>
+          </div>
+        </div>
+        <div class="card bear">
+          <div class="cname">HATCHED BAR &nbsp;
+            <svg viewBox="0 0 40 24" width="44" height="24" style="vertical-align:middle">
+              <defs>
+                <pattern id="lg-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                  <line x1="0" y1="0" x2="0" y2="6" stroke="#c91f3a" stroke-width="3" />
+                </pattern>
+              </defs>
+              <rect x="0" y="0" width="40" height="24" fill="url(#lg-hatch)" />
+              <rect x="0" y="0" width="40" height="24" fill="none" stroke="#c91f3a" stroke-width="1" />
+            </svg>
+          </div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            <b>What it shows:</b> Today's <b>INCREASE</b> in OI at this strike.<br><br>
+            <b>What it means:</b> Writers are <b>ADDING</b> to the wall &mdash; defence is being reinforced. <b
+              style="color:var(--bear)">Wall is GROWING &rarr; rejection more likely.</b>
+          </div>
+        </div>
+        <div class="card bull">
+          <div class="cname">HOLLOW BAR &nbsp;
+            <svg viewBox="0 0 40 24" width="44" height="24" style="vertical-align:middle">
+              <rect x="0" y="0" width="40" height="24" fill="none" stroke="#c91f3a" stroke-width="2" />
+            </svg>
+          </div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            <b>What it shows:</b> Today's <b>DECREASE</b> in OI at this strike.<br><br>
+            <b>What it means:</b> Writers are <b>COVERING</b> &mdash; closing their shorts. <b
+              style="color:var(--bull)">Wall is SHRINKING &rarr; squeeze in progress, BUY in the breakout direction.</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="infobox" style="border-left-color:var(--bull);margin-top:10px">
+        <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M8.5 12.5 11 15l4.5-6" />
+        </svg>
+        <b>The earliest signal you'll ever get:</b> a <b>HOLLOW red bar at 24,400</b> + a <b>HATCHED red bar appearing
+          at 24,500 or 24,600</b> = wall has migrated UP = squeeze underway. <b>This appears 10&ndash;20 minutes before
+          price actually breaks 24,400.</b> The retail crowd is still buying PE while you're already long CE.
+      </div>
+
+      <!-- ═════════ THE QUICK WALL STRENGTH CHECK ═════════ -->
+      <div class="catdiv" style="margin-top:18px">THE QUICK WALL STRENGTH CHECK</div>
+
+      <div class="infobox">
+        <svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        OI tells you who has bet what. It does <b>not</b> tell you who will fold first. Run these <b>5 checks in 30
+          seconds</b> before any wall trade. Each gives <b>+1 / 0 / &minus;1</b>. The total tells you the probability
+        the wall holds.
+      </div>
+
+      <div class="pgrid md c2" style="margin-top:14px">
+        <div class="card info">
+          <div class="cname"><span class="cnum">1</span> PREMIUM DIRECTION (the inverse OI check)</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            <b>Look at the LIVE LTP</b> of the wall strike's option (e.g. 24,400 CE LTP) for the last 5&ndash;10
+            minutes.<br><br>
+            <b style="color:var(--bull)">+1 &mdash;</b> Premium <b>falling</b> while OI <b>rising</b> &rarr; writers
+            piling on, wall holding<br>
+            <b style="color:var(--neutral)">&nbsp;0 &mdash;</b> Both flat &rarr; neutral<br>
+            <b style="color:var(--bear)">&minus;1 &mdash;</b> Premium <b>rising fast</b> while OI <b>falling</b> &rarr;
+            <b>writers covering, wall failing</b><br><br>
+            <b>This is the single most important check &mdash; it gives you 60% of the answer in 5 seconds.</b>
+          </div>
+        </div>
+        <div class="card info">
+          <div class="cname"><span class="cnum">2</span> CANDLE REACTION AT THE WALL</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            Look at the 5-min candle that touched the wall.<br><br>
+            <b style="color:var(--bull)">+1 &mdash;</b> Pin bar / shooting star / bearish engulfing at a CE wall
+            (rejection)<br>
+            <b style="color:var(--neutral)">&nbsp;0 &mdash;</b> Doji / small body (indecision)<br>
+            <b style="color:var(--bear)">&minus;1 &mdash;</b> Strong-bodied candle <b>closing through</b> the wall (real
+            break)<br><br>
+            <b>Charts show commitment, OI shows count.</b> A wall that holds always prints a visible rejection candle.
+          </div>
+        </div>
+        <div class="card info">
+          <div class="cname"><span class="cnum">3</span> VOLUME ON THE TEST BAR</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            Compare the test-candle's volume to the average volume of the last 20 candles.<br><br>
+            <b style="color:var(--bull)">+1 &mdash;</b> Above-average volume + rejection candle &rarr; real defence<br>
+            <b style="color:var(--neutral)">&nbsp;0 &mdash;</b> Average volume<br>
+            <b style="color:var(--bear)">&minus;1 &mdash;</b> Above-average volume + break candle &rarr; institutional
+            flow<br><br>
+            <b>Walls only break on real money.</b> A break on weak volume is almost always a fakeout that gets reversed.
+          </div>
+        </div>
+        <div class="card info">
+          <div class="cname"><span class="cnum">4</span> VWAP RELATIONSHIP</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            Where is spot relative to today's VWAP when it tests the wall?<br><br>
+            <b>Testing a CE wall (ceiling):</b><br>
+            <b style="color:var(--bull)">+1 &mdash;</b> Spot <b>below</b> VWAP &rarr; bias-aligned, wall holds<br>
+            <b style="color:var(--neutral)">&nbsp;0 &mdash;</b> Spot at VWAP<br>
+            <b style="color:var(--bear)">&minus;1 &mdash;</b> Spot <b>above</b> VWAP &rarr; momentum favours buyers,
+            wall vulnerable<br><br>
+            <b>Inverse for a PE wall (floor):</b> spot above VWAP = floor holds, below = floor vulnerable.
+          </div>
+        </div>
+        <div class="card info">
+          <div class="cname"><span class="cnum">5</span> TIME OF DAY</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            Is the test happening in a clean window or a noisy window?<br><br>
+            <b style="color:var(--bull)">+1 &mdash;</b> 9:45&ndash;12:00 or 1:30&ndash;2:30 &rarr; clean signal
+            window<br>
+            <b style="color:var(--neutral)">&nbsp;0 &mdash;</b> 9:15&ndash;9:45 or 12:00&ndash;1:30 &rarr; noisy<br>
+            <b style="color:var(--bear)">&minus;1 &mdash;</b> 2:30&ndash;3:30 on expiry day &rarr; OI numbers are
+            unreliable<br><br>
+            <b>First 30 min and last 30 min have garbage OI.</b> Lunch is choppy. The "real" market is mid-morning and
+            mid-afternoon.
+          </div>
+        </div>
+        <div class="card neu">
+          <div class="cname">SCORE &rarr; PROBABILITY</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead style="background:var(--s2)">
+                <tr>
+                  <th style="padding:6px;text-align:left">Total</th>
+                  <th style="padding:6px;text-align:left">Wall holds</th>
+                  <th style="padding:6px;text-align:left">What to do</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding:6px"><b style="color:var(--bull)">+5 / +4</b></td>
+                  <td style="padding:6px">80&ndash;90%</td>
+                  <td style="padding:6px">High-edge fade. Full size.</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px"><b style="color:var(--bull)">+3 / +2</b></td>
+                  <td style="padding:6px">65&ndash;75%</td>
+                  <td style="padding:6px">Decent edge. Half size.</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px"><b style="color:var(--neutral)">+1 / 0</b></td>
+                  <td style="padding:6px">50&ndash;55%</td>
+                  <td style="padding:6px">Coin flip. <b>NO TRADE.</b></td>
+                </tr>
+                <tr>
+                  <td style="padding:6px"><b style="color:var(--bear)">&minus;1 / &minus;2</b></td>
+                  <td style="padding:6px">35&ndash;45%</td>
+                  <td style="padding:6px">Wall wobbly. Wait, don't fade.</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px"><b style="color:var(--bear)">&minus;3 to &minus;5</b></td>
+                  <td style="padding:6px">10&ndash;20%</td>
+                  <td style="padding:6px"><b>Flip and trade the BREAK.</b></td>
+                </tr>
+              </tbody>
+            </table>
+            <br>
+            For a <b>PE wall (floor)</b>, just <b>invert</b> each row: premium &uarr; + PE OI &uarr; = floor holds, etc.
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv" style="margin-top:18px">APPLIED &mdash; THE 24,400 WALL THAT BROKE</div>
+      <div class="infobox" style="border-left-color:var(--bear)">
+        <svg class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        Earlier we said &quot;BUY PE because spot is at the 24,400 CE wall.&quot; Then Nifty broke 24,400. <b>Why?</b>
+        Because we only checked OI &mdash; not the other four. Here's what running the full check would have looked
+        like.
+      </div>
+      <div class="strat-wrap">
+        <table class="strat-table" style="margin-top:8px">
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>What you would have seen at the test</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>1. Premium direction</b></td>
+              <td>24,400 CE LTP <b>climbing rapidly</b> while OI starting to fall &rarr; writers covering</td>
+              <td class="tp"><b>&minus;1</b></td>
+            </tr>
+            <tr>
+              <td><b>2. Candle reaction</b></td>
+              <td>Strong green candle <b>closing through</b> 24,400, no rejection wick</td>
+              <td class="tp"><b>&minus;1</b></td>
+            </tr>
+            <tr>
+              <td><b>3. Volume</b></td>
+              <td>Above-average volume on the break candle</td>
+              <td class="tp"><b>&minus;1</b></td>
+            </tr>
+            <tr>
+              <td><b>4. VWAP</b></td>
+              <td>Spot was <b>above</b> VWAP, momentum aligned with the breakout</td>
+              <td class="tp"><b>&minus;1</b></td>
+            </tr>
+            <tr>
+              <td><b>5. Time of day</b></td>
+              <td>~10:30&ndash;11:30 AM &mdash; clean window</td>
+              <td class="tc"><b>+1</b></td>
+            </tr>
+            <tr>
+              <td colspan="2"><b>TOTAL SCORE</b></td>
+              <td class="tp"><b>&minus;3 (wall fails 70&ndash;85%)</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="infobox" style="border-left-color:var(--bull);margin-top:10px">
+        <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M8.5 12.5 11 15l4.5-6" />
+        </svg>
+        <b>Correct trade:</b> A score of &minus;3 means &quot;flip &mdash; trade the BREAK&quot;. The right play was
+        <b>BUY 24,400 CE</b> (or 24,500 CE) on the breakout candle, target 24,500/24,600. SL = a 5-min close back below
+        24,400.<br><br>
+        <b>The lesson:</b> never fade a wall on OI alone. The OI tells you the wall exists. The other 4 checks tell you
+        whether to trust it.
+      </div>
+
+      <!-- ═════════ THE 1-LINE TAKEAWAY ═════════ -->
+      <div class="infobox" style="border-left-color:var(--info);margin-top:14px">
+        <svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <b>The whole framework in one line:</b> OI shows you the wall. Premium tells you if it's real. Candle, volume,
+        and VWAP confirm the breakout. Time decides if any of it is reliable. <b>Use all 5 &mdash; never trade off OI
+          alone.</b>
+      </div>
+
+      <div class="catdiv" style="margin-top:18px">ANATOMY OF THE CHART &mdash; WHAT EACH BAR MEANS</div>
+      <div class="pgrid md c2">
+        <div class="card" style="padding:18px">
+          <div class="cname" style="margin-bottom:10px">SAMPLE OI-CHANGE CHART (ANNOTATED)</div>
+          <svg viewBox="0 0 800 380" style="width:100%;height:auto;background:var(--s2);border-radius:8px"
+            aria-label="Annotated OI change bar chart">
+            <defs>
+              <pattern id="oichg-grid" width="800" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 0 80 L 800 80" stroke="rgba(128,128,128,0.12)" stroke-width="1" />
+              </pattern>
+            </defs>
+            <rect x="0" y="60" width="800" height="220" fill="url(#oichg-grid)" />
+
+            <!-- Y axis labels -->
+            <text x="60" y="84" text-anchor="end" fill="var(--muted)" font-size="11" font-family="monospace">60L</text>
+            <text x="60" y="124" text-anchor="end" fill="var(--muted)" font-size="11" font-family="monospace">40L</text>
+            <text x="60" y="164" text-anchor="end" fill="var(--muted)" font-size="11" font-family="monospace">20L</text>
+            <text x="60" y="244" text-anchor="end" fill="var(--muted)" font-size="11" font-family="monospace">0</text>
+            <line x1="65" y1="240" x2="780" y2="240" stroke="var(--text-soft)" stroke-width="1" />
+
+            <!-- Strike groups (7 strikes, ~100px apart) -->
+            <!-- 24250 -->
+            <rect x="80" y="210" width="16" height="30" fill="#09a86e" opacity="0.85" />
+            <rect x="98" y="225" width="16" height="15" fill="#c91f3a" opacity="0.85" />
+            <text x="97" y="260" text-anchor="middle" fill="var(--muted)" font-size="11"
+              font-family="monospace">24250</text>
+
+            <!-- 24300 (big PE wall) -->
+            <rect x="180" y="60" width="16" height="180" fill="#09a86e" />
+            <rect x="198" y="222" width="16" height="18" fill="#c91f3a" opacity="0.85" />
+            <text x="197" y="260" text-anchor="middle" fill="var(--muted)" font-size="11"
+              font-family="monospace">24300</text>
+
+            <!-- 24350 -->
+            <rect x="280" y="150" width="16" height="90" fill="#09a86e" opacity="0.9" />
+            <rect x="298" y="216" width="16" height="24" fill="#c91f3a" opacity="0.85" />
+            <text x="297" y="260" text-anchor="middle" fill="var(--muted)" font-size="11"
+              font-family="monospace">24350</text>
+
+            <!-- 24400 (ATM / spot) -->
+            <rect x="380" y="180" width="16" height="60" fill="#09a86e" opacity="0.9" />
+            <rect x="398" y="180" width="16" height="60" fill="#c91f3a" opacity="0.9" />
+            <text x="397" y="260" text-anchor="middle" fill="var(--muted)" font-size="11"
+              font-family="monospace">24400</text>
+
+            <!-- 24450 -->
+            <rect x="480" y="216" width="16" height="24" fill="#09a86e" opacity="0.85" />
+            <rect x="498" y="150" width="16" height="90" fill="#c91f3a" opacity="0.9" />
+            <text x="497" y="260" text-anchor="middle" fill="var(--muted)" font-size="11"
+              font-family="monospace">24450</text>
+
+            <!-- 24500 (big CE wall) -->
+            <rect x="580" y="222" width="16" height="18" fill="#09a86e" opacity="0.85" />
+            <rect x="598" y="60" width="16" height="180" fill="#c91f3a" />
+            <text x="597" y="260" text-anchor="middle" fill="var(--muted)" font-size="11"
+              font-family="monospace">24500</text>
+
+            <!-- 24550 -->
+            <rect x="680" y="225" width="16" height="15" fill="#09a86e" opacity="0.85" />
+            <rect x="698" y="195" width="16" height="45" fill="#c91f3a" opacity="0.85" />
+            <text x="697" y="260" text-anchor="middle" fill="var(--muted)" font-size="11"
+              font-family="monospace">24550</text>
+
+            <!-- Spot vertical line at 24400 -->
+            <line x1="397" y1="60" x2="397" y2="240" stroke="var(--info)" stroke-width="1.5" stroke-dasharray="5,5" />
+            <text x="397" y="50" text-anchor="middle" fill="var(--info)" font-size="11" font-family="monospace"
+              font-weight="600">SPOT 24400</text>
+
+            <!-- LEFT annotation: PE wall -->
+            <line x1="190" y1="60" x2="170" y2="34" stroke="#09a86e" stroke-width="1.2" />
+            <text x="160" y="28" text-anchor="end" fill="#09a86e" font-size="12" font-weight="700">PE WALL</text>
+            <text x="160" y="44" text-anchor="end" fill="var(--muted)" font-size="10" font-family="monospace">support @
+              24300</text>
+
+            <!-- RIGHT annotation: CE wall -->
+            <line x1="608" y1="60" x2="630" y2="34" stroke="#c91f3a" stroke-width="1.2" />
+            <text x="640" y="28" fill="#c91f3a" font-size="12" font-weight="700">CE WALL</text>
+            <text x="640" y="44" fill="var(--muted)" font-size="10" font-family="monospace">resistance @ 24500</text>
+
+            <!-- Legend (single tidy row) -->
+            <rect x="80" y="306" width="14" height="14" fill="#09a86e" />
+            <text x="100" y="318" fill="var(--text-soft)" font-size="12" font-family="monospace">Green bar = PE OI build
+              = floor / support</text>
+
+            <rect x="80" y="332" width="14" height="14" fill="#c91f3a" />
+            <text x="100" y="344" fill="var(--text-soft)" font-size="12" font-family="monospace">Red bar = CE OI build =
+              ceiling / resistance</text>
+
+            <line x1="500" y1="313" x2="520" y2="313" stroke="var(--info)" stroke-width="1.5" stroke-dasharray="5,5" />
+            <text x="528" y="318" fill="var(--text-soft)" font-size="12" font-family="monospace">Dashed line = current
+              spot price</text>
+            <text x="528" y="344" fill="var(--muted)" font-size="11" font-family="monospace" font-style="italic">Tallest
+              bars = where smart money has dug in</text>
+          </svg>
+        </div>
+
+        <div class="card info" style="padding:18px">
+          <div class="cname" style="margin-bottom:10px">3-STEP READ &mdash; FROM CHART TO CE / PE DECISION</div>
+          <div class="cdesc" style="text-align:left;font-size:14px;line-height:1.7">
+            <b style="color:var(--info)">Step 1 &mdash; find the BIGGEST green bar.</b> That strike is where put writers
+            are aggressively defending. It is your <b>support floor</b>. As long as spot stays above it, downside is
+            limited &mdash; <b>buy CE on dips toward this strike</b>.<br><br>
+            <b style="color:var(--info)">Step 2 &mdash; find the BIGGEST red bar.</b> That strike is where call writers
+            are aggressively defending. It is your <b>resistance ceiling</b>. As long as spot stays below it, upside is
+            capped &mdash; <b>buy PE on rallies toward this strike</b>.<br><br>
+            <b style="color:var(--info)">Step 3 &mdash; locate spot relative to the two walls.</b><br>
+            &bull; <b>Closer to PE wall (bottom):</b> bias = bullish, BUY CE<br>
+            &bull; <b>Closer to CE wall (top):</b> bias = bearish, BUY PE<br>
+            &bull; <b>Mid-way between walls:</b> RANGE day &mdash; sell premium if able, otherwise <b>NO
+              TRADE</b><br><br>
+            <b style="color:var(--bull)">In the chart on the left:</b> spot 24400 sits between PE wall 24300 and CE wall
+            24500. Range is intact &mdash; fade the extremes, no clean directional trade.
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv" style="margin-top:18px">THE 4 CHART PATTERNS &rarr; THE 4 TRADES</div>
+      <div class="pgrid md c2">
+        <div class="card bull">
+          <div class="cname"><span class="cnum" style="background:var(--bull)">A</span> PE WALL BELOW &middot; NO CE
+            WALL ABOVE &rarr; <b>BUY CE</b></div>
+          <div class="cdesc" style="text-align:left">
+            <b>Chart:</b> 1&ndash;2 huge green bars below spot, only small/scattered red bars above spot.<br>
+            <b>Meaning:</b> Put writers are confident; call writers are not committing &mdash; <b>upside is
+              open</b>.<br>
+            <b>Trade:</b> BUY ATM/ITM CE on any dip toward the green-wall strike. Stop = below the PE-wall strike.
+            Target = next CE-OI cluster above.<br>
+            <b>When:</b> trending-up days, post-news rallies, gap-up follow-throughs.
+          </div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><span class="cnum" style="background:var(--bear)">B</span> CE WALL ABOVE &middot; NO PE
+            WALL BELOW &rarr; <b>BUY PE</b></div>
+          <div class="cdesc" style="text-align:left">
+            <b>Chart:</b> 1&ndash;2 huge red bars above spot, only small/scattered green bars below spot.<br>
+            <b>Meaning:</b> Call writers are aggressive; put writers have stepped away &mdash; <b>downside is
+              open</b>.<br>
+            <b>Trade:</b> BUY ATM/ITM PE on any rally toward the red-wall strike. Stop = above the CE-wall strike.
+            Target = next PE-OI cluster below.<br>
+            <b>When:</b> trending-down days, post-news weakness, gap-down continuations.
+          </div>
+        </div>
+        <div class="card neu">
+          <div class="cname"><span class="cnum" style="background:var(--neutral)">C</span> BOTH WALLS PRESENT &rarr;
+            <b>FADE EXTREMES / NO TRADE</b></div>
+          <div class="cdesc" style="text-align:left">
+            <b>Chart:</b> One huge green bar below spot AND one huge red bar above spot, spot mid-way.<br>
+            <b>Meaning:</b> Both sides agree on a range &mdash; this is the <b>most common pattern</b>, especially
+            mid-week.<br>
+            <b>Trade for buyers:</b> only fade extremes &mdash; CE bounce off PE wall, PE rejection at CE wall. Skip if
+            spot is mid-range.<br>
+            <b>Trade for sellers:</b> short straddle/strangle around the walls if you have the capital + skill.
+          </div>
+        </div>
+        <div class="card info">
+          <div class="cname"><span class="cnum" style="background:var(--info)">D</span> A WALL IS BREAKING &rarr;
+            <b>TREND-FOLLOW</b></div>
+          <div class="cdesc" style="text-align:left">
+            <b>Chart:</b> Yesterday&rsquo;s big PE/CE wall is now a <b>shrinking bar</b> (writers covering) and OI is
+            shifting to a new strike beyond it.<br>
+            <b>Meaning:</b> The defended level has failed &mdash; expect a strong move toward the new wall.<br>
+            <b>Trade:</b> If CE wall breaks (red bar shrinking, OI moving up) &rarr; BUY CE aggressively. If PE wall
+            breaks &rarr; BUY PE aggressively.<br>
+            <b>Highest-edge setup &mdash; especially on expiry day morning.</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv" style="margin-top:18px">WORKED EXAMPLE &mdash; FROM THE CHART ABOVE</div>
+      <div class="infobox" style="border-left-color:var(--bull)">
+        <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M8.5 12.5 11 15l4.5-6" />
+        </svg>
+        <b>Setup:</b> Nifty spot 24,400 &middot; PE wall at 24,300 (+60L OI) &middot; CE wall at 24,500 (+60L OI)
+        &middot; Range = 200 pts.
+      </div>
+      <div class="strat-wrap">
+        <table class="strat-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Spot Price</th>
+              <th>What the Chart Shows</th>
+              <th>Trade Decision</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>9:30 AM</td>
+              <td>24,400</td>
+              <td>Pattern C (range), spot mid-way</td>
+              <td class="tw">NO TRADE &mdash; wait</td>
+            </tr>
+            <tr>
+              <td>10:15 AM</td>
+              <td>24,330</td>
+              <td>Spot near PE wall, green bar still growing</td>
+              <td class="tc">BUY 24,400 CE @ &#8377;85, SL &#8377;65 (below 24,300), Tgt &#8377;130 (toward 24,500)</td>
+            </tr>
+            <tr>
+              <td>11:30 AM</td>
+              <td>24,470</td>
+              <td>Spot near CE wall, red bar still growing</td>
+              <td class="tp">Exit CE at &#8377;130 (booked) &middot; BUY 24,400 PE @ &#8377;55, SL &#8377;42 (above
+                24,500)</td>
+            </tr>
+            <tr>
+              <td>1:45 PM</td>
+              <td>24,510</td>
+              <td>CE wall <b>shrinking</b>, fresh CE OI now at 24,600 &mdash; <b>Pattern D break</b></td>
+              <td class="tc">PE stopped at &#8377;42 &middot; FLIP &mdash; BUY 24,500 CE @ &#8377;75, SL &#8377;58, Tgt
+                24,600</td>
+            </tr>
+            <tr>
+              <td>3:00 PM</td>
+              <td>24,580</td>
+              <td>CE wall has migrated to 24,600, momentum slowing</td>
+              <td class="tw">Trail SL to &#8377;110 &middot; book at 3:15 PM close (theta crush incoming)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="catdiv" style="margin-top:18px">DOs &amp; DON'Ts WHEN READING THE OI-CHANGE CHART</div>
+      <div class="pgrid md c2">
+        <div class="card bull">
+          <div class="cname"><svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M8.5 12.5 11 15l4.5-6" />
+            </svg> DO</div>
+          <div class="cdesc" style="text-align:left">
+            &bull; Refresh OI Change every <b>30 minutes</b> &mdash; walls migrate intraday<br>
+            &bull; Use <b>weekly expiry only</b> (most active OI flow)<br>
+            &bull; Trade only when one wall is <b>2&times; bigger</b> than its opposite-side counterpart<br>
+            &bull; Combine with <b>price action</b> (engulfing/pin bar at the wall) before entry<br>
+            &bull; Read the chart <b>after 9:30 AM</b> &mdash; first 15 min OI is noisy
+          </div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M15 9l-6 6" />
+              <path d="M9 9l6 6" />
+            </svg> DON'T</div>
+          <div class="cdesc" style="text-align:left">
+            &bull; Don't read OI Change <b>without checking VIX &amp; PCR</b> &mdash; high VIX or extreme PCR overrides
+            the walls<br>
+            &bull; Don't blindly buy when spot is <b>between</b> two walls (range = no trade)<br>
+            &bull; Don't trust the chart on <b>event days</b> (RBI / Budget / results) &mdash; OI is positioning, not
+            direction<br>
+            &bull; Don't hold trades <b>through 3:00 PM</b> on expiry &mdash; OI walls collapse in last hour<br>
+            &bull; Don't confuse <b>OI Change</b> (today) with <b>Total OI</b> (cumulative) &mdash; only the change
+            matters for fresh signals
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv">RED FLAGS IN THE OPTION CHAIN</div>
+      <div class="pgrid md">
+        <div class="card bear">
+          <div class="cname"><svg class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg> SUDDEN MASSIVE OI SHIFT PRE-NEWS</div>
+          <div class="cdesc" style="text-align:left">Aggressive OI build at a single far-OTM strike 1&ndash;2 days
+            before an announcement = <b>someone knows something</b>. Either ride with them (small size) or stay out
+            entirely. Never fade.</div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><svg class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg> PCR EXTREMES</div>
+          <div class="cdesc" style="text-align:left">PCR &gt;2.0 or &lt;0.4 signals euphoria / panic. Reversal risk is
+            high. <b>Don't initiate fresh positions in the prevailing direction</b> until PCR normalizes.</div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><svg class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg> IV SURGE WITHOUT PRICE MOVE</div>
+          <div class="cdesc" style="text-align:left">If IV jumps &gt;20% in a day but price hasn't moved, a <b>large
+              directional bet</b> is being built. Options are now overpriced &mdash; do not buy. Wait for IV to settle.
+          </div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><svg class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg> ZERO-OI STRIKES</div>
+          <div class="cdesc" style="text-align:left">Strikes with &lt;5,000 OI are liquidity traps. Any order will move
+            the premium 10&ndash;15%. <b>Only trade strikes with &gt;50,000 OI for Nifty and &gt;20,000 for
+              BankNifty.</b></div>
+        </div>
+      </div>
+
+      <div class="catdiv">NIFTY vs BANKNIFTY vs SENSEX CHAIN DIFFERENCES</div>
+      <table class="strat-table">
+        <thead>
+          <tr>
+            <th>Instrument</th>
+            <th>Strike Gap</th>
+            <th>Typical OI Size</th>
+            <th>Expiry</th>
+            <th>Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Nifty 50</b></td>
+            <td>&#8377;50</td>
+            <td>30&ndash;80 Lakh per active strike</td>
+            <td>Weekly (Tue)</td>
+            <td class="tc">Most liquid &mdash; best for chain reading</td>
+          </tr>
+          <tr>
+            <td><b>BankNifty</b></td>
+            <td>&#8377;100</td>
+            <td>20&ndash;50 Lakh per active strike</td>
+            <td>Monthly only (Nov-2024+)</td>
+            <td class="tw">Higher gamma, volatile chain</td>
+          </tr>
+          <tr>
+            <td><b>Sensex (BSE)</b></td>
+            <td>&#8377;100</td>
+            <td>10&ndash;25 Lakh per active strike</td>
+            <td>Weekly (Thu)</td>
+            <td class="tc">Alternative weekly, lower liquidity</td>
+          </tr>
+          <tr>
+            <td><b>MidCpNifty / FinNifty</b></td>
+            <td>&#8377;50/&#8377;50</td>
+            <td>&lt;5 Lakh per strike</td>
+            <td>Monthly only</td>
+            <td class="tp">AVOID &mdash; too illiquid for buying</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="rbox" style="border-left-color:var(--bull);margin-top:32px">
+        <h3>DAILY OPTION CHAIN ROUTINE (5 MINUTES)</h3>
+        <ul>
+          <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="9,6 15,12 9,18" />
+              </svg> 9:00 AM:</b> Note Max CE OI strike (resistance) + Max PE OI strike (support) &rarr; this is today's
+            expected range.</li>
+          <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="9,6 15,12 9,18" />
+              </svg> 9:30 AM:</b> Check PCR direction from previous close. Confirms bullish / bearish / neutral bias.
+          </li>
+          <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="9,6 15,12 9,18" />
+              </svg> 11:00 AM:</b> Recheck OI Change. Are fresh longs being built at CE? Fresh shorts at PE? &rarr;
+            direction confirmation.</li>
+          <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="9,6 15,12 9,18" />
+              </svg> 2:00 PM:</b> Final chain check before close. Where is Max Pain moving? Any sudden OI shifts?</li>
+          <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="9,6 15,12 9,18" />
+              </svg> End of day:</b> Log today's Max OI strikes, PCR, and whether price respected them. This builds your
+            pattern library over time.</li>
+        </ul>
+      </div>
+
+    </div>
+  

@@ -1,0 +1,322 @@
+    <div class="wrap">
+      <div class="shead">
+        <h2>PAPER TRADING <span class="count-badge">NIFTY 50</span></h2>
+        <p>Live chart, option chain &amp; simulated trades for Nifty 50.</p>
+      </div>
+
+      <!-- ─── BROKER-GRADE LIVE CANDLESTICK CHART ─── -->
+      <div class="tv-shell" style="margin-top:18px">
+        <div class="tv-toolbar">
+          <span class="tv-pill" id="tv-status"><span class="tv-dot"></span><span
+              id="tv-status-text">WAITING</span></span>
+          <span class="tv-symbol-lbl">NSE:NIFTY &middot; Nifty 50</span>
+          <div class="tv-ltp" id="tv-ltp" style="display:none">
+            <span class="tv-ltp-val" id="tv-ltp-val">&mdash;</span>
+            <span class="tv-ltp-change" id="tv-ltp-change">&mdash;</span>
+          </div>
+          <div class="tv-tf-group" role="group" aria-label="Timeframe">
+            <button class="tv-tf-btn" type="button" data-tf="1m">1m</button>
+            <button class="tv-tf-btn" type="button" data-tf="3m">3m</button>
+            <button class="tv-tf-btn active" type="button" data-tf="5m">5m</button>
+            <button class="tv-tf-btn" type="button" data-tf="15m">15m</button>
+            <button class="tv-tf-btn" type="button" data-tf="30m">30m</button>
+            <button class="tv-tf-btn" type="button" data-tf="1h">1h</button>
+            <button class="tv-tf-btn" type="button" data-tf="1d">1D</button>
+          </div>
+          <button class="tv-fs-btn tv-api-btn" type="button" onclick="apiOpenModal()" title="API Connection settings"
+            aria-label="API Connection settings">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+          <button class="tv-fs-btn" type="button" onclick="tvToggleFullscreen()" title="Toggle fullscreen">
+            <svg viewBox="0 0 16 16" width="14" height="14">
+              <path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" fill="none" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+        <div id="tv-chart-container" class="tv-container">
+          <div class="tv-loading" id="tv-loading">
+            <div class="tv-spinner" id="tv-spinner"></div>
+            <div id="tv-loading-text"><b>No Upstox token connected yet.</b><br>Click the <a href="#"
+                onclick="apiOpenModal();return false;" style="color:var(--info);font-weight:600">&#9881; gear icon</a>
+              in the chart toolbar to connect your token.</div>
+          </div>
+        </div>
+        <div class="tv-foot">
+          <span id="tv-foot-info">Powered by Upstox API &middot; live ticks every 2 sec &middot; Klinecharts
+            engine</span>
+        </div>
+      </div>
+
+      <!-- ─── 3. PAPER TRADING ─── -->
+      <div class="pt-shell">
+        <div class="pt-head">
+          <h3>Paper Trade &mdash; Nifty 50 Options</h3>
+          <span class="pt-disc" title="Simulated trades only. No real orders.">SIMULATED &middot; NO REAL MONEY</span>
+        </div>
+
+        <!-- Stats strip: Equity, P&L, Spot, Expiry -->
+        <div class="pt-stats-strip">
+          <div class="pt-stat-cell">
+            <span class="pt-stat-k">Equity</span>
+            <span class="pt-stat-v" id="pt-equity">&#8377;1,00,000</span>
+            <span class="pt-stat-sub" id="pt-equity-pct">+0.00%</span>
+          </div>
+          <div class="pt-stat-cell">
+            <span class="pt-stat-k">P&amp;L (Open)</span>
+            <span class="pt-stat-v" id="pt-pnl-open">&#8377;0</span>
+            <span class="pt-stat-sub" id="pt-pnl-open-pct">0.00%</span>
+          </div>
+          <div class="pt-stat-cell" title="Realized P&L from trades closed today (IST). Resets at midnight.">
+            <span class="pt-stat-k">P&amp;L (Today)</span>
+            <span class="pt-stat-v" id="pt-pnl-today">&#8377;0</span>
+            <span class="pt-stat-sub" id="pt-pnl-today-sub">0 trades</span>
+          </div>
+          <div class="pt-stat-cell">
+            <span class="pt-stat-k">Spot (Nifty)</span>
+            <span class="pt-stat-v" id="pt-spot">&mdash;</span>
+            <span class="pt-stat-sub" id="pt-spot-sub">Live (2s)</span>
+          </div>
+          <div class="pt-stat-cell">
+            <span class="pt-stat-k">Expiry</span>
+            <span class="pt-stat-v" id="pt-expiry">&mdash;</span>
+            <span class="pt-stat-sub">Weekly</span>
+          </div>
+        </div>
+
+        <!-- Position config: Exit All / Reset (per-side lot stepper now lives inside each BUY card below) -->
+        <div class="pt-ticket">
+          <span class="pt-lot-hint">Nifty 50 &middot; 1 lot = 65 qty</span>
+          <div class="pt-ticket-actions">
+            <button class="pt-mini" type="button" onclick="ptExitAll()" title="Close all open positions">EXIT
+              ALL</button>
+            <button class="pt-mini" type="button" onclick="ptReset()"
+              title="Reset capital, clear all positions and history">RESET</button>
+          </div>
+        </div>
+
+        <!-- ─── OPTIONS (Buy CE / Buy PE at chosen strike) ─── -->
+        <div class="pt-trade-row pt-trade-opts">
+          <div class="pt-opts-head">
+            <div class="pt-opt-strike">
+              <label for="pt-strike-trigger">Strike</label>
+              <div class="pt-strike-picker" id="pt-strike-picker">
+                <button class="pt-strike-trigger" type="button" id="pt-strike-trigger" onclick="ptToggleStrikes(event)"
+                  disabled>
+                  <span class="pt-strike-trigger-num" id="pt-strike-current">&mdash;</span>
+                  <span class="pt-strike-trigger-tag" id="pt-strike-atm-tag" hidden>ATM</span>
+                  <svg class="pt-strike-chev" viewBox="0 0 12 12" aria-hidden="true">
+                    <polyline points="3,5 6,8 9,5" fill="none" stroke="currentColor" stroke-width="1.7"
+                      stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+                <div class="pt-strike-pop" id="pt-strike-pop" hidden>
+                  <div class="pt-strike-pop-head">
+                    <input type="text" class="pt-strike-search" id="pt-strike-search"
+                      placeholder="Search strike (e.g. 24200)..." oninput="ptStrikeSearch(this.value)"
+                      autocomplete="off">
+                  </div>
+                  <div class="pt-strike-list-head">
+                    <span class="pt-strike-col-ce">CE</span>
+                    <span class="pt-strike-col-strike">Strike</span>
+                    <span class="pt-strike-col-pe">PE</span>
+                  </div>
+                  <div class="pt-strike-list" id="pt-strike-list">
+                    <div class="pt-strike-empty">Strikes load automatically when chart starts.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="pt-mini" type="button" id="pt-load-strikes-btn" onclick="ptLoadStrikes()"
+              title="Refresh live option premiums">&#8635; REFRESH</button>
+            <span class="pt-live-tag" id="pt-live-tag" hidden>
+              <span class="pt-live-dot"></span>
+              <span class="pt-live-txt">LIVE</span>
+              <span class="pt-live-ago" id="pt-live-ago">just now</span>
+            </span>
+          </div>
+          <div class="pt-opt-grid">
+            <div class="pt-opt-side pt-opt-ce">
+              <div class="pt-opt-prem">
+                <span class="pt-opt-prem-lbl">CE Premium <span class="pt-money-tag" id="pt-opt-ce-money" hidden></span></span>
+                <span class="pt-opt-prem-val" id="pt-opt-ce-val">&mdash;</span>
+              </div>
+              <div class="pt-qty pt-qty-mini" title="Lots for BUY CE">
+                <label for="pt-qty-ce">Lots</label>
+                <button type="button" onclick="ptIncQty(-1,'ce')" aria-label="Decrease CE lots">&minus;</button>
+                <input type="number" id="pt-qty-ce" value="1" min="1" max="20" onchange="ptSetQty(this.value,'ce')">
+                <button type="button" onclick="ptIncQty(1,'ce')" aria-label="Increase CE lots">+</button>
+              </div>
+              <button class="pt-btn pt-buy pt-btn-sm" type="button" id="pt-buy-ce-btn" onclick="ptBuyCE()" disabled>BUY
+                CE</button>
+            </div>
+            <div class="pt-opt-side pt-opt-pe">
+              <div class="pt-opt-prem">
+                <span class="pt-opt-prem-lbl">PE Premium <span class="pt-money-tag" id="pt-opt-pe-money" hidden></span></span>
+                <span class="pt-opt-prem-val" id="pt-opt-pe-val">&mdash;</span>
+              </div>
+              <div class="pt-qty pt-qty-mini" title="Lots for BUY PE">
+                <label for="pt-qty-pe">Lots</label>
+                <button type="button" onclick="ptIncQty(-1,'pe')" aria-label="Decrease PE lots">&minus;</button>
+                <input type="number" id="pt-qty-pe" value="1" min="1" max="20" onchange="ptSetQty(this.value,'pe')">
+                <button type="button" onclick="ptIncQty(1,'pe')" aria-label="Increase PE lots">+</button>
+              </div>
+              <button class="pt-btn pt-sell pt-btn-sm" type="button" id="pt-buy-pe-btn" onclick="ptBuyPE()" disabled>BUY
+                PE</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-section">
+          <h4>
+            Open Positions <span class="pt-cnt" id="pt-open-cnt">(0)</span>
+            <span class="pt-eod-tag" title="All open positions are auto-squared off at 15:25 IST on weekdays.">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <polyline points="12,7 12,12 15,14" />
+              </svg>
+              Auto square-off at <b>15:25 IST</b>
+            </span>
+          </h4>
+          <div style="overflow-x:auto">
+            <table class="pt-table">
+              <thead>
+                <tr>
+                  <th>Instrument</th>
+                  <th>Side</th>
+                  <th>Lots</th>
+                  <th>Entry</th>
+                  <th>Time</th>
+                  <th>LTP</th>
+                  <th>Pts</th>
+                  <th>P&amp;L</th>
+                  <th>Stop Loss</th>
+                  <th>Target</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="pt-open-tbody">
+                <tr>
+                  <td colspan="11" class="pt-empty">No open positions. Pick a strike from the dropdown &rarr; click
+                    <b>BUY CE</b> or <b>BUY PE</b> to open one.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="pt-section">
+          <h4>
+            Trade History <span class="pt-cnt" id="pt-hist-cnt">(0)</span>
+            <span class="pt-actions"><button class="pt-mini" type="button" onclick="ptClearHistory()">CLEAR
+                HISTORY</button></span>
+          </h4>
+          <div style="overflow-x:auto">
+            <table class="pt-table">
+              <thead>
+                <tr>
+                  <th>Result</th>
+                  <th>Instrument</th>
+                  <th>Side</th>
+                  <th>Lots</th>
+                  <th>Entry</th>
+                  <th>Exit</th>
+                  <th>Pts</th>
+                  <th>P&amp;L</th>
+                  <th>Held</th>
+                </tr>
+              </thead>
+              <tbody id="pt-hist-tbody">
+                <tr>
+                  <td colspan="9" class="pt-empty">No closed trades yet. Trade history will appear here after you EXIT a
+                    position.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="pt-section">
+          <h4>Stats</h4>
+          <div class="pt-stats-grid">
+            <div class="pt-stat">
+              <div class="pt-stat-lbl">Trades</div>
+              <div class="pt-stat-val" id="pt-stat-n">0</div>
+            </div>
+            <div class="pt-stat">
+              <div class="pt-stat-lbl">Win Rate</div>
+              <div class="pt-stat-val" id="pt-stat-wr">&mdash;</div>
+            </div>
+            <div class="pt-stat">
+              <div class="pt-stat-lbl">Avg P&amp;L</div>
+              <div class="pt-stat-val" id="pt-stat-avg">&mdash;</div>
+            </div>
+            <div class="pt-stat">
+              <div class="pt-stat-lbl">Best Trade</div>
+              <div class="pt-stat-val" id="pt-stat-best">&mdash;</div>
+            </div>
+            <div class="pt-stat">
+              <div class="pt-stat-lbl">Worst Trade</div>
+              <div class="pt-stat-val" id="pt-stat-worst">&mdash;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── 4. OPTION CHAIN DASHBOARD (auto-loaded with chart, refreshed every 30s) ─── -->
+      <div class="up-card" id="up-dashboard" style="display:none;margin-top:18px">
+        <h3 id="up-dashboard-title">Option Chain Snapshot</h3>
+
+        <div class="up-stats" id="up-stats"></div>
+
+        <details class="up-explainer" id="up-snapshot-help">
+          <summary>What do these numbers mean? (read once)</summary>
+          <div class="up-explainer-body">
+            <ul>
+              <li><b>OI (Open Interest)</b> &mdash; live count of option contracts that haven&rsquo;t been squared off. The bigger the OI at a strike, the more money is parked there.</li>
+              <li><b>PCR (Put / Call Ratio)</b> &mdash; total Put OI &divide; total Call OI. Above <b>1.2</b> = bullish lean (writers are happy to sell puts because they expect support). Below <b>0.8</b> = bearish lean.</li>
+              <li><b>Max Pain</b> &mdash; the strike at which option-writers (the big players) lose the least money at expiry. Price tends to gravitate toward this level on expiry day.</li>
+              <li><b>OI Bias</b> &mdash; how the put-vs-call book is tilted. Positive = put-heavy (writers expect a floor &rarr; bullish). Negative = call-heavy (writers expect a ceiling &rarr; bearish).</li>
+              <li><b>Wall</b> &mdash; the single strike with the largest OI on its side. Acts as a magnet / barrier because writers will defend their position.</li>
+              <li><b>Growing OI</b> on a wall = new writers piling in (wall getting stronger). <b>Shrinking</b> = writers covering / running (wall is about to break).</li>
+            </ul>
+          </div>
+        </details>
+
+        <div id="up-chart-wrap" style="background:var(--s2);border-radius:6px;padding:14px;margin-bottom:0"></div>
+        <div class="up-chart-legend-tips" id="up-chart-tips">
+          <div class="tip bull"><b>Tall green bars</b> = strikes where put-writers are committed. These act as <b>support / floor</b>.</div>
+          <div class="tip bear"><b>Tall red bars</b> = strikes where call-writers are committed. These act as <b>resistance / ceiling</b>.</div>
+          <div class="tip info"><b>Dashed blue line</b> = current spot. Whichever side has the bigger OI stack is where price will struggle to go.</div>
+        </div>
+
+        <div class="up-walls-head">
+          <h3>Walls Detected</h3>
+          <span class="up-walls-sub">Biggest concentration of writer money on each side &mdash; treat these like price magnets / barriers.</span>
+        </div>
+        <div id="up-walls-grid" class="up-walls-grid"></div>
+
+        <div class="up-verdict-card" id="up-verdict-card"></div>
+      </div>
+
+      <!-- ─── 5. WHAT TO DO NEXT ─── -->
+      <div class="up-card" id="up-next" style="display:none">
+        <h3>Cross-check &amp; Next Steps</h3>
+        <ul style="padding-left:22px;font-size:13.5px;line-height:1.75">
+          <li>Run the <b>Quick Wall Strength Check</b> (Option Chain tab) before placing the trade &mdash; never fade
+            a wall on OI alone.</li>
+          <li>Open the <b>Bias Calculator</b> tab to confirm with today's macro view (CPR + VIX + higher-TF trend).</li>
+          <li>Re-fetch every 30 min &mdash; if a wall starts shrinking, the verdict flips automatically.</li>
+          <li>Walls only break on <b>volume + a candle close through</b>. Confirm on the chart above before clicking
+            buy.</li>
+        </ul>
+      </div>
+
+    </div>
+  

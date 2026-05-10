@@ -1,0 +1,84 @@
+{
+  "name": "Trading Studio",
+  "short_name": "Studio",
+  "description": "Live Nifty 50 charts, paper trading, and a complete candlestick + chart-pattern reference for Indian option buyers. 90+ patterns, 6 strategy playbooks, OI bias, Greeks, and a 1L paper-trading sandbox.",
+  "start_url": "./candlestick-patterns.html",
+  "scope": "./",
+  "id": "./candlestick-patterns.html",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "orientation": "any",
+  "background_color": "#07090f",
+  "theme_color": "#07090f",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": ["finance", "education", "productivity"],
+  "icons": [
+    {
+      "src": "pwa/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa/icons/icon-maskable-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "pwa/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "pwa/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live Chart & Paper Trade",
+      "short_name": "Chart",
+      "description": "Open the live Nifty 50 chart and paper-trading sandbox",
+      "url": "./candlestick-patterns.html#live",
+      "icons": [{ "src": "pwa/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Bias Calculator",
+      "short_name": "Bias",
+      "description": "Open the OI bias calculator",
+      "url": "./candlestick-patterns.html#bias",
+      "icons": [{ "src": "pwa/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Option Chain",
+      "short_name": "Chain",
+      "description": "Open the option chain reading guide",
+      "url": "./candlestick-patterns.html#chain",
+      "icons": [{ "src": "pwa/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    }
+  ],
+  "prefer_related_applications": false
+}

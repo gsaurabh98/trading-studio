@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<title>Logo Preview — Bull + Bear Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bull:#00e5a0;
+  --bear:#ff2d55;
+  --neu:#ffc840;
+  --bg:#0b0d10;
+  --s1:#11161a;
+  --s2:#171e24;
+  --bd:#262e36;
+  --text:#e8f0f7;
+  --text-soft:#a6b4c2;
+  --text-dim:#6b7a88;
+}
+[data-theme="light"]{
+  --bg:#f5f7fa;
+  --s1:#ffffff;
+  --s2:#f0f4f8;
+  --bd:#d8dde3;
+  --text:#1a2028;
+  --text-soft:#4a5560;
+  --text-dim:#8290a0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  padding:48px 24px;
+}
+.hero{max-width:1200px;margin:0 auto 40px}
+h1{font-size:1.8rem;letter-spacing:0.02em;margin-bottom:8px}
+p.sub{color:var(--text-soft);font-size:1rem;max-width:780px;line-height:1.55}
+.grid{
+  max-width:1200px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:22px;
+}
+.card{
+  background:var(--s1);
+  border:1px solid var(--bd);
+  border-radius:12px;
+  padding:28px 22px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  transition:transform 0.15s,border-color 0.15s;
+}
+.card:hover{transform:translateY(-2px);border-color:#3a4553}
+.preview-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  background:var(--s2);
+  border:1px solid var(--bd);
+  border-radius:8px;
+  padding:24px 16px;
+  min-height:120px;
+}
+.preview-wrap.sm{min-height:80px;padding:14px 12px}
+.preview-wrap .title-demo{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.05em;
+  font-size:0.85rem;
+  color:var(--text);
+}
+.meta{display:flex;flex-direction:column;gap:2px}
+.badge{
+  display:inline-block;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.66rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  margin-bottom:4px;
+}
+.name{font-weight:700;font-size:1.08rem;letter-spacing:0.01em;color:var(--text)}
+.desc{color:var(--text-soft);font-size:0.92rem;line-height:1.5}
+.pattern-tag{
+  display:inline-block;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.66rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--bull);
+  background:rgba(0,229,160,0.08);
+  border:1px solid rgba(0,229,160,0.3);
+  padding:3px 8px;
+  border-radius:4px;
+  margin-top:2px;
+  align-self:flex-start;
+}
+.pick-btn{
+  margin-top:auto;
+  background:transparent;
+  border:1px solid var(--bd);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.72rem;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  padding:10px 14px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:500;
+  transition:all 0.15s;
+}
+.pick-btn:hover{border-color:var(--bull);color:var(--bull);background:rgba(0,229,160,0.05)}
+.theme-toggle{
+  position:fixed;top:16px;right:16px;padding:8px 14px;
+  background:var(--s1);border:1px solid var(--bd);border-radius:6px;color:var(--text);
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;
+  text-transform:uppercase;cursor:pointer;
+}
+.theme-toggle:hover{border-color:var(--bull)}
+
+/* ═══════════════════════════════════════════════════════════
+   LOGO 1 — BULLISH ENGULFING PATTERN
+   Red bear candle first, then a LARGER green bull candle
+   grows and visually engulfs it. Classic reversal signal.
+   ═══════════════════════════════════════════════════════════ */
+.l1 .bear-c{transform-origin:center;animation:l1-bear 3.6s ease-in-out infinite}
+.l1 .bear-w{animation:l1-bear-w 3.6s ease-in-out infinite}
+.l1 .bull-c{transform-origin:center bottom;animation:l1-bull 3.6s ease-in-out infinite}
+.l1 .bull-w{animation:l1-bull-w 3.6s ease-in-out infinite}
+@keyframes l1-bear{
+  0%,5%{opacity:0;transform:scaleY(0.1)}
+  15%,35%{opacity:1;transform:scaleY(1)}
+  45%,100%{opacity:0.45;transform:scaleY(1)}
+}
+@keyframes l1-bear-w{
+  0%,10%{opacity:0}
+  20%,35%{opacity:1}
+  45%,100%{opacity:0.45}
+}
+@keyframes l1-bull{
+  0%,35%{opacity:0;transform:scaleY(0.1)}
+  55%,92%{opacity:1;transform:scaleY(1)}
+  100%{opacity:0;transform:scaleY(0.1)}
+}
+@keyframes l1-bull-w{
+  0%,45%{opacity:0}
+  60%,92%{opacity:1}
+  100%{opacity:0}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOGO 2 — TWIN CANDLES (BEAR + BULL SIDE BY SIDE)
+   Simple, balanced pair. Red left, green right, both full-height.
+   ═══════════════════════════════════════════════════════════ */
+.l2 .bear-c,.l2 .bear-w{transform-origin:center bottom;animation:l2-grow 3s ease-in-out infinite}
+.l2 .bull-c,.l2 .bull-w{transform-origin:center bottom;animation:l2-grow 3s ease-in-out 0.2s infinite}
+@keyframes l2-grow{
+  0%,10%{transform:scaleY(0.1);opacity:0.3}
+  40%,90%{transform:scaleY(1);opacity:1}
+  100%{transform:scaleY(0.1);opacity:0.3}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOGO 3 — MORNING STAR (3-CANDLE REVERSAL)
+   Big red bear → tiny star/doji → big green bull.
+   The most famous 3-candle bullish reversal pattern.
+   ═══════════════════════════════════════════════════════════ */
+.l3 .bear-c,.l3 .bear-w{transform-origin:center bottom;animation:l3-bear 3.6s ease-in-out infinite}
+.l3 .star-c{transform-origin:center;animation:l3-star 3.6s ease-in-out 0.4s infinite}
+.l3 .bull-c,.l3 .bull-w{transform-origin:center bottom;animation:l3-bull 3.6s ease-in-out 0.8s infinite}
+@keyframes l3-bear{
+  0%,5%{transform:scaleY(0.1);opacity:0.3}
+  25%,90%{transform:scaleY(1);opacity:1}
+  100%{transform:scaleY(0.1);opacity:0.3}
+}
+@keyframes l3-star{
+  0%,20%{transform:scale(0.2);opacity:0}
+  40%,90%{transform:scale(1);opacity:1}
+  55%{transform:scale(1.2)}
+  100%{transform:scale(0.2);opacity:0}
+}
+@keyframes l3-bull{
+  0%,40%{transform:scaleY(0.1);opacity:0.3}
+  65%,90%{transform:scaleY(1);opacity:1}
+  100%{transform:scaleY(0.1);opacity:0.3}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOGO 4 — V-REVERSAL (BEAR DROPS → BULL RISES)
+   Red bear candle at top-left falls, curve connects,
+   green bull candle rises at bottom-right. Journey of a reversal.
+   ═══════════════════════════════════════════════════════════ */
+.l4 .bear-c,.l4 .bear-w{animation:l4-bear 3.6s ease-in-out infinite}
+.l4 .arc{
+  stroke-dasharray:60;
+  stroke-dashoffset:60;
+  animation:l4-arc 3.6s ease-in-out 0.3s infinite;
+}
+.l4 .bull-c,.l4 .bull-w{transform-origin:center bottom;animation:l4-bull 3.6s ease-in-out 0.9s infinite}
+.l4 .pivot{animation:l4-pivot 3.6s ease-in-out 0.7s infinite;transform-origin:center}
+@keyframes l4-bear{
+  0%,5%{opacity:0;transform:translateY(-4px)}
+  20%,90%{opacity:1;transform:translateY(0)}
+  100%{opacity:0;transform:translateY(-4px)}
+}
+@keyframes l4-arc{
+  0%{stroke-dashoffset:60}
+  55%{stroke-dashoffset:0}
+  92%{stroke-dashoffset:0;opacity:1}
+  100%{stroke-dashoffset:0;opacity:0}
+}
+@keyframes l4-bull{
+  0%,35%{transform:scaleY(0.1);opacity:0.3}
+  60%,90%{transform:scaleY(1);opacity:1}
+  100%{transform:scaleY(0.1);opacity:0.3}
+}
+@keyframes l4-pivot{
+  0%,45%{opacity:0;transform:scale(0.3)}
+  60%{opacity:1;transform:scale(1.4)}
+  75%,90%{opacity:1;transform:scale(1)}
+  100%{opacity:0;transform:scale(0.3)}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOGO 5 — FACE-OFF (BULL vs BEAR, CENTERED)
+   Red bear candle left, green bull candle right, separated
+   by a central "VS" divider line. Equal weight composition.
+   ═══════════════════════════════════════════════════════════ */
+.l5 .bear-c,.l5 .bear-w{transform-origin:center bottom;animation:l5-in-l 3s ease-in-out infinite}
+.l5 .bull-c,.l5 .bull-w{transform-origin:center bottom;animation:l5-in-r 3s ease-in-out infinite}
+.l5 .divider{animation:l5-div 3s ease-in-out 0.3s infinite}
+@keyframes l5-in-l{
+  0%,8%{transform:translateX(-10px) scaleY(0.4);opacity:0}
+  35%,90%{transform:translateX(0) scaleY(1);opacity:1}
+  100%{transform:translateX(-10px) scaleY(0.4);opacity:0}
+}
+@keyframes l5-in-r{
+  0%,8%{transform:translateX(10px) scaleY(0.4);opacity:0}
+  35%,90%{transform:translateX(0) scaleY(1);opacity:1}
+  100%{transform:translateX(10px) scaleY(0.4);opacity:0}
+}
+@keyframes l5-div{
+  0%,25%{opacity:0}
+  45%,90%{opacity:1}
+  100%{opacity:0}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LOGO 6 — HAMMER PATTERN (BEAR WICK + BULL BODY)
+   Iconic single-candle reversal: long red lower wick showing
+   bears pushed price down, closes green on top. Perfect.
+   ═══════════════════════════════════════════════════════════ */
+.l6 .body{transform-origin:center;animation:l6-body 3s ease-in-out infinite}
+.l6 .wick-up{transform-origin:center bottom;animation:l6-wick-up 3s ease-in-out infinite}
+.l6 .wick-dn{transform-origin:center top;animation:l6-wick-dn 3s ease-in-out infinite}
+.l6 .bear-zone{animation:l6-bear 3s ease-in-out infinite}
+@keyframes l6-body{
+  0%,15%{opacity:0;transform:scale(0.3)}
+  45%,90%{opacity:1;transform:scale(1)}
+  100%{opacity:0;transform:scale(0.3)}
+}
+@keyframes l6-wick-up{
+  0%,20%{transform:scaleY(0);opacity:0}
+  50%,90%{transform:scaleY(1);opacity:1}
+  100%{transform:scaleY(0);opacity:0}
+}
+@keyframes l6-wick-dn{
+  0%,5%{transform:scaleY(0);opacity:0}
+  35%,90%{transform:scaleY(1);opacity:1}
+  100%{transform:scaleY(0);opacity:0}
+}
+@keyframes l6-bear{
+  0%,10%{opacity:0}
+  30%,90%{opacity:1}
+  100%{opacity:0}
+}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+
+<div class="hero">
+  <h1>Logo Options — Bull <span style="color:var(--bear)">×</span> Bear</h1>
+  <p class="sub">Six concepts that feature <b>both</b> bull (green) and bear (red) candles together. Each is a real candlestick pattern — so the logo itself teaches the subject of the app. Click <b>PICK THIS</b> on your favourite and I'll wire it into the main app + favicon.</p>
+</div>
+
+<div class="grid">
+
+  <!-- ============ LOGO 1 — BULLISH ENGULFING ============ -->
+  <div class="card">
+    <div class="meta">
+      <span class="badge">OPTION 1 · ENGULFING</span>
+      <span class="name">Bullish Engulfing Pattern</span>
+      <span class="pattern-tag">★ iconic reversal · 2-candle</span>
+    </div>
+    <p class="desc">A small red bear candle forms first, then a taller green bull candle grows <i>beside</i> it — engulfing the prior range. The most recognised 2-candle bullish reversal in all of technical analysis.</p>
+    <div class="preview-wrap l1">
+      <svg viewBox="0 0 60 44" width="66" height="48">
+        <line class="bear-w" x1="18" y1="10" x2="18" y2="15" stroke="var(--bear)" stroke-width="1.8" stroke-linecap="round"/>
+        <rect class="bear-c" x="13" y="15" width="10" height="15" fill="var(--bear)" rx="1"/>
+        <line class="bear-w" x1="18" y1="30" x2="18" y2="34" stroke="var(--bear)" stroke-width="1.8" stroke-linecap="round"/>
+        <line class="bull-w" x1="42" y1="5"  x2="42" y2="10" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+        <rect class="bull-c" x="34" y="10" width="16" height="28" fill="var(--bull)" rx="1.4"/>
+        <line class="bull-w" x1="42" y1="38" x2="42" y2="42" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div class="title-demo">Candlestick &amp; Chart Patterns</div>
+    </div>
+    <div class="preview-wrap sm l1">
+      <svg viewBox="0 0 60 44" width="46" height="34">
+        <line class="bear-w" x1="18" y1="10" x2="18" y2="15" stroke="var(--bear)" stroke-width="1.8" stroke-linecap="round"/>
+        <rect class="bear-c" x="13" y="15" width="10" height="15" fill="var(--bear)" rx="1"/>
+        <line class="bear-w" x1="18" y1="30" x2="18" y2="34" stroke="var(--bear)" stroke-width="1.8" stroke-linecap="round"/>
+        <line class="bull-w" x1="42" y1="5"  x2="42" y2="10" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+        <rect class="bull-c" x="34" y="10" width="16" height="28" fill="var(--bull)" rx="1.4"/>
+        <line class="bull-w" x1="42" y1="38" x2="42" y2="42" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--text-dim)">small / favicon</span>
+    </div>
+    <button class="pick-btn" onclick="pick(1,'Bullish Engulfing')">Pick this →</button>
+  </div>
+
+  <!-- ============ LOGO 2 — TWIN CANDLES ============ -->
+  <div class="card">
+    <div class="meta">
+      <span class="badge">OPTION 2 · TWIN PAIR</span>
+      <span class="name">Bear + Bull Twin Candles</span>
+      <span class="pattern-tag">balanced duo · simple</span>
+    </div>
+    <p class="desc">A clean red bear candle and a green bull candle side-by-side, both with wicks, both full-height. Minimalist, symmetric, instantly readable as "candlestick patterns" even at 16px.</p>
+    <div class="preview-wrap l2">
+      <svg viewBox="0 0 60 44" width="64" height="48">
+        <line class="bear-w" x1="18" y1="4"  x2="18" y2="10" stroke="var(--bear)" stroke-width="2" stroke-linecap="round"/>
+        <rect class="bear-c" x="12" y="10" width="12" height="24" fill="var(--bear)" rx="1.4"/>
+        <line class="bear-w" x1="18" y1="34" x2="18" y2="40" stroke="var(--bear)" stroke-width="2" stroke-linecap="round"/>
+        <line class="bull-w" x1="42" y1="2"  x2="42" y2="8" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+        <rect class="bull-c" x="36" y="8"  width="12" height="28" fill="var(--bull)" rx="1.4"/>
+        <line class="bull-w" x1="42" y1="36" x2="42" y2="42" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div class="title-demo">Candlestick &amp; Chart Patterns</div>
+    </div>
+    <div class="preview-wrap sm l2">
+      <svg viewBox="0 0 60 44" width="42" height="32">
+        <line class="bear-w" x1="18" y1="4"  x2="18" y2="10" stroke="var(--bear)" stroke-width="2" stroke-linecap="round"/>
+        <rect class="bear-c" x="12" y="10" width="12" height="24" fill="var(--bear)" rx="1.4"/>
+        <line class="bear-w" x1="18" y1="34" x2="18" y2="40" stroke="var(--bear)" stroke-width="2" stroke-linecap="round"/>
+        <line class="bull-w" x1="42" y1="2"  x2="42" y2="8" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+        <rect class="bull-c" x="36" y="8"  width="12" height="28" fill="var(--bull)" rx="1.4"/>
+        <line class="bull-w" x1="42" y1="36" x2="42" y2="42" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--text-dim)">small / favicon</span>
+    </div>
+    <button class="pick-btn" onclick="pick(2,'Twin Pair')">Pick this →</button>
+  </div>
+
+  <!-- ============ LOGO 3 — MORNING STAR ============ -->
+  <div class="card">
+    <div class="meta">
+      <span class="badge">OPTION 3 · MORNING STAR</span>
+      <span class="name">Morning Star (3-Candle)</span>
+      <span class="pattern-tag">★ textbook reversal · 3-candle</span>
+    </div>
+    <p class="desc">Red bear falls → tiny doji/star appears in the middle → green bull rises. The legendary Morning Star reversal told in three frames. Narrative + pattern + motion.</p>
+    <div class="preview-wrap l3">
+      <svg viewBox="0 0 66 44" width="72" height="48">
+        <line class="bear-w" x1="10" y1="5"  x2="10" y2="10" stroke="var(--bear)" stroke-width="1.8" stroke-linecap="round"/>
+        <rect class="bear-c" x="5"  y="10" width="10" height="24" fill="var(--bear)" rx="1.2"/>
+        <line class="bear-w" x1="10" y1="34" x2="10" y2="39" stroke="var(--bear)" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="33" y1="22" x2="33" y2="26" stroke="var(--neu)" stroke-width="1.6" stroke-linecap="round" class="star-c"/>
+        <rect class="star-c" x="29" y="26" width="8" height="4" fill="var(--neu)" rx="1"/>
+        <line x1="33" y1="30" x2="33" y2="34" stroke="var(--neu)" stroke-width="1.6" stroke-linecap="round" class="star-c"/>
+        <line class="bull-w" x1="56" y1="3"  x2="56" y2="8"  stroke="var(--bull)" stroke-width="1.8" stroke-linecap="round"/>
+        <rect class="bull-c" x="51" y="8"  width="10" height="26" fill="var(--bull)" rx="1.2"/>
+        <line class="bull-w" x1="56" y1="34" x2="56" y2="39" stroke="var(--bull)" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <div class="title-demo">Candlestick &amp; Chart Patterns</div>
+    </div>
+    <div class="preview-wrap sm l3">
+      <svg viewBox="0 0 66 44" width="52" height="34">
+        <rect class="bear-c" x="5"  y="10" width="10" height="24" fill="var(--bear)" rx="1.2"/>
+        <rect class="star-c" x="29" y="26" width="8" height="4" fill="var(--neu)" rx="1"/>
+        <rect class="bull-c" x="51" y="8"  width="10" height="26" fill="var(--bull)" rx="1.2"/>
+      </svg>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--text-dim)">small / favicon</span>
+    </div>
+    <button class="pick-btn" onclick="pick(3,'Morning Star')">Pick this →</button>
+  </div>
+
+  <!-- ============ LOGO 4 — V-REVERSAL ============ -->
+  <div class="card">
+    <div class="meta">
+      <span class="badge">OPTION 4 · V-REVERSAL</span>
+      <span class="name">Bear Drop × Bull Rise</span>
+      <span class="pattern-tag">trend-reversal · journey</span>
+    </div>
+    <p class="desc">Red bear candle sits at top-left, a dashed curve descends into a glowing pivot point, then a green bull candle rises tall at bottom-right. Tells the story of catching the bottom.</p>
+    <div class="preview-wrap l4">
+      <svg viewBox="0 0 66 44" width="72" height="48">
+        <line class="bear-w" x1="10" y1="3"  x2="10" y2="8"  stroke="var(--bear)" stroke-width="1.8" stroke-linecap="round"/>
+        <rect class="bear-c" x="5"  y="8"  width="10" height="14" fill="var(--bear)" rx="1.2"/>
+        <line class="bear-w" x1="10" y1="22" x2="10" y2="26" stroke="var(--bear)" stroke-width="1.8" stroke-linecap="round"/>
+        <path class="arc" d="M 15 24 Q 28 40 42 34" fill="none" stroke="var(--text-soft)" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="2,2"/>
+        <circle class="pivot" cx="33" cy="37" r="2.8" fill="var(--neu)"/>
+        <line class="bull-w" x1="55" y1="4"  x2="55" y2="9" stroke="var(--bull)" stroke-width="1.8" stroke-linecap="round"/>
+        <rect class="bull-c" x="50" y="9"  width="10" height="26" fill="var(--bull)" rx="1.2"/>
+        <line class="bull-w" x1="55" y1="35" x2="55" y2="40" stroke="var(--bull)" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <div class="title-demo">Candlestick &amp; Chart Patterns</div>
+    </div>
+    <div class="preview-wrap sm l4">
+      <svg viewBox="0 0 66 44" width="52" height="34">
+        <rect class="bear-c" x="5"  y="8"  width="10" height="14" fill="var(--bear)" rx="1.2"/>
+        <path class="arc" d="M 15 24 Q 28 40 42 34" fill="none" stroke="var(--text-soft)" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="2,2"/>
+        <circle class="pivot" cx="33" cy="37" r="2.4" fill="var(--neu)"/>
+        <rect class="bull-c" x="50" y="9"  width="10" height="26" fill="var(--bull)" rx="1.2"/>
+      </svg>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--text-dim)">small / favicon</span>
+    </div>
+    <button class="pick-btn" onclick="pick(4,'V-Reversal')">Pick this →</button>
+  </div>
+
+  <!-- ============ LOGO 5 — FACE-OFF ============ -->
+  <div class="card">
+    <div class="meta">
+      <span class="badge">OPTION 5 · FACE-OFF</span>
+      <span class="name">Bear vs Bull (Equal)</span>
+      <span class="pattern-tag">balanced · brand-mark</span>
+    </div>
+    <p class="desc">Red and green candles slide in from opposite sides and meet at a thin vertical divider. Equal weight, equal force — captures the eternal tug-of-war that every chart represents.</p>
+    <div class="preview-wrap l5">
+      <svg viewBox="0 0 60 44" width="66" height="48">
+        <line class="bear-w" x1="16" y1="4"  x2="16" y2="10" stroke="var(--bear)" stroke-width="2" stroke-linecap="round"/>
+        <rect class="bear-c" x="10" y="10" width="12" height="24" fill="var(--bear)" rx="1.4"/>
+        <line class="bear-w" x1="16" y1="34" x2="16" y2="40" stroke="var(--bear)" stroke-width="2" stroke-linecap="round"/>
+        <line class="divider" x1="30" y1="6" x2="30" y2="38" stroke="var(--text-soft)" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <line class="bull-w" x1="44" y1="4"  x2="44" y2="10" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+        <rect class="bull-c" x="38" y="10" width="12" height="24" fill="var(--bull)" rx="1.4"/>
+        <line class="bull-w" x1="44" y1="34" x2="44" y2="40" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div class="title-demo">Candlestick &amp; Chart Patterns</div>
+    </div>
+    <div class="preview-wrap sm l5">
+      <svg viewBox="0 0 60 44" width="42" height="32">
+        <rect class="bear-c" x="10" y="10" width="12" height="24" fill="var(--bear)" rx="1.4"/>
+        <line class="divider" x1="30" y1="8" x2="30" y2="36" stroke="var(--text-soft)" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <rect class="bull-c" x="38" y="10" width="12" height="24" fill="var(--bull)" rx="1.4"/>
+      </svg>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--text-dim)">small / favicon</span>
+    </div>
+    <button class="pick-btn" onclick="pick(5,'Face-Off')">Pick this →</button>
+  </div>
+
+  <!-- ============ LOGO 6 — HAMMER ============ -->
+  <div class="card">
+    <div class="meta">
+      <span class="badge">OPTION 6 · HAMMER</span>
+      <span class="name">Hammer (Bear wick + Bull body)</span>
+      <span class="pattern-tag">★ single-candle reversal</span>
+    </div>
+    <p class="desc">One candle tells the whole story: a long red lower shadow (bears pushed price down) rejected by a green body that closes strong at the top. Both bear and bull in a single iconic shape.</p>
+    <div class="preview-wrap l6">
+      <svg viewBox="0 0 40 48" width="44" height="52">
+        <rect class="bear-zone" x="17" y="22" width="6" height="22" fill="var(--bear)" opacity="0.15" rx="1"/>
+        <line class="wick-up" x1="20" y1="8"  x2="20" y2="16" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+        <rect class="body" x="14" y="16" width="12" height="10" fill="var(--bull)" rx="1.4"/>
+        <line class="wick-dn" x1="20" y1="26" x2="20" y2="44" stroke="var(--bear)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div class="title-demo">Candlestick &amp; Chart Patterns</div>
+    </div>
+    <div class="preview-wrap sm l6">
+      <svg viewBox="0 0 40 48" width="30" height="38">
+        <line class="wick-up" x1="20" y1="8"  x2="20" y2="16" stroke="var(--bull)" stroke-width="2" stroke-linecap="round"/>
+        <rect class="body" x="14" y="16" width="12" height="10" fill="var(--bull)" rx="1.4"/>
+        <line class="wick-dn" x1="20" y1="26" x2="20" y2="44" stroke="var(--bear)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--text-dim)">small / favicon</span>
+    </div>
+    <button class="pick-btn" onclick="pick(6,'Hammer')">Pick this →</button>
+  </div>
+
+</div>
+
+<script>
+function toggleTheme(){
+  var h = document.documentElement;
+  h.setAttribute('data-theme', h.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+}
+function pick(n, name){
+  alert('You picked Option ' + n + ' — ' + name + '.\nTell the assistant: "use logo option ' + n + '" and it will be applied to the main app.');
+}
+</script>
+</body>
+</html>

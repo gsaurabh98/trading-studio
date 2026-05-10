@@ -1,0 +1,682 @@
+    <div class="wrap">
+      <div class="shead">
+        <h2>CPR &amp; PIVOT POINTS <span class="count-badge">INDIA'S FAVOURITE INTRADAY TOOL</span></h2>
+      </div>
+
+      <div class="infobox"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg> <b>CPR (Central Pivot Range)</b> is the single most popular intraday tool among Indian option buyers.
+        <b>Used by 60%+ of active intraday traders</b>, plotted automatically by every major broker (Zerodha, Upstox,
+        Dhan, Angel). Set up once, never draw a line manually again.</div>
+
+      <div class="catdiv">WHAT IS CPR?</div>
+      <div class="pgrid md c2">
+        <div class="card info" style="border-left:3px solid var(--info)">
+          <div class="cname" style="color:var(--info)">WHAT IS CPR?</div>
+          <div class="cdesc" style="text-align:left">
+            CPR is a <b>three-line price zone</b> derived purely from <i>yesterday's</i> High, Low and Close. It
+            projects <b>tomorrow's most probable area of balance</b> &mdash; the price band where buyers and sellers are
+            likely to contest &mdash; before the market even opens.<br><br>
+            <b style="color:var(--text)">The three lines:</b><br>
+            &bull; <b style="color:var(--bull)">TC</b> &mdash; Top Central (upper edge)<br>
+            &bull; <b style="color:var(--bull)">PP</b> &mdash; Pivot Point (centre of gravity)<br>
+            &bull; <b style="color:var(--bull)">BC</b> &mdash; Bottom Central (lower edge)<br><br>
+            Together, <b>TC and BC form a shaded band</b>, and PP runs through the middle. That band is the CPR.
+          </div>
+        </div>
+        <div class="card bull">
+          <div class="cname">WHY IT EXISTS &mdash; THE CORE IDEA</div>
+          <div class="cdesc" style="text-align:left">
+            Every trading session has a <b>fair-value zone</b> where most volume traded. Yesterday's H/L/C is the
+            market's best summary of that zone. CPR projects this zone forward to today &mdash; giving you a
+            <i>reference grid</i> before the noise of the opening bell starts.<br><br>
+            <b style="color:var(--text)">Think of it as:</b> a <b>price gravity map</b> for today &mdash; with magnet
+            zones (the band), rejection zones (R1/S1), and extremes (R2/S2/R3/S3). Price doesn't <i>have</i> to follow
+            it, but it tends to. And when it doesn't, that itself is a signal.
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv">HOW CPR SHAPES YOUR INTRADAY CHART</div>
+      <div class="infobox"><svg class="ico ico-zap" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+        </svg> Once CPR is drawn on your 5-min / 15-min chart, it stops being a random collection of lines. It changes
+        <b>what you look at</b> and <b>what you trust</b> throughout the day. Below is exactly how it affects a live
+        intraday chart.</div>
+
+      <div class="pgrid md c2">
+        <div class="card bull">
+          <div class="cname">1 &bull; DAY-TYPE FORECAST (PRE-MARKET EDGE)</div>
+          <div class="cdesc" style="text-align:left">
+            The <b>width</b> of the CPR band (|TC&nbsp;&minus;&nbsp;BC|) tells you whether today is likely to
+            <b>trend</b> or <b>range</b> &mdash; <i>before</i> the first candle prints.<br><br>
+            &bull; Narrow band &rarr; compressed energy &rarr; trending-day bias<br>
+            &bull; Wide band &rarr; energy already spent &rarr; range-day bias<br><br>
+            <b>Effect on your chart:</b> you switch playbooks. Narrow &rarr; ORB &amp; breakout setups. Wide &rarr; fade
+            the extremes, stay inside R1&ndash;S1. (Full workflow in the <b>CPR WIDTH &mdash; CALCULATION IN DETAIL</b>
+            block below.)
+          </div>
+        </div>
+        <div class="card bull">
+          <div class="cname">2 &bull; DIRECTIONAL BIAS FILTER (CE vs PE)</div>
+          <div class="cdesc" style="text-align:left">
+            CPR is a <b>bias line</b>, not an entry line. Where price <i>sits</i> relative to the band decides which
+            side of the option chain to touch.<br><br>
+            &bull; Price <b>above</b> CPR &rarr; <b style="color:var(--bull)">CE bias</b> only<br>
+            &bull; Price <b>below</b> CPR &rarr; <b style="color:var(--bear)">PE bias</b> only<br>
+            &bull; Price <b>inside</b> CPR &rarr; <b>no trade</b>, wait for a break<br><br>
+            <b>Effect on your chart:</b> removes 50% of random setups. If the pattern is bullish but price is below CPR,
+            you skip it.
+          </div>
+        </div>
+        <div class="card bull">
+          <div class="cname">3 &bull; AUTOMATIC S/R LADDER</div>
+          <div class="cdesc" style="text-align:left">
+            Above CPR: <b>R1 &rarr; R2 &rarr; R3</b> are automatic resistance targets. Below CPR: <b>S1 &rarr; S2 &rarr;
+              S3</b> are automatic support targets. No manually drawn trendlines &mdash; the levels plot themselves at
+            market open.<br><br>
+            <b>Effect on your chart:</b> your <b>profit targets</b> and <b>stop-loss anchors</b> are pre-defined. On a
+            trending day breaking above TC, you know R1 is the first target; on a sideways day rejecting at R1, you know
+            the fade target is PP.
+          </div>
+        </div>
+        <div class="card bull">
+          <div class="cname">4 &bull; MAGNET &amp; REJECTION BEHAVIOUR</div>
+          <div class="cdesc" style="text-align:left">
+            Price repeatedly pulls toward CPR (magnet) or bounces off its edges (rejection). When price leaves the band
+            sharply, it usually <b>returns to test it</b> at least once &mdash; this is the classic CPR pullback
+            trade.<br><br>
+            <b>Effect on your chart:</b> you get clear <b>"expected retracement"</b> zones after a breakout. A breakout
+            candle above TC with volume &rarr; wait for pullback to TC (now-support) &rarr; that pullback + candle
+            trigger is often the safest entry.
+          </div>
+        </div>
+        <div class="card bull">
+          <div class="cname">5 &bull; NOISE FILTER (FEWER BAD TRADES)</div>
+          <div class="cdesc" style="text-align:left">
+            Without CPR, a hammer on every 5-min chop looks tradable. With CPR, you only act on hammers that print <b>at
+              a meaningful level</b> &mdash; TC, BC, R1, S1, PP.<br><br>
+            <b>Effect on your chart:</b> the number of "tradable" setups drops by ~60%, but their <b>hit rate climbs
+              meaningfully</b>. Fewer trades, bigger edge per trade &mdash; which is exactly what beats cost drag in
+            Indian option buying.
+          </div>
+        </div>
+        <div class="card bull">
+          <div class="cname">6 &bull; ZERO SUBJECTIVITY</div>
+          <div class="cdesc" style="text-align:left">
+            CPR is pure arithmetic on three numbers: yesterday's H, L, C. <b>No opinion, no drawing, no hindsight
+              bias.</b> Every trader looking at the same stock sees the same CPR &mdash; which is also why these levels
+            self-fulfill.<br><br>
+            <b>Effect on your chart:</b> reproducible lines, same every morning, same for every broker. Backtesting and
+            journalling become honest, because the levels can't be retro-fitted.
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv">HOW CPR IS CALCULATED &amp; READ</div>
+
+      <div class="pgrid md c3">
+        <div class="card info" style="border-left:3px solid var(--info)">
+          <div class="cname" style="color:var(--info)">HOW CPR IS CALCULATED (DAILY)</div>
+          <div class="cdesc" style="text-align:left">
+            Based on <b>PREVIOUS DAY'S</b> High, Low, Close.<br><br>
+            <b style="color:var(--bull)">Pivot (PP)</b> = (H + L + C) ÷ 3<br>
+            <b style="color:var(--bull)">BC (Bottom Central)</b> = (H + L) ÷ 2<br>
+            <b style="color:var(--bull)">TC (Top Central)</b> = (PP × 2) − BC<br><br>
+            <b style="color:var(--text)">CPR = area between TC and BC</b><br><br>
+            Plus support/resistance pivots:<br>
+            <b>R1</b> = PP × 2 − L · <b>R2</b> = PP + (H − L) · <b>R3</b> = H + 2(PP − L)<br>
+            <b>S1</b> = PP × 2 − H · <b>S2</b> = PP − (H − L) · <b>S3</b> = L − 2(H − PP)<br><br>
+            <b style="color:var(--neutral)">Your broker plots these automatically</b> — no manual maths needed.
+          </div>
+        </div>
+
+        <div class="card bull">
+          <div class="cname">CPR WIDTH — THE MOST IMPORTANT SIGNAL</div>
+          <svg width="260" height="120" viewBox="0 0 260 120">
+            <rect x="10" y="50" width="70" height="14" fill="rgba(9,168,110,0.2)" stroke="#09a86e" stroke-width="1.5" />
+            <text x="15" y="43" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="8">NARROW</text>
+            <text x="20" y="78" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="8">→ TREND</text>
+            <rect x="95" y="44" width="70" height="28" fill="rgba(212,148,26,0.2)" stroke="#d4941a"
+              stroke-width="1.5" />
+            <text x="102" y="37" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="8">NORMAL</text>
+            <text x="108" y="86" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="8">→ NEUTRAL</text>
+            <rect x="180" y="30" width="70" height="60" fill="rgba(201,31,58,0.15)" stroke="#c91f3a"
+              stroke-width="1.5" />
+            <text x="192" y="24" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="8">WIDE</text>
+            <text x="189" y="104" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="8">→ RANGE</text>
+          </svg>
+          <div class="badge bull">DAY-TYPE FORECAST</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">Width = |TC − BC|</b> &mdash; the distance between the two central lines. It
+            predicts the type of day <i>before</i> market opens.<br><br>
+            • <b style="color:var(--bull)">Narrow (&lt;0.2% of spot)</b> &rarr; trending day likely. <b>Trade breakouts
+              aggressively.</b><br>
+            • <b style="color:var(--neutral)">Normal (0.2&ndash;0.5%)</b> &rarr; mixed. Wait for direction.<br>
+            • <b style="color:var(--bear)">Wide (&gt;0.5%)</b> &rarr; sideways / range day. <b>Avoid breakout trades,
+              fade extremes.</b><br><br>
+            Full worked example, thresholds per index, and the "why" are in the <b>CPR WIDTH &mdash; CALCULATION IN
+              DETAIL</b> block below.
+          </div>
+        </div>
+
+        <div class="card bull">
+          <div class="cname">PRICE VS CPR BIAS</div>
+          <svg width="260" height="120" viewBox="0 0 260 120">
+            <rect x="40" y="48" width="220" height="18" fill="rgba(77,184,255,0.15)" stroke="#4db8ff"
+              stroke-width="1" />
+            <text x="8" y="60" fill="#4db8ff" font-family="'IBM Plex Mono',monospace" font-size="9">CPR</text>
+            <polyline points="50,90 80,70 110,50 140,30 170,45 200,20 230,25" fill="none" stroke="#09a86e"
+              stroke-width="2" />
+            <text x="155" y="12" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="8">ABOVE CPR → CE
+              BIAS</text>
+            <polyline points="50,100 80,105 110,108 140,103 170,112 200,105" fill="none" stroke="#c91f3a"
+              stroke-width="2" stroke-dasharray="3,2" />
+            <text x="90" y="120" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="8">BELOW CPR → PE
+              BIAS</text>
+          </svg>
+          <div class="badge bull">DIRECTIONAL FILTER</div>
+          <div class="cdesc" style="text-align:left">
+            • <b style="color:var(--bull)">Price consistently above CPR</b> → Bullish bias. Only take CE setups.<br>
+            • <b style="color:var(--bear)">Price consistently below CPR</b> → Bearish bias. Only take PE setups.<br>
+            • <b style="color:var(--neutral)">Price oscillating inside CPR</b> → Don't trade. Wait for a sustained break
+            above or below.
+          </div>
+        </div>
+
+        <div class="card bear">
+          <div class="cname">VIRGIN CPR — ULTRA-HIGH PROBABILITY</div>
+          <div class="cdesc" style="text-align:left">
+            A CPR is called <b>Virgin</b> if price did NOT touch it during the entire previous trading day.<br><br>
+            <b style="color:var(--bull)">Why it matters:</b> Virgin CPRs act as ultra-strong magnets. Price reaches them
+            ~80% of the time within the next 1–2 sessions.<br><br>
+            <b style="color:var(--text)">How to trade:</b> Identify virgin CPR from prior day → wait for price to
+            approach it → trade bounce (with candle + volume confirmation) back toward prior direction.
+          </div>
+        </div>
+
+        <div class="card neu">
+          <div class="cname">STANDARD PIVOT S/R LEVELS</div>
+          <div class="cdesc" style="text-align:left">
+            Beyond CPR, the pivot set gives you automatic S/R levels for the day:<br><br>
+            <b style="color:var(--bear)">Resistances:</b> R1 (most tested) · R2 (target for trending days) · R3
+            (exhaustion)<br>
+            <b style="color:var(--bull)">Supports:</b> S1 (first bounce) · S2 (trend-day target) · S3 (panic
+            low)<br><br>
+            <b style="color:var(--text)">Use as:</b> Profit targets when trading breakouts (R1 from CPR break, then R2),
+            and stop-loss anchors.
+          </div>
+        </div>
+
+        <div class="card info" style="border-left:3px solid var(--info)">
+          <div class="cname" style="color:var(--info)">OTHER PIVOT TYPES</div>
+          <div class="cdesc" style="text-align:left">
+            Most platforms offer multiple pivot formulas — default Classical is fine.<br><br>
+            • <b>Classical / Standard</b> → default, what most use<br>
+            • <b>Fibonacci Pivot</b> → uses 38.2/61.8% of range for R1/S1. Better for volatile stocks.<br>
+            • <b>Camarilla</b> → 8 intraday levels (H1–H4, L1–L4). Popular for scalping.<br>
+            • <b>Woodie's</b> → weights prior close more. Less used.<br><br>
+            <b style="color:var(--neutral)">Recommendation:</b> Stick with Classical + CPR for 95% of use cases.
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv">CPR WIDTH &mdash; CALCULATION IN DETAIL</div>
+      <div class="infobox"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg> CPR width is the single most predictive signal on this tool. Before the market opens, it tells you
+        whether to <b>expect a trending day</b> (narrow) or a <b>range-bound day</b> (wide). Below is the exact maths
+        with a worked example &mdash; once you do this twice by hand, you'll read CPR width at a glance.</div>
+
+      <div class="pgrid md c2">
+        <div class="card info" style="border-left:3px solid var(--info)">
+          <div class="cname" style="color:var(--info)">STEP-BY-STEP FORMULA</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">Inputs &mdash; previous day's:</b><br>
+            • High (H) &middot; Low (L) &middot; Close (C)<br><br>
+            <b style="color:var(--text)">Step 1 &mdash; Pivot Point (PP):</b><br>
+            <code>PP = (H + L + C) &divide; 3</code><br><br>
+            <b style="color:var(--text)">Step 2 &mdash; Bottom Central (BC):</b><br>
+            <code>BC = (H + L) &divide; 2</code><br><br>
+            <b style="color:var(--text)">Step 3 &mdash; Top Central (TC):</b><br>
+            <code>TC = (PP &times; 2) &minus; BC</code><br><br>
+            <b style="color:var(--text)">Step 4 &mdash; CPR Width (absolute):</b><br>
+            <code>Width = |TC &minus; BC|</code><br><br>
+            <b style="color:var(--text)">Step 5 &mdash; CPR Width (normalised):</b><br>
+            <code>Width % = (Width &divide; Close) &times; 100</code><br><br>
+            <b style="color:var(--neutral)">The % is what you compare across days and indices &mdash; 20 pts on Nifty is
+              not the same as 20 pts on a ₹500 stock.</b>
+          </div>
+        </div>
+
+        <div class="card bull">
+          <div class="cname">WORKED EXAMPLE &mdash; NIFTY</div>
+          <div class="badge bull">ONE FULL CALCULATION</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">Previous day's Nifty:</b><br>
+            H = <code>26,250</code> &middot; L = <code>26,050</code> &middot; C = <code>26,180</code><br><br>
+            <b style="color:var(--bull)">PP</b> = (26,250 + 26,050 + 26,180) &divide; 3<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;= 78,480 &divide; 3 = <b>26,160</b><br><br>
+            <b style="color:var(--bull)">BC</b> = (26,250 + 26,050) &divide; 2<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;= 52,300 &divide; 2 = <b>26,150</b><br><br>
+            <b style="color:var(--bull)">TC</b> = (26,160 &times; 2) &minus; 26,150<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;= 52,320 &minus; 26,150 = <b>26,170</b><br><br>
+            <b style="color:var(--bull)">Width</b> = |26,170 &minus; 26,150| = <b>20 pts</b><br>
+            <b style="color:var(--bull)">Width %</b> = (20 &divide; 26,180) &times; 100 = <b>0.076%</b><br><br>
+            <b style="color:var(--bull)">&lt; 0.2% &rarr; NARROW CPR &rarr; expect a trending day.</b> Look for a clean
+            break above TC or below BC with volume; trade in that direction toward R1/S1.
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv">THRESHOLDS BY INSTRUMENT (QUICK REFERENCE)</div>
+      <div class="infobox"><svg class="ico ico-zap" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+        </svg> Convert the % thresholds to raw points once and keep them in your pre-market notes. Values below assume
+        approximate recent index levels &mdash; recalculate if your index is materially higher/lower.</div>
+
+      <div class="strat-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>INDEX</th>
+              <th>APPROX. SPOT</th>
+              <th>NARROW (&lt;0.2%)</th>
+              <th>NORMAL (0.2&ndash;0.5%)</th>
+              <th>WIDE (&gt;0.5%)</th>
+              <th>DAY-TYPE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>NIFTY 50</b></td>
+              <td>~26,000</td>
+              <td class="tc">&lt; 52 pts</td>
+              <td class="tw">52 &ndash; 130 pts</td>
+              <td class="tp">&gt; 130 pts</td>
+              <td class="tc">Narrow &rarr; TREND<br>Wide &rarr; RANGE</td>
+            </tr>
+            <tr>
+              <td><b>BANKNIFTY</b></td>
+              <td>~57,000</td>
+              <td class="tc">&lt; 114 pts</td>
+              <td class="tw">114 &ndash; 285 pts</td>
+              <td class="tp">&gt; 285 pts</td>
+              <td class="tc">Narrow &rarr; TREND<br>Wide &rarr; RANGE</td>
+            </tr>
+            <tr>
+              <td><b>SENSEX</b></td>
+              <td>~85,000</td>
+              <td class="tc">&lt; 170 pts</td>
+              <td class="tw">170 &ndash; 425 pts</td>
+              <td class="tp">&gt; 425 pts</td>
+              <td class="tc">Narrow &rarr; TREND<br>Wide &rarr; RANGE</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="catdiv">WHY IT WORKS &mdash; THE INTUITION</div>
+      <div class="pgrid md c2">
+        <div class="card bull">
+          <div class="cname">NARROW CPR &rarr; TRENDING DAY</div>
+          <div class="cdesc" style="text-align:left">
+            A narrow CPR means yesterday's close was near the <b>midpoint</b> of the day's range &mdash; buyers and
+            sellers finished <i>balanced</i>. That balance is a compressed spring: when today's open tips the scale,
+            positioning follows in one direction and the market runs.<br><br>
+            <b style="color:var(--text)">Rule of thumb:</b> if today's open is noticeably above TC with volume, the day
+            usually trends up; noticeably below BC, it trends down. <b>Breakout playbooks (ORB, supply/demand break)
+              have their highest edge on these days.</b>
+          </div>
+        </div>
+        <div class="card bear">
+          <div class="cname">WIDE CPR &rarr; RANGE DAY</div>
+          <div class="cdesc" style="text-align:left">
+            A wide CPR means yesterday's close was <b>far from the midpoint</b> &mdash; one side got exhausted. Today,
+            the most likely behaviour is mean reversion: price oscillates inside TC&ndash;BC or between R1 and
+            S1.<br><br>
+            <b style="color:var(--text)">Rule of thumb:</b> fade extremes rather than chase them. <b>Breakout trades
+              fail the most on wide-CPR days</b> &mdash; stick to reversion setups at R1/S1 with candle confirmation, or
+            simply sit out.
+          </div>
+        </div>
+      </div>
+
+      <div class="infobox" style="border-left-color:var(--bear)"><svg class="ico ico-warn" viewBox="0 0 24 24"
+          aria-hidden="true">
+          <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg> <b>Two things the width does NOT tell you:</b> (1) direction &mdash; you still need price vs CPR bias
+        plus a candle trigger; (2) certainty &mdash; big-event days (RBI, Fed, results) can flip a narrow CPR into a
+        gap-and-reverse trap. CPR width is a <b>conditional prior</b>, not a forecast.</div>
+
+      <div class="catdiv">NORMAL vs INVERTED CPR &mdash; THE SHAPE SIGNAL</div>
+      <div class="infobox"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg> Width tells you the <i>type</i> of day. <b>Shape</b> tells you the <i>bias</i> of the day. When TC sits
+        below BC on the chart, the CPR is <b>inverted / flipped</b> &mdash; a genuine bearish structural signal that
+        most beginners miss because their broker's script labels lines by formula, not by visual position.</div>
+
+      <div class="pgrid md c2">
+        <div class="card bull">
+          <div class="cname">NORMAL CPR &mdash; TC ABOVE BC</div>
+          <svg width="280" height="110" viewBox="0 0 280 110" style="margin-top:8px">
+            <line x1="10" y1="30" x2="270" y2="30" stroke="#09a86e" stroke-width="2" />
+            <text x="15" y="24" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">TC (Top
+              Central)</text>
+            <line x1="10" y1="55" x2="270" y2="55" stroke="#a67c4a" stroke-width="2" stroke-dasharray="4,2" />
+            <text x="15" y="50" fill="#a67c4a" font-family="'IBM Plex Mono',monospace" font-size="9">PP (Pivot)</text>
+            <line x1="10" y1="80" x2="270" y2="80" stroke="#d4941a" stroke-width="2" />
+            <text x="15" y="74" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="9">BC (Bottom
+              Central)</text>
+            <rect x="10" y="30" width="260" height="50" fill="rgba(9,168,110,0.10)" stroke="none" />
+            <text x="220" y="100" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9"
+              font-weight="bold">BULLISH / NEUTRAL</text>
+          </svg>
+          <div class="badge bull">PREV-DAY CLOSED IN UPPER HALF</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">What it is:</b> TC plots <b>above</b> BC (conventional layout).<br><br>
+            <b style="color:var(--text)">Why it forms:</b> yesterday's <b>Close &ge; (H + L) / 2</b> &mdash; the session
+            closed in the upper half of its range. Buyers held control at the bell.<br><br>
+            <b style="color:var(--text)">Bias it broadcasts:</b> neutral with a mild <b>bullish tilt</b> for
+            today.<br><br>
+            <b style="color:var(--text)">How to read:</b> treat TC as first resistance, BC as first support, PP as the
+            pivot. Use the normal price-vs-CPR rules &mdash; long above, short below, no-trade inside.
+          </div>
+        </div>
+
+        <div class="card bear">
+          <div class="cname">INVERTED / FLIPPED CPR &mdash; TC BELOW BC</div>
+          <svg width="280" height="110" viewBox="0 0 280 110" style="margin-top:8px">
+            <line x1="10" y1="30" x2="270" y2="30" stroke="#d4941a" stroke-width="2" />
+            <text x="15" y="24" fill="#d4941a" font-family="'IBM Plex Mono',monospace" font-size="9">BC (Bottom
+              Central)</text>
+            <line x1="10" y1="55" x2="270" y2="55" stroke="#a67c4a" stroke-width="2" stroke-dasharray="4,2" />
+            <text x="15" y="50" fill="#a67c4a" font-family="'IBM Plex Mono',monospace" font-size="9">PP (Pivot)</text>
+            <line x1="10" y1="80" x2="270" y2="80" stroke="#09a86e" stroke-width="2" />
+            <text x="15" y="74" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="9">TC (Top
+              Central)</text>
+            <rect x="10" y="30" width="260" height="50" fill="rgba(201,31,58,0.12)" stroke="none" />
+            <text x="225" y="100" fill="#c91f3a" font-family="'IBM Plex Mono',monospace" font-size="9"
+              font-weight="bold">BEARISH BIAS</text>
+          </svg>
+          <div class="badge bear">PREV-DAY CLOSED IN LOWER HALF</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--text)">What it is:</b> TC plots <b>below</b> BC &mdash; the lines appear visually
+            flipped.<br><br>
+            <b style="color:var(--text)">Why it forms:</b> yesterday's <b>Close &lt; (H + L) / 2</b> &mdash; the session
+            closed in the lower half of its range. Sellers had the last word. The formula
+            <code>TC = 2&middot;PP &minus; BC</code> mechanically pushes TC under BC.<br><br>
+            <b style="color:var(--text)">Bias it broadcasts:</b> structurally <b>bearish</b> for today &mdash; a
+            continuation lean, not a forecast.<br><br>
+            <b style="color:var(--text)">How to read:</b> treat the <b>upper line (BC)</b> as the harder resistance,
+            <b>lower line (TC)</b> as the softer resistance. <b>Above the entire band &rarr; bias flips</b> and you stop
+            shorting.
+          </div>
+        </div>
+      </div>
+
+      <div class="catdiv">HOW TO SPOT INVERSION ON YOUR BROKER CHART</div>
+      <div class="infobox"><svg class="ico ico-zap" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+        </svg> <b>Watch the values, not the labels.</b> Upstox / Dhan / Zerodha scripts label the lines by formula role
+        (<i>Top Pivot</i> = TC, <i>Bottom Pivot</i> = BC) even when the visual order flips. If the line <i>named</i>
+        "Top Pivot" has a <b>smaller number</b> than the one named "Bottom Pivot", the CPR is inverted &mdash;
+        regardless of which line sits higher on the chart.</div>
+
+      <div class="card neu" style="max-width:none">
+        <div class="cname">WORKED EXAMPLE &mdash; INVERTED CPR (NIFTY, LIVE READING)</div>
+        <div class="cdesc" style="text-align:left">
+          Broker shows:<br>
+          &bull; Daily <b>Top</b> Pivot = <code>24,184.21</code> &rarr; this is <b>TC</b><br>
+          &bull; Daily Central Pivot = <code>24,190.77</code> &rarr; this is <b>PP</b><br>
+          &bull; Daily <b>Bottom</b> Pivot = <code>24,197.33</code> &rarr; this is <b>BC</b><br><br>
+          <b style="color:var(--text)">Check #1 &mdash; is it inverted?</b> TC (24,184) &lt; BC (24,197) &rarr; <b
+            style="color:var(--bear)">YES, inverted. Bearish tone.</b><br>
+          <b style="color:var(--text)">Check #2 &mdash; width?</b> |24,184.21 &minus; 24,197.33| = <b>13.12 pts</b>. On
+          Nifty at ~24,043, that is 0.055% &rarr; <b style="color:var(--bear)">ultra-narrow. Strong trending
+            day.</b><br>
+          <b style="color:var(--text)">Check #3 &mdash; where is price?</b> Spot 24,043 is <b>~150 pts below the
+            band</b> &rarr; trend already down; CPR band is now stacked resistance.<br><br>
+          <b style="color:var(--bear)">Combined read: strong bearish trend day.</b> Primary trade = fade rallies into TC
+          (24,184) with a bearish candle trigger; buy PE; SL above BC (24,197); targets S1 &rarr; S2. Flip condition =
+          clean 5-min close above 24,197 with volume.
+        </div>
+      </div>
+
+      <div class="pgrid md c2">
+        <div class="card bull">
+          <div class="cname">HOW TO TRADE A NORMAL CPR</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--bull)">Above the band:</b> CE bias. Buy pullbacks into TC with a bullish candle
+            trigger. SL = below BC. Targets R1 &rarr; R2.<br><br>
+            <b style="color:var(--bear)">Below the band:</b> PE bias. Sell rallies into BC with a bearish candle
+            trigger. SL = above TC. Targets S1 &rarr; S2.<br><br>
+            <b style="color:var(--neutral)">Inside the band:</b> no trade. Let price pick a side.<br><br>
+            <b>Best when paired with:</b> ORB + volume confirmation + narrow width.
+          </div>
+        </div>
+        <div class="card bear">
+          <div class="cname">HOW TO TRADE AN INVERTED CPR</div>
+          <div class="cdesc" style="text-align:left">
+            <b style="color:var(--bear)">Default bias:</b> PE. Sell rallies into the <b>lower edge of the band (TC)</b>
+            with a bearish candle trigger. SL = above the <b>upper edge (BC)</b>. Targets S1 &rarr; S2.<br><br>
+            <b style="color:var(--bull)">Invalidation &rarr; switch to CE:</b> a clean 5-min close <b>above BC</b> with
+            expanding volume flips intraday structure. Wait for a retest of BC as support; only then take CE.<br><br>
+            <b style="color:var(--neutral)">Avoid:</b> aggressive long trades just because price is bouncing &mdash; the
+            CPR shape is telling you sellers had the last word yesterday. Respect that until structure proves otherwise.
+          </div>
+        </div>
+      </div>
+
+      <div class="infobox" style="border-left-color:var(--info)"><svg class="ico ico-info" viewBox="0 0 24 24"
+          aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg> <b>Inverted CPR is not "wrong" or rare &mdash; it's just a bearish-tone day.</b> Most books skip this
+        distinction and retail beginners end up long-biased even when the structure screams weakness. Checking inversion
+        is a 2-second habit that pays for itself on every trending-down day.</div>
+
+      <div class="catdiv">CPR + CANDLE CONFIRMATION &mdash; THE ENTRY TRIGGER</div>
+      <div class="infobox"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="5" />
+          <circle cx="12" cy="12" r="1.5" />
+        </svg> <b>CPR alone is only a bias filter, not an entry signal.</b> You still need a candle pattern + volume at
+        the level. CPR tells you <i>where</i> to trade; candles tell you <i>when</i>.</div>
+
+      <div class="pgrid md c3">
+        <div class="card bull">
+          <div class="cname">BULL SETUP EXAMPLE</div>
+          <div class="badge bull">PULLBACK TO TC</div>
+          <div class="cdesc" style="text-align:left"><b>Condition:</b> price pulls back to TC from
+            above.<br><b>Trigger:</b> bullish engulfing / hammer + above-average volume.<br><b>Action:</b> buy ATM CE.
+            <b>SL:</b> below BC. <b>Target:</b> R1 (first), R2 (trend day).</div>
+        </div>
+        <div class="card bear">
+          <div class="cname">BEAR SETUP EXAMPLE</div>
+          <div class="badge bear">RALLY TO BC</div>
+          <div class="cdesc" style="text-align:left"><b>Condition:</b> price rallies to BC from
+            below.<br><b>Trigger:</b> bearish engulfing / shooting star + volume spike.<br><b>Action:</b> buy ATM PE.
+            <b>SL:</b> above TC. <b>Target:</b> S1 (first), S2 (trend day).</div>
+        </div>
+        <div class="card neu">
+          <div class="cname">BREAKOUT SETUP</div>
+          <div class="badge neu">NARROW CPR BREAK</div>
+          <div class="cdesc" style="text-align:left"><b>Condition:</b> narrow CPR, price consolidates near TC for
+            30&ndash;60 min.<br><b>Trigger:</b> breakout candle closes above TC with 1.5&times; average
+            volume.<br><b>Action:</b> buy CE. <b>SL:</b> back below TC. <b>Target:</b> R1 &rarr; R2.</div>
+        </div>
+      </div>
+
+      <div class="catdiv">USING PIVOT S/R LEVELS (R1, R2, R3 / S1, S2, S3)</div>
+      <div class="rbox" style="border-left-color:var(--neutral)">
+        <h3><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg> HOW TO USE PIVOT LEVELS AS TARGETS AND STOPS</h3>
+        <ul>
+          <li><b>R1 / S1</b> &rarr; first profit target after a CPR break. Usually reached on normal-volatility days.
+          </li>
+          <li><b>R2 / S2</b> &rarr; extended target for trend days. Typically hit only when momentum is strong and
+            volume expands.</li>
+          <li><b>R3 / S3</b> &rarr; exhaustion zone &mdash; reached on fewer than 10% of days. If price tags R3/S3, book
+            profits; don't expect more.</li>
+          <li><b>Stop-loss anchors:</b> place SL <b>5&ndash;10 points beyond</b> the next pivot level, never exactly on
+            it &mdash; operators hunt round levels.</li>
+        </ul>
+      </div>
+
+      <div class="catdiv">CPR DAILY ROUTINE &mdash; WHAT TO DO WHEN</div>
+      <table class="strat-table">
+        <thead>
+          <tr>
+            <th>Time (IST)</th>
+            <th>Action with CPR</th>
+            <th>Why it matters</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="tc"><b>8:45 AM</b></td>
+            <td class="tc">Note today's CPR width (narrow / normal / wide) and location vs expected open.</td>
+            <td class="tc">Decide day-type <i>before</i> the open &mdash; breakout strategy vs fade strategy.</td>
+          </tr>
+          <tr>
+            <td class="tc"><b>9:15 AM</b></td>
+            <td class="tc">Observe opening location: above TC, below BC, or inside CPR.</td>
+            <td class="tc">Sets directional bias for the whole session.</td>
+          </tr>
+          <tr>
+            <td class="tw"><b>9:15&ndash;9:30</b></td>
+            <td class="tw">Do NOT trade the opening 15 min. Let CPR "digest" the gap.</td>
+            <td class="tw">First 15 min has maximum noise &mdash; operators sweep liquidity around CPR.</td>
+          </tr>
+          <tr>
+            <td class="tc"><b>9:30 AM onward</b></td>
+            <td class="tc">Trade only in direction of CPR bias + candle confirmation + volume.</td>
+            <td class="tc">Highest probability window is 9:30&ndash;11:30.</td>
+          </tr>
+          <tr>
+            <td class="tw"><b>12:00&ndash;1:30</b></td>
+            <td class="tw">CPR levels often re-tested. Good for adding to running trades on pullback.</td>
+            <td class="tw">Lunch session &mdash; slow momentum, respect of levels is cleanest.</td>
+          </tr>
+          <tr>
+            <td class="tp"><b>2:00 PM onward</b></td>
+            <td class="tp">Tighten SL. Avoid fresh CPR breakouts.</td>
+            <td class="tp">Late-day breakouts often fail &mdash; operators trap late entries and hunt stops into close.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="catdiv">COMMON CPR MISTAKES</div>
+      <div class="pgrid md c3">
+        <div class="card bear">
+          <div class="cname"><svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M15 9l-6 6" />
+              <path d="M9 9l6 6" />
+            </svg> TRADING INSIDE CPR</div>
+          <div class="cdesc" style="text-align:left">Price inside CPR is no-man's land. Theta bleeds your option and
+            moves are small. <b>Wait for a clean break above TC or below BC.</b></div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M15 9l-6 6" />
+              <path d="M9 9l6 6" />
+            </svg> IGNORING CPR WIDTH</div>
+          <div class="cdesc" style="text-align:left">Trading breakouts on a wide CPR = losing money. Trading fades on a
+            narrow CPR = missed trends. Always match strategy to width.</div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M15 9l-6 6" />
+              <path d="M9 9l6 6" />
+            </svg> USING CPR ALONE</div>
+          <div class="cdesc" style="text-align:left">CPR is a filter, not a trigger. Without candle + volume, you're
+            guessing. Combine CPR with price action for a real edge.</div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M15 9l-6 6" />
+              <path d="M9 9l6 6" />
+            </svg> EXACT SL AT A PIVOT</div>
+          <div class="cdesc" style="text-align:left">Operators run stops parked at R1/S1. Place SL <b>5&ndash;10 points
+              beyond</b> the pivot, never on it.</div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M15 9l-6 6" />
+              <path d="M9 9l6 6" />
+            </svg> WEEKLY/MONTHLY PIVOTS INTRADAY</div>
+          <div class="cdesc" style="text-align:left">Intraday trading uses <b>daily</b> pivots. Weekly pivots are for
+            swing traders. Always confirm your reference timeframe.</div>
+        </div>
+        <div class="card bear">
+          <div class="cname"><svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M15 9l-6 6" />
+              <path d="M9 9l6 6" />
+            </svg> IGNORING VIRGIN CPR</div>
+          <div class="cdesc" style="text-align:left">If yesterday's CPR was untouched, today's target is very likely to
+            be it. Missing this setup is leaving free probability on the table.</div>
+        </div>
+      </div>
+
+      <div class="catdiv">CPR GREEN-LIGHT CHECKLIST</div>
+      <div class="rbox" style="border-left-color:var(--bull)">
+        <h3><svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="3" />
+            <polyline points="8,12 11,15 16,9" />
+          </svg> BEFORE EVERY CPR TRADE</h3>
+        <ul>
+          <li><b><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+              </svg></b> Did I note today's CPR width (narrow / normal / wide)?</li>
+          <li><b><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+              </svg></b> Is price CLEANLY above TC or below BC (not inside CPR)?</li>
+          <li><b><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+              </svg></b> Is there a candle pattern at the pivot level (not just price touching)?</li>
+          <li><b><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+              </svg></b> Is volume &ge; 1.5&times; the 20-candle average?</li>
+          <li><b><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+              </svg></b> Is my SL placed beyond the next pivot, not exactly at it?</li>
+          <li><b><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+              </svg></b> Is my target at least R1/S1 (minimum 1:1.5 risk-reward)?</li>
+          <li><b><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+              </svg></b> Is this trade aligned with the day-type (breakout on narrow, fade on wide)?</li>
+          <li><b><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+              </svg></b> Is it between 9:30 AM and 2:00 PM (the high-probability window)?</li>
+        </ul>
+      </div>
+
+      <div class="infobox" style="margin-top:18px"><svg class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 18h6" />
+          <path d="M10 21h4" />
+          <path d="M12 3a7 7 0 0 1 4 12.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-1.3A7 7 0 0 1 12 3z" />
+        </svg> <b>Rule of thumb:</b> if CPR is narrow and volume is expanding, the break <i>will</i> run &mdash; stay
+        with it. If CPR is wide and price chops inside, <i>do not trade</i> &mdash; fight the urge. Discipline at the
+        CPR level is the 80/20 of intraday edge.</div>
+    </div>
+  
