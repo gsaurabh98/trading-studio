@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <title>Trading Studio</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07090f">
+  <meta name="description" content="Live Nifty 50 charts, paper trading, and a complete candlestick + chart-pattern reference for Indian option buyers.">
+
+  <!--
+    GitHub Pages (and most static hosts) treat /index.html as the directory
+    root. Our main app file is candlestick-patterns.html — keeping that
+    filename means we don't have to rewrite the ~50 internal references
+    across sw.js, manifest.webmanifest, content/*.html, mobile-reader.html
+    and the build scripts. This file is the one-line bridge that lets
+    GitHub Pages serve the app at the bare repo URL.
+
+    Three layers of redirect, ordered most-to-least supported:
+      1. <meta http-equiv="refresh"> — works even with JS disabled.
+      2. <link rel="canonical">       — tells search engines the real URL.
+      3. window.location.replace()    — fires immediately on JS-enabled
+                                        browsers (sub-100ms), and uses
+                                        replace() so the back button skips
+                                        this redirect page (no double-tap
+                                        Back to leave the app).
+
+    Hash + query are preserved so deep links like
+    /trading-studio/#live or ?token=xyz still land at the right section.
+  -->
+  <meta http-equiv="refresh" content="0; url=candlestick-patterns.html">
+  <link rel="canonical" href="candlestick-patterns.html">
+  <script>
+    (function () {
+      try {
+        var target = 'candlestick-patterns.html' + window.location.search + window.location.hash;
+        window.location.replace(target);
+      } catch (e) {
+        window.location.href = 'candlestick-patterns.html';
+      }
+    })();
+  </script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #07090f;
+      color: #cbd5e1;
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      flex-direction: column;
+      gap: 12px;
+      text-align: center;
+      padding: 24px;
+    }
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #09a86e;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    a {
+      color: #4db8ff;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    .muted { color: #b0c4e8; opacity: 0.7; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="spinner" aria-hidden="true"></div>
+    <div>Loading Trading Studio&hellip;</div>
+    <div class="muted">
+      If you are not redirected automatically,
+      <a href="candlestick-patterns.html">click here</a>.
+    </div>
+  </div>
+</body>
+</html>

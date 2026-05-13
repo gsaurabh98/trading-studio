@@ -48,7 +48,7 @@
           </div>
         </div>
         <div class="tv-foot">
-          <span id="tv-foot-info">Powered by Upstox API &middot; live ticks every 2 sec &middot; Klinecharts
+          <span id="tv-foot-info">Powered by Upstox API &middot; live ticks every 1 sec &middot; Klinecharts
             engine</span>
         </div>
       </div>
@@ -80,7 +80,7 @@
           <div class="pt-stat-cell">
             <span class="pt-stat-k">Spot (Nifty)</span>
             <span class="pt-stat-v" id="pt-spot">&mdash;</span>
-            <span class="pt-stat-sub" id="pt-spot-sub">Live (2s)</span>
+            <span class="pt-stat-sub" id="pt-spot-sub">Live (1s)</span>
           </div>
           <div class="pt-stat-cell">
             <span class="pt-stat-k">Expiry</span>
@@ -149,7 +149,8 @@
               <div class="pt-qty pt-qty-mini" title="Lots for BUY CE">
                 <label for="pt-qty-ce">Lots</label>
                 <button type="button" onclick="ptIncQty(-1,'ce')" aria-label="Decrease CE lots">&minus;</button>
-                <input type="number" id="pt-qty-ce" value="1" min="1" max="20" onchange="ptSetQty(this.value,'ce')">
+                <input type="number" id="pt-qty-ce" value="1" min="1" max="20" onchange="ptSetQty(this.value,'ce')"
+                  autocomplete="off" data-1p-ignore data-lpignore="true">
                 <button type="button" onclick="ptIncQty(1,'ce')" aria-label="Increase CE lots">+</button>
               </div>
               <button class="pt-btn pt-buy pt-btn-sm" type="button" id="pt-buy-ce-btn" onclick="ptBuyCE()" disabled>BUY
@@ -163,7 +164,8 @@
               <div class="pt-qty pt-qty-mini" title="Lots for BUY PE">
                 <label for="pt-qty-pe">Lots</label>
                 <button type="button" onclick="ptIncQty(-1,'pe')" aria-label="Decrease PE lots">&minus;</button>
-                <input type="number" id="pt-qty-pe" value="1" min="1" max="20" onchange="ptSetQty(this.value,'pe')">
+                <input type="number" id="pt-qty-pe" value="1" min="1" max="20" onchange="ptSetQty(this.value,'pe')"
+                  autocomplete="off" data-1p-ignore data-lpignore="true">
                 <button type="button" onclick="ptIncQty(1,'pe')" aria-label="Increase PE lots">+</button>
               </div>
               <button class="pt-btn pt-sell pt-btn-sm" type="button" id="pt-buy-pe-btn" onclick="ptBuyPE()" disabled>BUY
@@ -230,11 +232,12 @@
                   <th>Pts</th>
                   <th>P&amp;L</th>
                   <th>Held</th>
+                  <th>Trigger</th>
                 </tr>
               </thead>
               <tbody id="pt-hist-tbody">
                 <tr>
-                  <td colspan="9" class="pt-empty">No closed trades yet. Trade history will appear here after you EXIT a
+                  <td colspan="10" class="pt-empty">No closed trades yet. Trade history will appear here after you EXIT a
                     position.</td>
                 </tr>
               </tbody>
@@ -288,6 +291,16 @@
             </ul>
           </div>
         </details>
+
+        <!-- Live option chain table (Upstox-style: Calls | Strike | Puts).
+             Populated by renderChainTable() in candlestick-patterns.html.
+             Scrolls horizontally on narrow screens; vertical scroll caps at
+             ~520px so it doesn't dominate the page. -->
+        <div class="up-chain-table-head">
+          <h3 style="margin:0;font-size:14px;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-soft)">Option Chain</h3>
+          <span class="up-chain-table-sub">Auto-refreshes every 30s.</span>
+        </div>
+        <div id="up-chain-table-wrap" class="up-chain-table-wrap"></div>
 
         <div id="up-chart-wrap" style="background:var(--s2);border-radius:6px;padding:14px;margin-bottom:0"></div>
         <div class="up-chart-legend-tips" id="up-chart-tips">

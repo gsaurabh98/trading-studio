@@ -17,22 +17,27 @@
  * They're fetched lazily on first navigation and cached on demand.
  *
  * ── When to bump CACHE_VERSION ──
- * ONLY when this file's logic or PRECACHE_URLS actually changes.
- * App-code changes (HTML / JS / CSS inside candlestick-patterns.html or
- * content/*.html) DO NOT need a bump — they refresh on the next reload via
- * the network-first / stale-while-revalidate strategies. Bumping for every
- * UI tweak forces a SW handover that can drop in-flight Upstox fetches with
- * a generic "Failed to fetch" error, which is the bug we just fixed.
+ * Bump on every meaningful release. Old caches are deleted on activation
+ * (see the activate handler below) so storage doesn't leak.
  *
  * ── Activation policy ──
- * NO skipWaiting() and NO clients.claim(). A new SW enters the "waiting"
- * state and only takes over on the NEXT page reload, when no clients are
- * controlled by the old SW. This guarantees in-flight fetches always
- * complete under one consistent SW — eliminating the handover-blip class
- * of bugs entirely.
+ * Aggressive auto-update: skipWaiting() at install + clients.claim() at
+ * activate. The page also listens for 'controllerchange' and reloads
+ * automatically when a new SW takes over. End result: when you push a new
+ * version, every open tab silently picks it up on its next reload — no
+ * "clear cookies" dance, no "Unregister SW in DevTools" dance.
+ *
+ * Why this is safe even though we previously avoided handover mid-flight:
+ *   • All Upstox API calls (api.upstox.com + same-origin /api/*) BYPASS
+ *     the SW entirely (see the fetch handler below). A SW handover cannot
+ *     drop them because they were never in the SW's request path.
+ *   • Static assets are cached either way; a brief handover gap may pull
+ *     them from the new SW's cache instead of the old, which is fine.
+ *   • The auto-reload runs AFTER the new SW is active, so the new HTML
+ *     comes from a consistent SW instance.
  */
 
-const CACHE_VERSION = 'v38-2026-05-11-rename-wall-strength-check';
+const CACHE_VERSION = 'v96-2026-05-14-github-pages-index-redirect';
 const STATIC_CACHE = `trading-studio-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `trading-studio-runtime-${CACHE_VERSION}`;
 const FONT_CACHE = `trading-studio-fonts-${CACHE_VERSION}`;
@@ -51,25 +56,31 @@ const PRECACHE_URLS = [
 ];
 
 self.addEventListener('install', (event) => {
-  // Precache the small static set, then enter the WAITING state. We do NOT
-  // call skipWaiting() — the old SW keeps serving in-flight requests until
-  // the user reloads, at which point this new SW activates cleanly.
+  // Precache the small static set, then immediately skip the WAITING state.
+  // Combined with clients.claim() in 'activate', this means a freshly-pushed
+  // version takes over on the next page reload — no need to close every tab
+  // of the site first. The page-side controllerchange listener completes
+  // the loop by reloading the tab so the user actually SEES the new code.
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_URLS))
+    caches.open(STATIC_CACHE)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (event) => {
-  // Drop any old cache versions so we don't leak storage between releases.
-  // We do NOT call clients.claim() — already-open tabs continue under their
-  // existing SW until the user reloads them. This prevents the SW handover
-  // from ever happening mid-flight.
+  // Drop any old cache versions so we don't leak storage between releases,
+  // then claim every client tab so the new SW takes immediate control.
+  // clients.claim() is what triggers the page's 'controllerchange' event
+  // and the auto-reload.
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(
-      keys
-        .filter((k) => ![STATIC_CACHE, RUNTIME_CACHE, FONT_CACHE].includes(k))
-        .map((k) => caches.delete(k))
-    ))
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys
+          .filter((k) => ![STATIC_CACHE, RUNTIME_CACHE, FONT_CACHE].includes(k))
+          .map((k) => caches.delete(k))
+      ))
+      .then(() => self.clients.claim())
   );
 });
 
@@ -103,7 +114,14 @@ async function staleWhileRevalidate(req, cacheName) {
 
 async function networkFirst(req, cacheName) {
   try {
-    const res = await fetch(req);
+    // cache:'no-store' forces a real network round-trip every time, bypassing
+    // the browser's HTTP cache. Without this, a server that responds with
+    // 304 Not Modified (or a cached 200 with a long max-age) can let stale
+    // HTML survive a refresh — exactly the "I have to clear cookies to see
+    // your fix" symptom we're trying to kill. Same-origin GETs on localhost
+    // are essentially free so the cost is invisible, and on remote hosts
+    // we'd rather take the network hit than ship yesterday's bug.
+    const res = await fetch(req, { cache: 'no-store' });
     if (res && res.ok && cacheName) {
       const cache = await caches.open(cacheName);
       cache.put(req, res.clone());

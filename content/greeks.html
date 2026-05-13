@@ -52,6 +52,140 @@
         </div>
       </div>
 
+      <div class="catdiv" style="margin-top:32px">DELTA SIGN &mdash; CE IS POSITIVE, PE IS NEGATIVE</div>
+
+      <div class="infobox" style="background:rgba(9,168,110,.08);border-color:rgba(9,168,110,.35)"><svg
+          class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="11" x2="12" y2="16" />
+          <circle cx="12" cy="8" r="0.8" fill="currentColor" stroke="none" />
+        </svg> The Delta number you see on most option chains (Zerodha, Upstox, Sensibull) is shown as a positive value for
+        CE and a <b>negative value for PE</b>. The minus sign is not a bug or a "loss indicator" &mdash; it tells you
+        <b>which direction the option profits from</b>. Read the rule below once and you will never confuse it again.</div>
+
+      <div class="pgrid md">
+        <div class="card bull">
+          <div class="cname" style="color:var(--bull)">&Delta; CALL (CE) DELTA</div>
+          <div
+            style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--bull);margin:8px 0">
+            0 to +1</div>
+          <div class="badge bull">POSITIVE &mdash; LONG NIFTY</div>
+          <div class="cdesc"><b>CE gains when Nifty goes UP.</b> Delta &asymp; +0.5 at ATM, &asymp; +0.9 deep ITM,
+            &asymp; +0.1 deep OTM. Holding a CE with Delta +0.5 is mathematically like being <b>long 0.5 lot of
+              Nifty</b>. <b>|Delta|</b> also gives you the <b>rough probability the option expires ITM</b> &mdash; ATM CE
+            (0.5) has ~50% chance, deep OTM CE (0.1) has ~10% chance.</div>
+        </div>
+        <div class="card bear">
+          <div class="cname" style="color:var(--bear)">&Delta; PUT (PE) DELTA</div>
+          <div
+            style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--bear);margin:8px 0">
+            &minus;1 to 0</div>
+          <div class="badge bear">NEGATIVE &mdash; SHORT NIFTY</div>
+          <div class="cdesc"><b>PE gains when Nifty goes DOWN.</b> Delta &asymp; &minus;0.5 at ATM, &asymp; &minus;0.9
+            deep ITM, &asymp; &minus;0.1 deep OTM. Holding a PE with Delta &minus;0.5 is mathematically like being
+            <b>short 0.5 lot of Nifty</b>. The minus sign just encodes the direction &mdash; <b>magnitude</b> still tells
+            you sensitivity and approximate ITM-probability.</div>
+        </div>
+      </div>
+
+      <div class="infobox" style="margin-top:0"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="11" x2="12" y2="16" />
+          <circle cx="12" cy="8" r="0.8" fill="currentColor" stroke="none" />
+        </svg> <b>Mental model:</b> Delta is the <b>signed slope</b> of the option's price-vs-Nifty curve. <b>Sign = which
+          way the option leans</b> (CE leans up, PE leans down). <b>Magnitude = how steeply</b> (ATM ~ 0.5, ITM closer to
+        1, OTM closer to 0). Two facts in one number.</div>
+
+      <div class="catdiv" style="margin-top:24px">WORKED EXAMPLE &mdash; SAME NIFTY MOVE, OPPOSITE P&amp;L</div>
+
+      <div class="anat-card" style="margin-bottom:20px">
+        <div class="cname" style="color:var(--neutral)">SETUP</div>
+        <div style="font-size:0.98rem;color:var(--text);line-height:1.8;padding:0 8px">
+          <b>Nifty spot:</b> 24,000 &nbsp;&middot;&nbsp; <b>Lot size:</b> 65 (current Nifty lot)<br>
+          <b>Trade A:</b> Buy <b>24,000 CE</b> &mdash; ATM, Delta = <b>+0.50</b>, Premium &#8377;120<br>
+          <b>Trade B:</b> Buy <b>24,000 PE</b> &mdash; ATM, Delta = <b>&minus;0.50</b>, Premium &#8377;115<br>
+          <span style="color:var(--text-soft);font-size:0.92rem">For this short illustration we ignore Theta &amp; Vega
+            so you can see the Delta effect cleanly.</span>
+        </div>
+      </div>
+
+      <table class="strat-table" style="margin-bottom:20px">
+        <thead>
+          <tr>
+            <th>Nifty move</th>
+            <th>CE premium change<br><span style="font-weight:400;color:var(--text-soft);font-size:0.85em">(Delta +0.50
+                &times; move)</span></th>
+            <th>CE P&amp;L per lot<br><span
+                style="font-weight:400;color:var(--text-soft);font-size:0.85em">(&times; 65)</span></th>
+            <th>PE premium change<br><span style="font-weight:400;color:var(--text-soft);font-size:0.85em">(Delta
+                &minus;0.50 &times; move)</span></th>
+            <th>PE P&amp;L per lot<br><span
+                style="font-weight:400;color:var(--text-soft);font-size:0.85em">(&times; 65)</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="tc"><b>+20 pts</b><br><span style="color:var(--text-soft);font-size:0.85em">Nifty &uarr; to
+                24,020</span></td>
+            <td class="tc">+&#8377;10</td>
+            <td class="tp"><b>+&#8377;650</b></td>
+            <td class="tc">&minus;&#8377;10</td>
+            <td class="tw"><b>&minus;&#8377;650</b></td>
+          </tr>
+          <tr>
+            <td class="tc"><b>+10 pts</b></td>
+            <td class="tc">+&#8377;5</td>
+            <td class="tp"><b>+&#8377;325</b></td>
+            <td class="tc">&minus;&#8377;5</td>
+            <td class="tw"><b>&minus;&#8377;325</b></td>
+          </tr>
+          <tr>
+            <td class="tc"><b>0 (flat)</b></td>
+            <td class="tc">0</td>
+            <td class="tc">&mdash;</td>
+            <td class="tc">0</td>
+            <td class="tc">&mdash;</td>
+          </tr>
+          <tr>
+            <td class="tc"><b>&minus;10 pts</b></td>
+            <td class="tc">&minus;&#8377;5</td>
+            <td class="tw"><b>&minus;&#8377;325</b></td>
+            <td class="tc">+&#8377;5</td>
+            <td class="tp"><b>+&#8377;325</b></td>
+          </tr>
+          <tr>
+            <td class="tc"><b>&minus;20 pts</b><br><span style="color:var(--text-soft);font-size:0.85em">Nifty &darr; to
+                23,980</span></td>
+            <td class="tc">&minus;&#8377;10</td>
+            <td class="tw"><b>&minus;&#8377;650</b></td>
+            <td class="tc">+&#8377;10</td>
+            <td class="tp"><b>+&#8377;650</b></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="rbox" style="border-left-color:var(--info)">
+        <h3><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <line x1="12" y1="11" x2="12" y2="16" />
+            <circle cx="12" cy="8" r="0.8" fill="currentColor" stroke="none" />
+          </svg> TAKEAWAYS</h3>
+        <ul>
+          <li><b>Same Nifty move, opposite P&amp;L</b> &mdash; that's the whole point of the sign. CE row and PE row are
+            mirror images.</li>
+          <li><b>Magnitude is identical</b> at ATM (0.50 vs &minus;0.50) &mdash; both options earn or lose &#8377;325 per
+            10 pts. The CE doesn't have more "power" than the PE.</li>
+          <li><b>Quick rupee shortcut:</b> <code
+              style="background:var(--s0);padding:2px 6px;border-radius:4px">P&amp;L per lot &approx; Nifty pts &times;
+              |Delta| &times; lot size</code> &mdash; sign comes from option type &times; direction of move.</li>
+          <li><b>Why option-chain screens show the minus:</b> if you sum the deltas of a strangle (long CE + long PE),
+            the deltas partially cancel and you immediately see your net directional exposure. The sign convention is
+            what makes that arithmetic work.</li>
+          <li><b>Real life:</b> Theta and Vega will eat into both sides daily &mdash; see the "Why did my CE lose money
+            even though Nifty went up?" worked example below.</li>
+        </ul>
+      </div>
+
       <div class="catdiv">IMPLIED VOLATILITY (VEGA IN PRACTICE)</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
         <div class="anat-card">

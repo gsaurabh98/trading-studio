@@ -527,19 +527,11 @@
       font-weight: 400;
     }
 
+    /* Sub-title badge next to section h2 (e.g. "FOUNDATION", "18 PATTERNS").
+       Hidden per design preference. Markup left in place so deleting this
+       rule re-enables it everywhere. Mirrors candlestick-patterns.html. */
     .count-badge {
-      display: inline-block;
-      font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
-      font-size: 0.98rem;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      padding: 3px 10px;
-      border-radius: 3px;
-      margin-left: 10px;
-      vertical-align: middle;
-      background: rgba(9, 168, 110, 0.1);
-      color: var(--bull);
-      border: 1px solid rgba(9, 168, 110, 0.2);
+      display: none;
     }
 
     /* CATEGORY DIVIDER */
@@ -1389,12 +1381,8 @@
         font-size: 0.95rem;
       }
 
-      .count-badge {
-        font-size: 0.78rem;
-        display: inline-block;
-        margin: 6px 0 0;
-        vertical-align: baseline;
-      }
+      /* Mobile-breakpoint override intentionally empty: badge is hidden
+         globally above via .count-badge{display:none;}. */
 
       .catdiv {
         font-size: 0.78rem;

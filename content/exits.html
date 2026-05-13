@@ -593,12 +593,13 @@
         <div class="card info">
           <div class="cname">BRACKET ORDER (BO)</div>
           <div class="cdesc" style="text-align:left">
-            <b>How it works:</b> Entry + SL + Target as ONE linked order. When any leg fires, the others cancel
-            automatically.<br><br>
-            <b>Pros:</b> Full automation &mdash; you literally cannot forget to exit.<br>
-            <b>Cons:</b> Not available for option buying on most Indian brokers post-2020 regulation.<br><br>
-            <b style="color:var(--neutral)">Status (2026):</b> Mostly gone. Use the equivalent "cover order" or place SL
-            + Target GTT separately.
+            Entry + SL + Target as one linked order &mdash; the leg that fires cancels the others.
+            <b style="color:var(--neutral)">Mostly disabled for option buying post-2020 (SEBI peak margin framework).</b>
+            Use SL-M + a separate GTT target instead.<br><br>
+            <b>Full mechanics, broker availability, and entry-order context:</b> covered under
+            <button onclick="show('options')"
+              style="background:none;border:none;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit;padding:0"><b>Options
+                Buying Guide &rarr; Order Types</b></button>.
           </div>
         </div>
         <div class="card info">
