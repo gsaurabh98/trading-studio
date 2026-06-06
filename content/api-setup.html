@@ -1,0 +1,394 @@
+    <div class="wrap">
+      <div class="shead">
+        <h2>API Setup</h2>
+      </div>
+
+      <div class="api-setup">
+        <!-- ── Hero status banner ── -->
+        <div class="api-setup-hero" id="api-setup-status">
+          <div class="api-setup-hero-icon" id="api-setup-dot">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none"
+              stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <polyline class="api-setup-hero-check" points="9 12 11 14 15 10" stroke-width="2.2"/>
+            </svg>
+          </div>
+          <div class="api-setup-hero-text">
+            <span class="api-setup-hero-label" id="api-setup-label">Not Connected</span>
+            <span class="api-setup-hero-sub" id="api-setup-sub">Enter your Upstox access token below</span>
+          </div>
+        </div>
+
+        <!-- ── Two-column grid: Upstox token + Angel One token ── -->
+        <div class="api-setup-grid">
+          <!-- Upstox token card -->
+          <div class="api-setup-card">
+            <div class="api-setup-card-header">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0110 0v4"/>
+              </svg>
+              <h3>Upstox Token</h3>
+              <span class="api-setup-chip" id="api-setup-up-chip">Not connected</span>
+            </div>
+            <p class="api-setup-desc">
+              <b>Primary data source.</b> Powers live data across all tabs &mdash;
+              charts, option chain, paper trading, swing analyzer, and Fibonacci scanner.
+            </p>
+
+            <div class="api-setup-input-group">
+              <label class="api-setup-input-label" for="api-setup-token">Upstox Bearer Token</label>
+              <div class="api-setup-input-wrap">
+                <input type="text" id="api-setup-token" class="api-setup-token masked"
+                  placeholder="eyJ0eXAiOiJKV1Qi..."
+                  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                  data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other"
+                  aria-label="Upstox access token">
+                <button type="button" class="api-setup-eye" id="api-setup-eye"
+                  onclick="apiSetupToggleEye()" aria-label="Toggle visibility" title="Show/hide token">
+                  <svg class="api-setup-eye-on" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                    stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg class="api-setup-eye-off" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                    stroke="currentColor" stroke-width="2" aria-hidden="true" hidden>
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="api-setup-actions">
+                <button type="button" class="api-setup-btn api-setup-btn--save" onclick="apiSetupSave()">
+                  Save Token
+                </button>
+                <button type="button" class="api-setup-btn api-setup-btn--clear" onclick="apiSetupClear()">
+                  Clear
+                </button>
+              </div>
+              <div class="api-setup-msg" id="api-setup-msg"></div>
+            </div>
+
+            <div class="api-setup-security">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              Stored locally in your browser. Never sent to any server except Upstox.
+            </div>
+          </div>
+
+          <!-- Angel One token card -->
+          <div class="api-setup-card">
+            <div class="api-setup-card-header">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0110 0v4"/>
+              </svg>
+              <h3>Angel One Token</h3>
+              <span class="api-setup-chip" id="api-setup-angel-chip">Not connected</span>
+            </div>
+            <p class="api-setup-desc">
+              SmartAPI session JWT. Stored for upcoming broker support &mdash; not
+              yet wired into live data (Upstox stays the active source for now).
+            </p>
+
+            <div class="api-setup-input-group">
+              <label class="api-setup-input-label" for="api-setup-angel-token">Angel One SmartAPI JWT</label>
+              <div class="api-setup-input-wrap">
+                <input type="text" id="api-setup-angel-token" class="api-setup-token masked"
+                  placeholder="eyJhbGciOiJIUzUxMiJ9..."
+                  autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                  data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other"
+                  aria-label="Angel One SmartAPI token">
+                <button type="button" class="api-setup-eye" id="api-setup-angel-eye"
+                  onclick="apiSetupToggleEyeAngel()" aria-label="Toggle visibility" title="Show/hide token">
+                  <svg class="api-setup-eye-on" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                    stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg class="api-setup-eye-off" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                    stroke="currentColor" stroke-width="2" aria-hidden="true" hidden>
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="api-setup-actions">
+                <button type="button" class="api-setup-btn api-setup-btn--save" onclick="apiSetupSaveAngel()">
+                  Save Token
+                </button>
+                <button type="button" class="api-setup-btn api-setup-btn--clear" onclick="apiSetupClearAngel()">
+                  Clear
+                </button>
+              </div>
+              <div class="api-setup-msg" id="api-setup-angel-msg"></div>
+            </div>
+
+            <div class="api-setup-security">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              Auto-generated by <code>scripts/angel-one-auth.py</code>, or paste it here.
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Active data source selector ── -->
+        <div class="api-setup-card">
+          <div class="api-setup-card-header">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+              stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/>
+              <polyline points="7 11 12 16 17 11"/><line x1="12" y1="4" x2="12" y2="16"/>
+            </svg>
+            <h3>Chart Data Source</h3>
+            <span class="api-setup-chip api-setup-chip--warn" id="api-setup-src-chip">Upstox</span>
+          </div>
+          <p class="api-setup-desc">
+            Which broker powers <b>chart candles</b> (live chart + swing analyzer).
+            Angel One is <b>experimental</b> &mdash; works only when running via
+            <code>python3 server.py</code>. The option chain always uses Upstox.
+          </p>
+          <div class="api-setup-source-toggle" role="group" aria-label="Chart data source">
+            <button type="button" class="api-setup-source-btn" id="api-src-upstox"
+              onclick="apiSetupSetSource('upstox')">Upstox</button>
+            <button type="button" class="api-setup-source-btn" id="api-src-angel"
+              onclick="apiSetupSetSource('angel')">Angel One</button>
+          </div>
+          <div class="api-setup-msg" id="api-setup-source-msg"></div>
+        </div>
+
+        <!-- ── Config file card (full width) ── -->
+        <div class="api-setup-card">
+          <div class="api-setup-card-header">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+              stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <h3>Persistent Config</h3>
+          </div>
+          <p class="api-setup-desc">
+            Save tokens in <code>data/config.json</code> so they survive
+            browser data clears. The app auto-loads both on startup.
+          </p>
+          <pre class="api-setup-pre">{
+  "upstox_token": "YOUR_UPSTOX_TOKEN",
+  "angel_one_token": "YOUR_ANGEL_ONE_TOKEN"
+}</pre>
+          <button type="button" class="api-setup-btn api-setup-btn--copy"
+            onclick="apiSetupCopyConfig()">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+              stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy with your tokens
+          </button>
+        </div>
+
+        <!-- ── Feature cards row ── -->
+        <div class="api-setup-features">
+          <div class="api-setup-feat">
+            <div class="api-setup-feat-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
+                stroke="currentColor" stroke-width="1.6"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <b>Swing Analyzer</b>
+            <span>Candles, quotes, Fib scanner</span>
+          </div>
+          <div class="api-setup-feat">
+            <div class="api-setup-feat-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
+                stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <b>Options Trading</b>
+            <span>Live chart, paper trade, chain</span>
+          </div>
+          <div class="api-setup-feat">
+            <div class="api-setup-feat-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
+                stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/>
+                <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            </div>
+            <b>Bias Calculator</b>
+            <span>OI data, directional scoring</span>
+          </div>
+        </div>
+
+        <!-- ── Important + Daily refresh in two columns ── -->
+        <div class="api-setup-grid">
+          <div class="api-setup-card api-setup-card--warn">
+            <div class="api-setup-card-header">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <h3>Good to Know</h3>
+            </div>
+            <ul class="api-setup-warn-list">
+              <li>Upstox token <b>expires daily</b> at 3:30 AM IST</li>
+              <li>Angel One JWT <b>expires</b> around 5:00 AM IST</li>
+              <li>Clearing browser data removes the browser-saved tokens</li>
+              <li>Use <code>data/config.json</code> for persistent storage</li>
+              <li>Tokens are <b>never sent</b> to any server except the broker</li>
+            </ul>
+          </div>
+
+          <div class="api-setup-card">
+            <div class="api-setup-card-header">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+              </svg>
+              <h3>Daily Refresh (30s)</h3>
+            </div>
+            <ol class="api-setup-daily">
+              <li>Open authorization URL &rarr; login &rarr; copy <code>code</code></li>
+              <li>Run <code>curl</code> command with new code &rarr; copy token</li>
+              <li>Paste here &rarr; <b>Save</b></li>
+            </ol>
+            <p class="api-setup-tip">
+              Bookmark the auth URL &amp; save the curl as a shell alias for speed.
+            </p>
+          </div>
+        </div>
+
+        <!-- ── Step-by-step guide (collapsed by default) ── -->
+        <details class="api-setup-details">
+          <summary class="api-setup-details-summary">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+              stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            First-time setup guide (5 minutes)
+          </summary>
+          <div class="api-setup-steps">
+            <div class="api-setup-step">
+              <div class="api-setup-step-num">1</div>
+              <div class="api-setup-step-body">
+                <h4>Create an Upstox Developer App</h4>
+                <p>Go to
+                  <a href="https://account.upstox.com/developer/apps" target="_blank" rel="noopener">
+                    account.upstox.com/developer/apps</a>
+                  and click <b>+ NEW APP</b>.
+                </p>
+                <div class="api-setup-fields">
+                  <div class="api-setup-field"><span class="api-setup-field-k">Name</span><span>anything (e.g. <code>My Chart</code>)</span></div>
+                  <div class="api-setup-field"><span class="api-setup-field-k">Redirect URI</span><span><code>https://upstox.com</code></span></div>
+                  <div class="api-setup-field"><span class="api-setup-field-k">Description</span><span>any short text</span></div>
+                  <div class="api-setup-field"><span class="api-setup-field-k">Postback URL</span><span>leave blank</span></div>
+                </div>
+                <p>Save. You&rsquo;ll get a <b>Client ID</b> and <b>Client Secret</b>. Keep them handy.</p>
+              </div>
+            </div>
+
+            <div class="api-setup-step">
+              <div class="api-setup-step-num">2</div>
+              <div class="api-setup-step-body">
+                <h4>Authorize &mdash; Get the Code</h4>
+                <p>Open this URL in your browser (replace <code>YOUR_CLIENT_ID</code>):</p>
+                <pre class="api-setup-pre">https://api.upstox.com/v2/login/authorization/dialog?response_type=code&amp;client_id=YOUR_CLIENT_ID&amp;redirect_uri=https://upstox.com</pre>
+                <p>Login with Upstox credentials, approve, then copy the <code>?code=XYZ</code> from the URL bar.</p>
+              </div>
+            </div>
+
+            <div class="api-setup-step">
+              <div class="api-setup-step-num">3</div>
+              <div class="api-setup-step-body">
+                <h4>Exchange Code for Token</h4>
+                <p>Run in terminal (replace the 3 placeholders):</p>
+                <pre class="api-setup-pre">curl -X POST 'https://api.upstox.com/v2/login/authorization/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -H 'Accept: application/json' \
+  -d 'code=YOUR_CODE&amp;client_id=YOUR_CLIENT_ID&amp;client_secret=YOUR_SECRET&amp;redirect_uri=https://upstox.com&amp;grant_type=authorization_code'</pre>
+                <p>Copy the <code>"access_token"</code> value from the JSON response.</p>
+              </div>
+            </div>
+
+            <div class="api-setup-step">
+              <div class="api-setup-step-num">4</div>
+              <div class="api-setup-step-body">
+                <h4>Paste &amp; Save</h4>
+                <p>Paste the token in the input above &rarr; <b>Save</b>.
+                  All tabs start pulling live data instantly.</p>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- ── Angel One setup guide (collapsed by default) ── -->
+        <details class="api-setup-details">
+          <summary class="api-setup-details-summary">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+              stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            Angel One SmartAPI setup
+          </summary>
+          <div class="api-setup-steps">
+            <div class="api-setup-step">
+              <div class="api-setup-step-num">1</div>
+              <div class="api-setup-step-body">
+                <h4>Create a SmartAPI App</h4>
+                <p>Go to
+                  <a href="https://smartapi.angelone.in/new/apps" target="_blank" rel="noopener">
+                    smartapi.angelone.in/new/apps</a>
+                  and create an app.
+                </p>
+                <div class="api-setup-fields">
+                  <div class="api-setup-field"><span class="api-setup-field-k">Redirect URL</span><span><code>http://127.0.0.1</code> (required, unused for login)</span></div>
+                  <div class="api-setup-field"><span class="api-setup-field-k">API Key</span><span>note it down after creation</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="api-setup-step">
+              <div class="api-setup-step-num">2</div>
+              <div class="api-setup-step-body">
+                <h4>Enable TOTP</h4>
+                <p>Visit
+                  <a href="https://smartapi.angelone.in/enable-totp" target="_blank" rel="noopener">
+                    smartapi.angelone.in/enable-totp</a>
+                  and copy the <b>secret</b> shown below the QR code.</p>
+              </div>
+            </div>
+
+            <div class="api-setup-step">
+              <div class="api-setup-step-num">3</div>
+              <div class="api-setup-step-body">
+                <h4>Add Credentials &amp; Run the Generator</h4>
+                <p>Create <code>data/angel-one-creds.json</code> (gitignored), then run the
+                  bundled script &mdash; it logs in and writes <code>angel_one_token</code>
+                  into <code>data/config.json</code> automatically:</p>
+                <pre class="api-setup-pre">{
+  "api_key": "YOUR_API_KEY",
+  "client_code": "YOUR_CLIENT_ID",
+  "pin": "YOUR_PIN",
+  "totp_secret": "YOUR_TOTP_SECRET"
+}
+
+.venv/bin/python scripts/angel-one-auth.py</pre>
+              </div>
+            </div>
+
+            <div class="api-setup-step">
+              <div class="api-setup-step-num">4</div>
+              <div class="api-setup-step-body">
+                <h4>Paste &amp; Save</h4>
+                <p>The token loads from <code>config.json</code> on startup &mdash; or paste
+                  the JWT into the Angel One input above &rarr; <b>Save</b>. (Not yet used for
+                  live data; stored for upcoming broker support.)</p>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>

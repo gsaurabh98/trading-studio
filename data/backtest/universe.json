@@ -1,0 +1,1251 @@
+{
+ "generatedAt": "2026-06-01T19:49:09.899Z",
+ "seed": 20260602,
+ "pickPerSector": 12,
+ "band": [
+  500,
+  3000
+ ],
+ "count": 177,
+ "stocks": [
+  {
+   "sym": "AXISBANK",
+   "isin": "INE238A01034",
+   "sector": "banking",
+   "sectorName": "Banking",
+   "pickPrice": 1286.6
+  },
+  {
+   "sym": "AUBANK",
+   "isin": "INE949L01017",
+   "sector": "banking",
+   "sectorName": "Banking",
+   "pickPrice": 984.7
+  },
+  {
+   "sym": "INDIANB",
+   "isin": "INE562A01011",
+   "sector": "banking",
+   "sectorName": "Banking",
+   "pickPrice": 833
+  },
+  {
+   "sym": "INDUSINDBK",
+   "isin": "INE095A01012",
+   "sector": "banking",
+   "sectorName": "Banking",
+   "pickPrice": 914.35
+  },
+  {
+   "sym": "HDFCBANK",
+   "isin": "INE040A01034",
+   "sector": "banking",
+   "sectorName": "Banking",
+   "pickPrice": 744.55
+  },
+  {
+   "sym": "TMB",
+   "isin": "INE668A01016",
+   "sector": "banking",
+   "sectorName": "Banking",
+   "pickPrice": 692.55
+  },
+  {
+   "sym": "ICICIBANK",
+   "isin": "INE090A01021",
+   "sector": "banking",
+   "sectorName": "Banking",
+   "pickPrice": 1256.4
+  },
+  {
+   "sym": "SBIN",
+   "isin": "INE062A01020",
+   "sector": "banking",
+   "sectorName": "Banking",
+   "pickPrice": 964.4
+  },
+  {
+   "sym": "ICICIPRULI",
+   "isin": "INE726G01019",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 503.95
+  },
+  {
+   "sym": "PHCAP",
+   "isin": "INE160F01013",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 803
+  },
+  {
+   "sym": "ABSLAMC",
+   "isin": "INE404A01024",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 1064
+  },
+  {
+   "sym": "SBICARD",
+   "isin": "INE018E01016",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 624.4
+  },
+  {
+   "sym": "LICHSGFIN",
+   "isin": "INE115A01026",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 533.15
+  },
+  {
+   "sym": "SUMMITSEC",
+   "isin": "INE519C01017",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 1541.1
+  },
+  {
+   "sym": "PAYTM",
+   "isin": "INE982J01020",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 1118.8
+  },
+  {
+   "sym": "TATAINVEST",
+   "isin": "INE672A01026",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 690.15
+  },
+  {
+   "sym": "BAJAJFINSV",
+   "isin": "INE918I01026",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 1783.6
+  },
+  {
+   "sym": "NAM-INDIA",
+   "isin": "INE298J01013",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 1100.2
+  },
+  {
+   "sym": "LERTHAI",
+   "isin": "INE347D01011",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 670.85
+  },
+  {
+   "sym": "POLICYBZR",
+   "isin": "INE417T01026",
+   "sector": "financial-services",
+   "sectorName": "Financial Services",
+   "pickPrice": 1702.5
+  },
+  {
+   "sym": "AFFLE",
+   "isin": "INE00WC01027",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 1463
+  },
+  {
+   "sym": "NUCLEUS",
+   "isin": "INE096B01018",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 763.95
+  },
+  {
+   "sym": "INDOTECH",
+   "isin": "INE332H01014",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 2497.8
+  },
+  {
+   "sym": "AVALON",
+   "isin": "INE0LCL01028",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 1520.5
+  },
+  {
+   "sym": "RACLGEAR",
+   "isin": "INE704B01017",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 1320.9
+  },
+  {
+   "sym": "HCLTECH",
+   "isin": "INE860A01027",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 1183.8
+  },
+  {
+   "sym": "HITECHGEAR",
+   "isin": "INE127B01011",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 590
+  },
+  {
+   "sym": "HEXT",
+   "isin": "INE093A01041",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 508
+  },
+  {
+   "sym": "MASTEK",
+   "isin": "INE759A01021",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 1627
+  },
+  {
+   "sym": "63MOONS",
+   "isin": "INE111B01023",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 610.95
+  },
+  {
+   "sym": "TATATECH",
+   "isin": "INE142M01025",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 705.3
+  },
+  {
+   "sym": "ADCINDIA",
+   "isin": "INE833A01016",
+   "sector": "it",
+   "sectorName": "IT & Tech",
+   "pickPrice": 2338.35
+  },
+  {
+   "sym": "TTKHLTCARE",
+   "isin": "INE910C01018",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 886.2
+  },
+  {
+   "sym": "KRSNAA",
+   "isin": "INE08LI01020",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 549.45
+  },
+  {
+   "sym": "POLYMED",
+   "isin": "INE205C01021",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 1349.7
+  },
+  {
+   "sym": "NEPHROPLUS",
+   "isin": "INE428V01029",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 597
+  },
+  {
+   "sym": "AKUMS",
+   "isin": "INE09XN01023",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 524.5
+  },
+  {
+   "sym": "HCG",
+   "isin": "INE075I01017",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 637.25
+  },
+  {
+   "sym": "AMRUTANJAN",
+   "isin": "INE098F01031",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 558.65
+  },
+  {
+   "sym": "VENTIVE",
+   "isin": "INE781S01027",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 629.9
+  },
+  {
+   "sym": "JUBLPHARMA",
+   "isin": "INE700A01033",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 993
+  },
+  {
+   "sym": "STAR",
+   "isin": "INE939A01011",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 1111.8
+  },
+  {
+   "sym": "THYROCARE",
+   "isin": "INE594H01019",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 506.3
+  },
+  {
+   "sym": "SENORES",
+   "isin": "INE0RB801010",
+   "sector": "pharma-healthcare",
+   "sectorName": "Pharma & Healthcare",
+   "pickPrice": 1129.6
+  },
+  {
+   "sym": "HNDFDS",
+   "isin": "INE254N01026",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 518.75
+  },
+  {
+   "sym": "CCL",
+   "isin": "INE421D01022",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 1053.8
+  },
+  {
+   "sym": "DOMS",
+   "isin": "INE321T01012",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 2185.1
+  },
+  {
+   "sym": "VMART",
+   "isin": "INE665J01013",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 666.5
+  },
+  {
+   "sym": "TATACONSUM",
+   "isin": "INE192A01025",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 1178.4
+  },
+  {
+   "sym": "UPHOT",
+   "isin": "INE726E01014",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 1375.05
+  },
+  {
+   "sym": "SYMPHONY",
+   "isin": "INE225D01027",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 696.15
+  },
+  {
+   "sym": "CHALET",
+   "isin": "INE427F01016",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 784.6
+  },
+  {
+   "sym": "NESTLEIND",
+   "isin": "INE239A01024",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 1421.5
+  },
+  {
+   "sym": "UBL",
+   "isin": "INE686F01025",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 1320
+  },
+  {
+   "sym": "VBL",
+   "isin": "INE200M01039",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 528
+  },
+  {
+   "sym": "AVANTIFEED",
+   "isin": "INE871C01038",
+   "sector": "fmcg-consumer",
+   "sectorName": "FMCG & Consumer",
+   "pickPrice": 1203.6
+  },
+  {
+   "sym": "ESCORTS",
+   "isin": "INE042A01014",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 2859.8
+  },
+  {
+   "sym": "ACE",
+   "isin": "INE731H01025",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 884.95
+  },
+  {
+   "sym": "SRM",
+   "isin": "INE0R6Z01013",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 516
+  },
+  {
+   "sym": "SONACOMS",
+   "isin": "INE073K01018",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 607.45
+  },
+  {
+   "sym": "VARROC",
+   "isin": "INE665L01035",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 565.4
+  },
+  {
+   "sym": "ARE&M",
+   "isin": "INE885A01032",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 886.1
+  },
+  {
+   "sym": "ATHERENERG",
+   "isin": "INE0LEZ01016",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 964.1
+  },
+  {
+   "sym": "SUNDRMFAST",
+   "isin": "INE387A01021",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 860.45
+  },
+  {
+   "sym": "SUBROS",
+   "isin": "INE287B01021",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 720.6
+  },
+  {
+   "sym": "RKFORGE",
+   "isin": "INE399G01023",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 566.4
+  },
+  {
+   "sym": "LUMAXTECH",
+   "isin": "INE872H01027",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 1724.8
+  },
+  {
+   "sym": "WHEELS",
+   "isin": "INE715A01015",
+   "sector": "auto",
+   "sectorName": "Auto & Auto Components",
+   "pickPrice": 1575.8
+  },
+  {
+   "sym": "SOLEX",
+   "isin": "INE880Y01017",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 1218.5
+  },
+  {
+   "sym": "TRITURBINE",
+   "isin": "INE152M01016",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 741.5
+  },
+  {
+   "sym": "AEGISLOG",
+   "isin": "INE208C01025",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 748.45
+  },
+  {
+   "sym": "RELIANCE",
+   "isin": "INE002A01018",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 1321.2
+  },
+  {
+   "sym": "GULFOILLUB",
+   "isin": "INE635Q01029",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 973.05
+  },
+  {
+   "sym": "KIRLOSENG",
+   "isin": "INE146L01010",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 1928
+  },
+  {
+   "sym": "ONIXSOLAR",
+   "isin": "INE173M01012",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 739.05
+  },
+  {
+   "sym": "PREMIERENE",
+   "isin": "INE0BS701011",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 1061
+  },
+  {
+   "sym": "ADANIGREEN",
+   "isin": "INE364U01010",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 1475.4
+  },
+  {
+   "sym": "CHENNPETRO",
+   "isin": "INE178A01016",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 1058.2
+  },
+  {
+   "sym": "SWELECTES",
+   "isin": "INE409B01013",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 650.6
+  },
+  {
+   "sym": "MGL",
+   "isin": "INE002S01010",
+   "sector": "oil-gas",
+   "sectorName": "Oil, Gas & Energy",
+   "pickPrice": 1095
+  },
+  {
+   "sym": "SOLARA",
+   "isin": "INE624Z01016",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 532.7
+  },
+  {
+   "sym": "HONDAPOWER",
+   "isin": "INE634A01018",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 2363.4
+  },
+  {
+   "sym": "STARDELTA",
+   "isin": "INE541K01014",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 610.75
+  },
+  {
+   "sym": "ADANIENSOL",
+   "isin": "INE931S01010",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 1513.3
+  },
+  {
+   "sym": "JSWENERGY",
+   "isin": "INE121E01018",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 595.05
+  },
+  {
+   "sym": "CGPOWER",
+   "isin": "INE067A01029",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 917.45
+  },
+  {
+   "sym": "UNIVCABLES",
+   "isin": "INE279A01012",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 1136.05
+  },
+  {
+   "sym": "SCHNEIDER",
+   "isin": "INE839M01018",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 1308.8
+  },
+  {
+   "sym": "HAVELLS",
+   "isin": "INE176B01034",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 1176.8
+  },
+  {
+   "sym": "MACPOWER",
+   "isin": "INE155Z01011",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 969.8
+  },
+  {
+   "sym": "POWERICA",
+   "isin": "INE921L01032",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 553.15
+  },
+  {
+   "sym": "COSPOWER",
+   "isin": "INE0CQB01010",
+   "sector": "power",
+   "sectorName": "Power & Utilities",
+   "pickPrice": 1490.5
+  },
+  {
+   "sym": "POKARNA",
+   "isin": "INE637C01025",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 800.7
+  },
+  {
+   "sym": "HINDCOPPER",
+   "isin": "INE531E01026",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 538.7
+  },
+  {
+   "sym": "VENUSPIPES",
+   "isin": "INE0JA001018",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 1405
+  },
+  {
+   "sym": "GRAVITA",
+   "isin": "INE024L01027",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 1612.9
+  },
+  {
+   "sym": "LLOYDSME",
+   "isin": "INE281B01032",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 1802.1
+  },
+  {
+   "sym": "GMDCLTD",
+   "isin": "INE131A01031",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 670
+  },
+  {
+   "sym": "KALYANIFRG",
+   "isin": "INE314G01014",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 595.1
+  },
+  {
+   "sym": "RATNAMANI",
+   "isin": "INE703B01027",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 2555.5
+  },
+  {
+   "sym": "JSWSTEEL",
+   "isin": "INE019A01038",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 1278
+  },
+  {
+   "sym": "ZWELCAST",
+   "isin": "INE380G01015",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 692.05
+  },
+  {
+   "sym": "MAGNAELQ",
+   "isin": "INE437D01010",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 1139
+  },
+  {
+   "sym": "KSL",
+   "isin": "INE907A01026",
+   "sector": "metals",
+   "sectorName": "Metals & Mining",
+   "pickPrice": 816.75
+  },
+  {
+   "sym": "AHLUCONT",
+   "isin": "INE758C01029",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 792
+  },
+  {
+   "sym": "ROLCOEN",
+   "isin": "INE775R01013",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 599.45
+  },
+  {
+   "sym": "DECCANCE",
+   "isin": "INE583C01021",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 612.5
+  },
+  {
+   "sym": "SISL",
+   "isin": "INE0LU301014",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 590
+  },
+  {
+   "sym": "DALBHARAT",
+   "isin": "INE00R701025",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 1748.2
+  },
+  {
+   "sym": "DEEDEV",
+   "isin": "INE841L01016",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 594.9
+  },
+  {
+   "sym": "KAJARIACER",
+   "isin": "INE217B01036",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 1072.6
+  },
+  {
+   "sym": "BUILDPRO",
+   "isin": "INE24OJ01011",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 1158.5
+  },
+  {
+   "sym": "KPIL",
+   "isin": "INE220B01022",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 1305
+  },
+  {
+   "sym": "MIIL",
+   "isin": "INE898Q01015",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 784.2
+  },
+  {
+   "sym": "CIANAGRO",
+   "isin": "INE052V01019",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 1571.1
+  },
+  {
+   "sym": "PITTIENG",
+   "isin": "INE450D01021",
+   "sector": "cement-construction",
+   "sectorName": "Cement & Construction",
+   "pickPrice": 922
+  },
+  {
+   "sym": "RVTH",
+   "isin": "INE0DAB01012",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 780
+  },
+  {
+   "sym": "PIDILITIND",
+   "isin": "INE318A01026",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 1482.8
+  },
+  {
+   "sym": "GRSE",
+   "isin": "INE382Z01011",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 2654.8
+  },
+  {
+   "sym": "MOLDTKPAC",
+   "isin": "INE893J01029",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 702.6
+  },
+  {
+   "sym": "KSB",
+   "isin": "INE999A01023",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 789.9
+  },
+  {
+   "sym": "ASTRAMICRO",
+   "isin": "INE386C01029",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 1401.7
+  },
+  {
+   "sym": "KRN",
+   "isin": "INE0Q3J01015",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 1090
+  },
+  {
+   "sym": "UNIMECH",
+   "isin": "INE0U3I01011",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 939
+  },
+  {
+   "sym": "SUNITATOOL",
+   "isin": "INE0Q1S01010",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 717
+  },
+  {
+   "sym": "SWANDEF",
+   "isin": "INE542F01020",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 2056.25
+  },
+  {
+   "sym": "CPPLUS",
+   "isin": "INE819V01029",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 2903.5
+  },
+  {
+   "sym": "DEEPAKNTR",
+   "isin": "INE288B01029",
+   "sector": "industrial-goods",
+   "sectorName": "Capital Goods & Industrials",
+   "pickPrice": 1682
+  },
+  {
+   "sym": "IRCTC",
+   "isin": "INE335Y01020",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 509.85
+  },
+  {
+   "sym": "GESHIP",
+   "isin": "INE017A01032",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 1418.9
+  },
+  {
+   "sym": "ANANTRAJ",
+   "isin": "INE242C01024",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 514.15
+  },
+  {
+   "sym": "RAYMOND",
+   "isin": "INE301A01014",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 540.4
+  },
+  {
+   "sym": "BHARTIARTL",
+   "isin": "INE397D01024",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 1829
+  },
+  {
+   "sym": "TITAGARH",
+   "isin": "INE615H01020",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 826.15
+  },
+  {
+   "sym": "TCI",
+   "isin": "INE688A01022",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 920
+  },
+  {
+   "sym": "OBEROIRLTY",
+   "isin": "INE093I01010",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 1707.1
+  },
+  {
+   "sym": "BHARTIHEXA",
+   "isin": "INE343G01021",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 1499.5
+  },
+  {
+   "sym": "SOBHA",
+   "isin": "INE671H01015",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 1418
+  },
+  {
+   "sym": "GODREJPROP",
+   "isin": "INE484J01027",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 1762.7
+  },
+  {
+   "sym": "ABREL",
+   "isin": "INE055A01016",
+   "sector": "telecom-infra",
+   "sectorName": "Telecom, Infra & Realty",
+   "pickPrice": 1243.8
+  },
+  {
+   "sym": "AETHER",
+   "isin": "INE0BWX01014",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 1084
+  },
+  {
+   "sym": "HSCL",
+   "isin": "INE019C01026",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 606.45
+  },
+  {
+   "sym": "FAIRCHEMOR",
+   "isin": "INE0DNW01011",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 616.15
+  },
+  {
+   "sym": "NEOGEN",
+   "isin": "INE136S01016",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 1858.1
+  },
+  {
+   "sym": "SHARDACROP",
+   "isin": "INE221J01015",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 905
+  },
+  {
+   "sym": "KRISHANA",
+   "isin": "INE506W01012",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 668.1
+  },
+  {
+   "sym": "SHRJAGP",
+   "isin": "INE564J01026",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 583.95
+  },
+  {
+   "sym": "MANORG",
+   "isin": "INE370D01013",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 579.4
+  },
+  {
+   "sym": "NGLFINE",
+   "isin": "INE887E01022",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 2785.1
+  },
+  {
+   "sym": "SUMICHEM",
+   "isin": "INE258G01013",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 501.55
+  },
+  {
+   "sym": "ACI",
+   "isin": "INE128X01021",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 525.25
+  },
+  {
+   "sym": "VISHNU",
+   "isin": "INE270I01022",
+   "sector": "chemicals",
+   "sectorName": "Chemicals",
+   "pickPrice": 579.1
+  },
+  {
+   "sym": "RAYMONDLSL",
+   "isin": "INE02ID01020",
+   "sector": "textiles",
+   "sectorName": "Textiles",
+   "pickPrice": 706.4
+  },
+  {
+   "sym": "PGIL",
+   "isin": "INE940H01022",
+   "sector": "textiles",
+   "sectorName": "Textiles",
+   "pickPrice": 1653.5
+  },
+  {
+   "sym": "SIYSIL",
+   "isin": "INE076B01028",
+   "sector": "textiles",
+   "sectorName": "Textiles",
+   "pickPrice": 574
+  },
+  {
+   "sym": "AMBIKCO",
+   "isin": "INE540G01014",
+   "sector": "textiles",
+   "sectorName": "Textiles",
+   "pickPrice": 1657.6
+  },
+  {
+   "sym": "GOKEX",
+   "isin": "INE887G01027",
+   "sector": "textiles",
+   "sectorName": "Textiles",
+   "pickPrice": 691.8
+  },
+  {
+   "sym": "VTL",
+   "isin": "INE825A01020",
+   "sector": "textiles",
+   "sectorName": "Textiles",
+   "pickPrice": 577.15
+  },
+  {
+   "sym": "RAJPALAYAM",
+   "isin": "INE296E01026",
+   "sector": "textiles",
+   "sectorName": "Textiles",
+   "pickPrice": 820
+  },
+  {
+   "sym": "KPRMILL",
+   "isin": "INE930H01031",
+   "sector": "textiles",
+   "sectorName": "Textiles",
+   "pickPrice": 966.5
+  },
+  {
+   "sym": "TIPSMUSIC",
+   "isin": "INE716B01029",
+   "sector": "media",
+   "sectorName": "Media & Entertainment",
+   "pickPrice": 662.45
+  },
+  {
+   "sym": "PVRINOX",
+   "isin": "INE191H01014",
+   "sector": "media",
+   "sectorName": "Media & Entertainment",
+   "pickPrice": 962.6
+  },
+  {
+   "sym": "CONTROLPR",
+   "isin": "INE663B01015",
+   "sector": "media",
+   "sectorName": "Media & Entertainment",
+   "pickPrice": 604
+  },
+  {
+   "sym": "JINDALPOLY",
+   "isin": "INE197D01010",
+   "sector": "media",
+   "sectorName": "Media & Entertainment",
+   "pickPrice": 678.35
+  },
+  {
+   "sym": "SUNTV",
+   "isin": "INE424H01027",
+   "sector": "media",
+   "sectorName": "Media & Entertainment",
+   "pickPrice": 502.15
+  },
+  {
+   "sym": "TEAMLEASE",
+   "isin": "INE985S01024",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 1384.1
+  },
+  {
+   "sym": "GALAPREC",
+   "isin": "INE0RE001014",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 921.85
+  },
+  {
+   "sym": "DENORA",
+   "isin": "INE244A01016",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 710
+  },
+  {
+   "sym": "SUNDROP",
+   "isin": "INE209A01019",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 671.35
+  },
+  {
+   "sym": "SJS",
+   "isin": "INE284S01014",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 2105.2
+  },
+  {
+   "sym": "VEEDOL",
+   "isin": "INE484C01030",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 1438
+  },
+  {
+   "sym": "STOVEKRAFT",
+   "isin": "INE00IN01015",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 612.55
+  },
+  {
+   "sym": "VIJSOLX",
+   "isin": "INE362D01010",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 595
+  },
+  {
+   "sym": "BLACKBUCK",
+   "isin": "INE0UIZ01018",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 510.55
+  },
+  {
+   "sym": "JINDALPHOT",
+   "isin": "INE796G01012",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 995.2
+  },
+  {
+   "sym": "VINDHYATEL",
+   "isin": "INE707A01012",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 2210.5
+  },
+  {
+   "sym": "HESTERBIO",
+   "isin": "INE782E01017",
+   "sector": "services",
+   "sectorName": "Services & Others",
+   "pickPrice": 2009.2
+  }
+ ]
+}

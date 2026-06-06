@@ -6,12 +6,14 @@
       <div class="infobox"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M2 4a2 2 0 0 1 2-2h6v18H4a2 2 0 0 1-2-2z" />
           <path d="M22 4a2 2 0 0 0-2-2h-6v18h6a2 2 0 0 0 2-2z" />
-        </svg> <b>Why two candles are better than one:</b> A single candle can mislead &mdash; the second candle is the
-        <b>confirmation</b>. In patterns like Engulfing, the second candle must <i>completely cover</i> the first
-        candle's body. In Piercing Line, it must close above the midpoint of the first. This "two-candle rule" filters
-        out many false signals that single candles can produce.<br><br>
-        <b>How to use:</b> Wait for the <b>second candle to close</b> before acting. Enter on the next candle's open.
-        Place SL at the low (for bullish) or high (for bearish) of the pattern as a whole.
+        </svg> <b>Why two candles are better than one:</b> A single candle can fool you. The second candle is
+        the <b>confirmation</b> that the move is real. In an Engulfing pattern, the second candle must
+        <i>completely cover</i> the first candle's body. In a Piercing Line, the second candle must close
+        above the midpoint of the first one. This "two-candle rule" filters out many of the false signals
+        that single candles can produce.<br><br>
+        <b>How to use these patterns:</b> Wait for the <b>second candle to fully close</b> before taking
+        action. Enter on the open of the next candle. Place your stop loss at the lowest point of the
+        whole pattern (for bullish setups) or the highest point of the whole pattern (for bearish setups).
       </div>
 
       <div class="catdiv">ENGULFING FAMILY</div>
@@ -23,8 +25,9 @@
             <rect x="52" y="5" width="30" height="90" fill="#09a86e" rx="2" />
           </svg>
           <div class="badge bull">BULLISH REVERSAL</div>
-          <div class="cdesc">Green body fully engulfs the prior red body. Powerful reversal at support.</div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="cdesc">A green candle's body completely covers (engulfs) the previous red candle's
+            body. A powerful reversal signal at a support level.</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
         <div class="card bear">
           <div class="cname">BEARISH ENGULFING</div>
@@ -33,9 +36,36 @@
             <rect x="52" y="5" width="30" height="90" fill="#c91f3a" rx="2" />
           </svg>
           <div class="badge bear">BEARISH REVERSAL</div>
-          <div class="cdesc">Red body fully engulfs the prior green body. Powerful reversal at resistance.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">A red candle's body completely covers (engulfs) the previous green candle's
+            body. A powerful reversal signal at a resistance level.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Bullish Engulfing at Support (the gold standard)</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>A clear Bullish Engulfing pattern has formed at a known support level (such as the previous
+            day's low, the 20 period Exponential Moving Average, or a Volume Weighted Average Price line).
+            The green engulfing candle's body fully covers the red candle's body, AND it closes above the
+            red candle's open. Volume on the green candle is at least 1.5 times the average of the last
+            10 candles.</dd>
+          <dt>Entry</dt>
+          <dd>Buy a Call Option (At the Money or one strike Out of the Money) on the open of the very next
+            candle after the engulfing candle closes. Do not wait for a pullback &mdash; engulfing patterns
+            often run hard for the next 3 to 5 candles.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Place the stop loss 5 to 10 points below the lowest point of the entire two-candle pattern
+            on Nifty. For the option premium, exit if you lose 30 to 35 percent of the option price.</dd>
+          <dt>Target</dt>
+          <dd>Aim for the next major resistance level above. The minimum target is 2 times your stop loss
+            distance. Book half the position at the first target and trail the stop loss on the rest.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The engulfing forms in the middle of nowhere (no clear support nearby), volume on the green
+            candle is below average, the green candle has a long upper wick (sellers were still active),
+            or the broader market trend is strongly downward.</dd>
+        </dl>
       </div>
 
       <div class="catdiv">HARAMI FAMILY</div>
@@ -47,8 +77,9 @@
             <rect x="52" y="32" width="30" height="38" fill="#09a86e" rx="2" />
           </svg>
           <div class="badge bull">BULLISH REVERSAL</div>
-          <div class="cdesc">Small green body inside a large red body. Selling is slowing — wait for confirm.</div>
-          <div class="action ce">→ CE (confirm)</div>
+          <div class="cdesc">A small green body sits inside the body of a large red candle. The selling
+            pressure is slowing down. Always wait for the next candle to confirm before taking the trade.</div>
+          <div class="action ce">→ CALL (after confirm)</div>
         </div>
         <div class="card bear">
           <div class="cname">BEARISH HARAMI</div>
@@ -57,8 +88,9 @@
             <rect x="52" y="32" width="30" height="38" fill="#c91f3a" rx="2" />
           </svg>
           <div class="badge bear">BEARISH REVERSAL</div>
-          <div class="cdesc">Small red body inside a large green body. Buying is slowing — wait for confirm.</div>
-          <div class="action pe">→ PE (confirm)</div>
+          <div class="cdesc">A small red body sits inside the body of a large green candle. The buying
+            pressure is slowing down. Always wait for the next candle to confirm before taking the trade.</div>
+          <div class="action pe">→ PUT (after confirm)</div>
         </div>
         <div class="card bull">
           <div class="cname">BULLISH HARAMI CROSS</div>
@@ -69,8 +101,10 @@
             <line x1="67" y1="50" x2="67" y2="66" stroke="#d4941a" stroke-width="2" />
           </svg>
           <div class="badge bull">STRONG REVERSAL</div>
-          <div class="cdesc">Doji inside a large red body. Stronger than the regular bullish harami.</div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="cdesc">A Doji candle sits inside the body of a large red candle. This is even
+            stronger than a regular Bullish Harami because the Doji shows complete indecision after the
+            big red candle.</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
         <div class="card bear">
           <div class="cname">BEARISH HARAMI CROSS</div>
@@ -81,8 +115,10 @@
             <line x1="67" y1="50" x2="67" y2="66" stroke="#d4941a" stroke-width="2" />
           </svg>
           <div class="badge bear">STRONG REVERSAL</div>
-          <div class="cdesc">Doji inside a large green body. Stronger than the regular bearish harami.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">A Doji candle sits inside the body of a large green candle. Even stronger
+            than a regular Bearish Harami because the Doji signals complete indecision after the big
+            green candle.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
       </div>
 
@@ -95,8 +131,9 @@
             <rect x="52" y="42" width="30" height="55" fill="#09a86e" rx="2" />
           </svg>
           <div class="badge bull">BULLISH REVERSAL</div>
-          <div class="cdesc">Green opens below red's low, closes above red's midpoint. Partial bullish recovery.</div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="cdesc">A green candle opens below the previous red candle's low, then closes above
+            the midpoint of the red candle. A partial bullish recovery showing buyers are stepping in.</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
         <div class="card bear">
           <div class="cname">DARK CLOUD COVER</div>
@@ -105,9 +142,34 @@
             <rect x="52" y="3" width="30" height="55" fill="#c91f3a" rx="2" />
           </svg>
           <div class="badge bear">BEARISH REVERSAL</div>
-          <div class="cdesc">Red opens above green's high, closes below green's midpoint. Mirror of piercing line.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">A red candle opens above the previous green candle's high, then closes below
+            the midpoint of the green candle. The mirror image of the Piercing Line.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Piercing Line at Support</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>A Piercing Line pattern has formed at a known support level. The green candle opens below
+            the previous red candle's low (showing initial weakness), but recovers strongly to close above
+            the midpoint of the red candle. Volume on the green candle is above average.</dd>
+          <dt>Entry</dt>
+          <dd>Buy a Call Option (At the Money or one strike Out of the Money) on the open of the next
+            candle, but only if that next candle opens at or above the close of the green candle.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Place the stop loss 5 to 10 points below the lowest point of the green candle. For the
+            option premium, exit if you lose 30 to 40 percent.</dd>
+          <dt>Target</dt>
+          <dd>Aim for the next resistance level. Minimum target is 2 times your stop loss distance.
+            Piercing Line is slightly less reliable than a full Bullish Engulfing, so consider booking
+            full profit at 2 times risk rather than holding for more.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The green candle does not close above the midpoint of the red candle (then it is not a real
+            Piercing Line), volume is below average, or the next candle gaps down below the green
+            candle's close.</dd>
+        </dl>
       </div>
 
       <div class="catdiv">TWEEZER FAMILY</div>
@@ -122,8 +184,9 @@
             <line x1="0" y1="97" x2="90" y2="97" stroke="#d4941a" stroke-width="1.5" stroke-dasharray="4,3" />
           </svg>
           <div class="badge bull">BULLISH REVERSAL</div>
-          <div class="cdesc">Two candles share the same low. Support tested twice and held — strong floor.</div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="cdesc">Two candles share the exact same low price. The support level was tested
+            twice and held both times &mdash; a strong floor.</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
         <div class="card bear">
           <div class="cname">TWEEZER TOP</div>
@@ -135,12 +198,35 @@
             <line x1="0" y1="3" x2="90" y2="3" stroke="#d4941a" stroke-width="1.5" stroke-dasharray="4,3" />
           </svg>
           <div class="badge bear">BEARISH REVERSAL</div>
-          <div class="cdesc">Two candles share the same high. Resistance rejected twice — strong ceiling.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">Two candles share the exact same high price. The resistance level was tested
+            twice and rejected both times &mdash; a strong ceiling.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
       </div>
 
-      <div class="catdiv">NECK / GAP PATTERNS</div>
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Tweezer Top at Resistance</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>Two candles in a row have made nearly the exact same high price (within 5 points on Nifty).
+            The level matches a known resistance (such as previous day high, a swing high from earlier,
+            or a round number). Ideally the second candle is red and rejected the high more strongly.</dd>
+          <dt>Entry</dt>
+          <dd>Buy a Put Option (At the Money or one strike Out of the Money) on the open of the third
+            candle, only if it opens at or below the second candle's close.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Place the stop loss 5 to 10 points above the matching highs. If the third candle pushes
+            above this level, the resistance has broken and your trade thesis is wrong.</dd>
+          <dt>Target</dt>
+          <dd>Aim for the nearest support level below. Minimum target is 2 times your stop loss distance.
+            Tweezer reversals usually start a clean down move that lasts 3 to 5 candles.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The two highs are not close enough (more than 10 points apart on Nifty), there is no clear
+            resistance at this level, or the volume on both candles was very low.</dd>
+        </dl>
+      </div>
+
+      <div class="catdiv">NECK / GAP PATTERNS (TREND CONTINUATION)</div>
       <div class="pgrid md">
         <div class="card bear">
           <div class="cname">ON-NECK PATTERN</div>
@@ -150,8 +236,9 @@
             <line x1="0" y1="93" x2="90" y2="93" stroke="#d4941a" stroke-width="1" stroke-dasharray="3,2" />
           </svg>
           <div class="badge bear">BEARISH CONTINUATION</div>
-          <div class="cdesc">Small green closes exactly at the prior red's low. Bears remain in control.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">A small green candle closes exactly at the previous red candle's low. The
+            buyers tried but failed. Sellers remain in control.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
         <div class="card bear">
           <div class="cname">IN-NECK PATTERN</div>
@@ -160,8 +247,9 @@
             <rect x="52" y="64" width="30" height="28" fill="#09a86e" rx="2" />
           </svg>
           <div class="badge bear">BEARISH CONTINUATION</div>
-          <div class="cdesc">Like on-neck, but green closes slightly inside the red body. Downtrend persists.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">Like the On-Neck pattern, but the green candle closes slightly inside the red
+            candle's body. The downtrend is still intact.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
         <div class="card bear">
           <div class="cname">THRUSTING PATTERN</div>
@@ -170,8 +258,9 @@
             <rect x="52" y="48" width="30" height="45" fill="#09a86e" rx="2" />
           </svg>
           <div class="badge bear">BEARISH CONTINUATION</div>
-          <div class="cdesc">Green closes below red's midpoint — not deep enough. Downtrend continues.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">A green candle closes below the midpoint of the previous red candle &mdash;
+            the recovery was not deep enough to reverse the trend. Downtrend continues.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
         <div class="card bull">
           <div class="cname">MATCHING LOW</div>
@@ -181,20 +270,24 @@
             <line x1="0" y1="95" x2="90" y2="95" stroke="#d4941a" stroke-width="1.5" stroke-dasharray="4,3" />
           </svg>
           <div class="badge bull">BULLISH REVERSAL</div>
-          <div class="cdesc">Two red candles closing at the same low. Buyers are defending the level.</div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="cdesc">Two consecutive red candles close at the same low price. Buyers are
+            actively defending the level and refusing to let price drop further.</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
       </div>
 
       <div class="rbox" style="border-left-color:var(--bull);margin-top:28px">
         <h3>BEGINNER PRIORITY &mdash; MASTER THESE FIRST</h3>
         <ul>
-          <li><b>Bullish &amp; Bearish Engulfing</b> &mdash; the gold-standard two-candle reversals. Second candle must
-            fully engulf the first body + close beyond it. Reliability &gt; 70% at major S/R.</li>
-          <li><b>Piercing Line / Dark Cloud Cover</b> &mdash; the "partial engulfing" cousins. Lower reliability than
-            full engulfing but still strong when at support/resistance with volume.</li>
-          <li><b>Tweezer Top / Bottom</b> &mdash; easy to spot (two matching wicks) and excellent at confirmed S/R
-            levels. Common at previous day high / low.</li>
+          <li><b>Bullish and Bearish Engulfing</b> &mdash; The gold-standard two-candle reversals. The
+            second candle must completely cover the body of the first AND close beyond it. Reliability is
+            above 70 percent when this happens at major support or resistance.</li>
+          <li><b>Piercing Line and Dark Cloud Cover</b> &mdash; The "partial engulfing" cousins. Slightly
+            lower reliability than full engulfing patterns, but still strong when they appear at support
+            or resistance with above-average volume.</li>
+          <li><b>Tweezer Top and Tweezer Bottom</b> &mdash; Easy to spot (just two matching wicks) and
+            excellent at confirmed support and resistance levels. Very common at the previous day's high
+            or low.</li>
         </ul>
       </div>
 
@@ -202,8 +295,8 @@
           <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg> <b>Key test:</b> Close the chart in your head &mdash; can you still see the pattern? If you need to
-        squint or force-fit, skip it. Clean, obvious two-candle patterns are the profitable ones.</div>
+        </svg> <b>The squint test:</b> Picture closing your eyes and reopening them. Can you still clearly
+        see the pattern on the chart? If you have to squint or force-fit the pattern, skip the trade.
+        Clean, obvious two-candle patterns are the ones that actually make money.</div>
 
     </div>
-  

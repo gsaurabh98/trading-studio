@@ -1,0 +1,1041 @@
+/* ═══════════ LIVE CANDLESTICK CHART (UPSTOX + LIGHTWEIGHT CHARTS) ═══════════ */
+.tv-shell {
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.tv-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--s2);
+  border-bottom: 1px solid var(--bd);
+  flex-wrap: wrap;
+}
+
+.tv-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.tv-pill.tv-live {
+  background: rgba(9, 168, 110, 0.12);
+  color: var(--bull);
+}
+
+.tv-pill.tv-conn {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--amber);
+}
+
+.tv-pill.tv-off {
+  background: var(--s1);
+  color: var(--muted);
+}
+
+.tv-pill.tv-notok {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--amber);
+}
+
+.tv-pill.tv-closed {
+  background: var(--s1);
+  color: var(--muted);
+  border: 1px solid var(--bd);
+}
+
+.tv-pill.tv-closed .tv-dot {
+  background: var(--muted);
+  animation: none;
+  opacity: 0.6;
+}
+
+/* Upstox sends HTTP 429 when we exceed the 30-min request budget
+   (~2 000 calls); we back off exponentially and surface that with
+   an amber THROTTLED pill so the user knows the LTP freeze is the
+   broker rate-limiting us, NOT the app being broken. The dot keeps
+   pulsing (slower) so it visibly differs from CLOSED (static). */
+.tv-pill.tv-throttled {
+  background: rgba(245, 158, 11, 0.18);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+}
+
+.tv-pill.tv-throttled .tv-dot {
+  background: #b45309;
+  animation: tvPulse 2.4s infinite;
+}
+
+.tv-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: tvPulse 1.4s infinite;
+}
+
+@keyframes tvPulse {
+
+  0%,
+  100% {
+    opacity: 1
+  }
+
+  50% {
+    opacity: 0.35
+  }
+}
+
+.tv-pill.tv-off .tv-dot {
+  animation: none;
+  opacity: 0.5;
+}
+
+.tv-symbol-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  color: var(--text-soft);
+  letter-spacing: 0.06em;
+}
+
+.tv-ltp {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-left: 6px;
+}
+
+.tv-ltp-val {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.tv-ltp-change {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.tv-tf-group {
+  display: inline-flex;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-left: auto;
+}
+
+/* Bar-close countdown chip. Pinned to the chart's right-axis area
+   directly below the highlighted last-price tag — Upstox UX, where
+   the chip reads as a second line of the same coloured price tag
+   (green for a bull candle, red for a bear candle, white text).
+   JS sets `top` each tick using Lightweight Charts API so
+   the chip follows the price tag through the session, and toggles
+   .tv-countdown-bear when the last candle prints down. The sharp
+   top corners + rounded bottom corners make the chip visually
+   "attach" to the tag's bottom edge (which is canvas-drawn so we
+   can't actually merge DOM, but the colours + zero gap sell the
+   illusion). The .tv-countdown-warn modifier (last 10s before
+   close) adds an opacity pulse so the trader notices the imminent
+   print without losing the bull/bear colour signal. */
+.tv-countdown {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  z-index: 4;
+  padding: 2px 8px;
+  background: #09a86e;
+  border: none;
+  border-radius: 0 0 3px 3px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.04em;
+  user-select: none;
+  white-space: nowrap;
+  pointer-events: none;
+  min-width: 56px;
+  text-align: center;
+  transition: top 0.15s ease-out;
+}
+
+.tv-countdown.tv-countdown-bear {
+  background: #c91f3a;
+}
+
+.tv-countdown.tv-countdown-warn {
+  animation: tv-countdown-pulse 1s ease-in-out infinite;
+}
+
+@keyframes tv-countdown-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.tv-tf-btn {
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--muted);
+  border: 0;
+  border-right: 1px solid var(--bd);
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: all 0.12s;
+}
+
+.tv-tf-btn:last-child {
+  border-right: 0;
+}
+
+.tv-tf-btn:hover {
+  background: var(--s2);
+  color: var(--text);
+}
+
+.tv-tf-btn.active {
+  background: var(--info);
+  color: #fff;
+}
+
+.tv-fs-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tv-fs-btn:hover {
+  background: var(--s1);
+  color: var(--text);
+  border-color: var(--info);
+}
+
+.tv-container {
+  position: relative;
+  width: 100%;
+  height: 75vh;
+  min-height: 520px;
+  background: #0d1117;
+  /* Hand all touch gestures to Lightweight Charts (pinch-zoom, pan, swipe).
+     Without this, mobile browsers default to handling pinch as a
+     page-zoom and one-finger drag as a page-scroll, which means
+     Lightweight Charts' own gesture detection never gets to fire. The user
+     can still scroll the page outside the chart bounds; touch only
+     goes "all-JS" inside the chart's own real estate.
+     NOTE: We deliberately do NOT cascade `touch-action: none` to
+     direct children. Klinecharts builds a multi-pane DOM tree
+     (candle pane + each indicator pane in their own divs) and
+     setting touch-action on every pane container caused gestures
+     that started on a sub-pane (e.g. VOL) to be treated as that
+     pane's local gesture only, leaving the candle pane visually
+     frozen. Letting the container-level rule cascade naturally
+     lets Lightweight Charts route the gesture to the shared x-axis,
+     which moves both panes in lockstep. */
+  touch-action: none;
+}
+
+/* The Lightweight Charts mount div needs to fill the chart container. This
+   rule originally targeted "every div that isn't the loader", but
+   any new overlay we drop into the container (like the bar-close
+   countdown chip) also got stretched to 100%/100% — invisible.
+   Excluding .tv-countdown keeps the chip at its natural chip-sized
+   footprint while still sizing the Lightweight Charts mount correctly. */
+.tv-container>div:not(.tv-loading):not(.tv-countdown) {
+  width: 100%;
+  height: 100%;
+}
+
+.tv-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  background: #0d1117;
+  text-align: center;
+  padding: 0 20px;
+  line-height: 1.6;
+  z-index: 5;
+}
+
+.tv-loading b {
+  color: var(--text);
+}
+
+.tv-spinner {
+  width: 34px;
+  height: 34px;
+  border: 2.5px solid rgba(128, 128, 128, 0.18);
+  border-top-color: var(--info);
+  border-radius: 50%;
+  animation: tvSpin 0.9s linear infinite;
+}
+
+@keyframes tvSpin {
+  to {
+    transform: rotate(360deg)
+  }
+}
+
+.tv-foot {
+  padding: 8px 14px;
+  background: var(--s2);
+  border-top: 1px solid var(--bd);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+/* Auto-hide the footer strip while #tv-foot-info is empty so the
+   initial render (before the chart module writes its first status
+   line) doesn't leave an empty grey bar under the chart. The chart
+   module clears the text in some idle states (e.g. before any
+   candles load); the :has() rule makes the strip vanish then too.
+   :has() ships in all modern engines (Chrome 105+, Safari 15.4+,
+   Firefox 121+) — fully covered for our 2026 audience. */
+.tv-foot:has(#tv-foot-info:empty) {
+  display: none;
+}
+
+/* ── Indicators / Drawings tools row ──
+   Sits between the main toolbar and the chart canvas. Two dropdown menus
+   (Indicators, Drawings) plus a "Clear all" button. The menus are
+   populated dynamically from JS catalogues, so adding a new indicator
+   only requires touching liveChartModule.INDICATOR_DEFS. */
+.tv-tools-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--s2);
+  border-bottom: 1px solid var(--bd);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+.tv-tools-dd {
+  position: relative;
+}
+
+.tv-tools-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--bd);
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.tv-tools-btn:hover {
+  background: var(--s1);
+  border-color: var(--info);
+}
+
+.tv-tools-dd.open .tv-tools-btn {
+  background: var(--s1);
+  border-color: var(--info);
+  color: var(--info);
+}
+
+.tv-tools-chev {
+  width: 10px;
+  height: 10px;
+  transition: transform 0.15s;
+}
+
+.tv-tools-dd.open .tv-tools-chev {
+  transform: rotate(180deg);
+}
+
+.tv-tools-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  min-width: 220px;
+  /* min(...) so we never push the dropdown off-screen on short viewports
+     while giving plenty of room (~16 items @ ~34px each) on desktop. */
+  max-height: min(560px, calc(100vh - 140px));
+  overflow-y: auto;
+  z-index: 30;
+  padding: 6px;
+}
+
+.tv-tools-menu[hidden] {
+  display: none;
+}
+
+.tv-tools-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.tv-tools-item:hover {
+  background: var(--s2);
+  color: var(--info);
+}
+
+.tv-tools-item input[type="checkbox"] {
+  accent-color: var(--info);
+  flex-shrink: 0;
+  cursor: pointer;
+  margin: 0;
+}
+
+.tv-tools-item .tv-tools-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* Indicator row = checkbox label + gear button on the right */
+.tv-tools-row-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tv-tools-row-item .tv-tools-item {
+  flex: 1 1 auto;
+}
+
+.tv-tools-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.tv-tools-gear:hover {
+  background: var(--s2);
+  color: var(--info);
+  border-color: var(--bd);
+}
+
+/* Inline indicator settings panel (one collapsed below each row) */
+.tv-tools-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  padding: 8px 10px;
+  margin: 0 0 4px 0;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 4px;
+}
+
+.tv-tools-settings[hidden] {
+  display: none;
+}
+
+.tv-tools-param {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 64px;
+  flex: 1 0 64px;
+}
+
+.tv-tools-param > span {
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tv-tools-param input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 4px 6px;
+  outline: none;
+  transition: border-color 0.12s;
+}
+
+.tv-tools-param input:focus {
+  border-color: var(--info);
+}
+
+.tv-tools-settings-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.tv-tools-mini-btn {
+  background: var(--info);
+  border: 1px solid var(--info);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: opacity 0.12s, background 0.12s;
+}
+
+.tv-tools-mini-btn:hover {
+  opacity: 0.85;
+}
+
+.tv-tools-mini-btn.ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--bd);
+}
+
+.tv-tools-mini-btn.ghost:hover {
+  color: var(--info);
+  border-color: var(--info);
+  opacity: 1;
+}
+
+/* ── Layouts dropdown ── */
+.tv-tools-menu.wide {
+  min-width: 320px;
+  max-width: 380px;
+}
+
+.tv-tools-section {
+  display: flex;
+  gap: 6px;
+  padding: 4px 4px 8px;
+}
+
+.tv-tools-input {
+  flex: 1 1 auto;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 8px;
+  outline: none;
+  min-width: 0;
+  transition: border-color 0.12s;
+}
+
+.tv-tools-input:focus {
+  border-color: var(--info);
+}
+
+.tv-tools-section-title {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 4px 10px 4px;
+  border-top: 1px solid var(--bd);
+  margin-top: 4px;
+}
+
+.tv-tools-empty {
+  padding: 14px 10px;
+  font-size: 11.5px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.tv-tools-layout-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tv-tools-layout-row {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+}
+
+.tv-tools-layout-load {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  padding: 7px 10px;
+  color: var(--text-soft);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s, color 0.1s;
+}
+
+.tv-tools-layout-load:hover {
+  background: var(--s2);
+  color: var(--info);
+}
+
+.tv-tools-layout-name {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tv-tools-layout-meta {
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.tv-tools-layout-del {
+  flex-shrink: 0;
+  width: 26px;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.tv-tools-layout-del:hover {
+  background: rgba(201, 31, 58, 0.12);
+  color: var(--bear);
+}
+
+/* Default-layout star toggle. Renders as ☆ (outline) or ★ (filled).
+   Always a button so keyboard users get focus + Enter to toggle. */
+.tv-tools-layout-star {
+  flex-shrink: 0;
+  width: 26px;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, transform 0.1s;
+}
+
+.tv-tools-layout-star:hover {
+  background: var(--s2);
+  color: var(--neutral);
+  transform: scale(1.1);
+}
+
+.tv-tools-layout-row.is-default .tv-tools-layout-star {
+  color: var(--neutral);
+}
+
+/* Currently-loaded layout — subtle left-border so the row reads as
+   "active" without dominating the dropdown. */
+.tv-tools-layout-row.is-current {
+  background: rgba(33, 142, 247, 0.06);
+  border-left: 2px solid var(--info);
+}
+
+.tv-tools-layout-row.is-current .tv-tools-layout-name {
+  color: var(--info);
+}
+
+.tv-tools-layout-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(33, 142, 247, 0.15);
+  color: var(--info);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+/* Autosave badge under the Save buttons. Reassures the user that
+   silent autosave is running ("Auto-saved 12s ago"). */
+.tv-tools-autosave {
+  padding: 0 12px 6px;
+  font-size: 10.5px;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.02em;
+  min-height: 14px;
+}
+
+.tv-tools-autosave::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bull);
+  margin-right: 6px;
+  vertical-align: middle;
+  box-shadow: 0 0 6px var(--bull);
+  opacity: 0.7;
+}
+
+.tv-tools-autosave:empty::before {
+  display: none;
+}
+
+/* Floating "Saved …" toast. Bottom-centred over the chart, fades in
+   on save, fades out automatically. Sits above the chart but below
+   modals so it never blocks click-through. */
+.tv-save-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translate(-50%, 8px);
+  background: var(--s1);
+  color: var(--text);
+  border: 1px solid var(--bd);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 40;
+  white-space: nowrap;
+}
+
+.tv-save-toast::before {
+  content: '\2713';
+  color: var(--bull);
+  margin-right: 8px;
+  font-weight: 800;
+}
+
+.tv-save-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ── Styled in-app confirmation modal ── (replaces window.confirm) */
+.tv-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: tvConfirmFade 0.14s ease-out;
+  padding: 20px;
+}
+
+@keyframes tvConfirmFade {
+  from { opacity: 0 }
+  to   { opacity: 1 }
+}
+
+@keyframes tvConfirmRise {
+  from { opacity: 0; transform: translateY(10px) scale(0.97) }
+  to   { opacity: 1; transform: translateY(0) scale(1) }
+}
+
+.tv-confirm-dialog {
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
+  padding: 0;
+  min-width: 340px;
+  max-width: 460px;
+  width: 100%;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  animation: tvConfirmRise 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.tv-confirm-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 0;
+}
+
+.tv-confirm-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201, 31, 58, 0.15);
+  color: var(--bear);
+}
+
+.tv-confirm-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.tv-confirm-msg {
+  padding: 14px 20px 6px;
+  color: var(--text-soft);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.tv-confirm-msg b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tv-confirm-msg .tv-confirm-meta {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+}
+
+.tv-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px 18px;
+  background: rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--bd);
+  margin-top: 12px;
+}
+
+.tv-confirm-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border: 1px solid var(--bd);
+  background: transparent;
+  color: var(--text-soft);
+  transition: background 0.12s, color 0.12s, border-color 0.12s, opacity 0.12s;
+}
+
+.tv-confirm-btn:hover {
+  border-color: var(--info);
+  color: var(--info);
+  background: rgba(33, 142, 247, 0.08);
+}
+
+.tv-confirm-btn.tv-confirm-yes {
+  background: var(--bear);
+  border-color: var(--bear);
+  color: #fff;
+}
+
+.tv-confirm-btn.tv-confirm-yes:hover {
+  opacity: 0.88;
+  color: #fff;
+  background: var(--bear);
+  border-color: var(--bear);
+}
+
+.tv-confirm-btn:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+}
+
+.tv-tools-clear {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--bd);
+  color: var(--text-dim);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.tv-tools-clear:hover {
+  background: var(--s1);
+  color: var(--bear);
+  border-color: var(--bear);
+}
+
+@media (max-width: 720px) {
+  .tv-tools-row {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .tv-tools-btn {
+    padding: 5px 8px;
+    font-size: 11.5px;
+  }
+
+  .tv-tools-clear {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+}
+
+.tv-shell.tv-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  border-radius: 0;
+  margin: 0;
+  border: 0;
+  background: var(--bg);
+}
+
+.tv-shell.tv-fullscreen .tv-toolbar,
+.tv-shell.tv-fullscreen .tv-tools-row,
+.tv-shell.tv-fullscreen .tv-foot {
+  flex: 0 0 auto;
+}
+
+.tv-shell.tv-fullscreen .tv-container {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+/* Hide page chrome while the chart is fullscreen so the chart fills the viewport */
+body.tv-fs-active {
+  overflow: hidden;
+}
+
+body.tv-fs-active .search-trigger,
+body.tv-fs-active .theme-toggle,
+body.tv-fs-active .sidebar-toggle,
+body.tv-fs-active .sidebar-backdrop,
+body.tv-fs-active .nav {
+  display: none !important;
+}
+
+/* Subtle hint inside the fullscreen footer */
+.tv-shell.tv-fullscreen .tv-foot::after {
+  content: "Press ESC to exit fullscreen";
+  color: var(--muted);
+  opacity: 0.7;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  margin-left: auto;
+}
+
+[data-theme="light"] .tv-container,
+[data-theme="light"] .tv-loading {
+  background: #ffffff;
+}
+
+@media (max-width:720px) {
+  .tv-container {
+    height: 60vh;
+    min-height: 380px;
+  }
+
+  .tv-tf-group {
+    margin-left: 0;
+  }
+
+  .tv-symbol-lbl {
+    font-size: 11px;
+  }
+
+  .tv-ltp-val {
+    font-size: 0.95rem;
+  }
+}
+

@@ -7,9 +7,16 @@
           <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg> If you take ONE thing from this page: the option chain is the <b>only free, real-time intel</b> retail
-        has that tells you what big players are betting on. Master it and you trade <i>with</i> them. Ignore it and you
-        fight them blind.</div>
+        </svg> If you take ONE thing from this page: the option chain is the <b>only free, real-time
+        intelligence</b> that retail traders have, and it tells you what the big players are betting
+        on. Master it and you trade <i>with</i> them. Ignore it and you fight them blind.<br><br>
+        <b>Key terms used in this page:</b> Open Interest (OI) = the live count of option contracts
+        not yet squared off. Change in Open Interest (Chg OI) = how the Open Interest moved versus
+        the previous close. Implied Volatility (IV) = the option market&rsquo;s estimate of how
+        volatile the index will be. Last Traded Price (LTP) = the most recent traded option
+        premium. Put-Call Ratio (PCR) = total Put Open Interest divided by total Call Open
+        Interest. Call Option (CE) = a contract that profits when price goes UP. Put Option (PE) =
+        a contract that profits when price goes DOWN.</div>
 
       <div class="catdiv">ANATOMY OF A NIFTY OPTION CHAIN</div>
       <div class="anat-card" style="padding:18px;align-items:stretch">
@@ -96,95 +103,126 @@
           </table>
         </div>
         <p style="font-size:0.88rem;color:var(--text-dim);margin-top:14px;line-height:1.6">
-          <b style="color:var(--text)">How to read each column:</b><br>
-          <b>OI</b> (Open Interest): total live contracts at that strike &mdash; bigger = more conviction<br>
-          <b>Chg OI</b>: OI change today &mdash; positive = fresh positioning, negative = unwinding<br>
-          <b>IV%</b>: Implied Volatility &mdash; higher = more expensive premium<br>
-          <b>LTP</b>: last traded price (premium). <b>Strike</b> is the middle anchor column. ATM = closest to spot.
+          <b style="color:var(--text)">How to read each column (in plain English):</b><br>
+          <b>OI</b> (Open Interest) = how many contracts are open at this strike right now. Bigger
+          number = more money parked here = more important level.<br>
+          <b>Chg OI</b> (Change in Open Interest) = how the number changed today. Positive = new
+          traders are JOINING in. Negative = traders are EXITING.<br>
+          <b>IV%</b> (Implied Volatility) = how scared the market feels. Higher = options are more
+          expensive (people are paying more for protection).<br>
+          <b>LTP</b> (Last Traded Price) = the most recent option premium.<br>
+          <b>Strike</b> = the locked-in price (the middle column). At The Money (ATM) means the
+          strike closest to today&rsquo;s Nifty spot price.
         </p>
       </div>
 
-      <div class="catdiv">THE 6 SIGNALS YOU MUST READ</div>
+      <div class="catdiv">THE 6 SIGNALS YOU MUST READ FROM THE OPTION CHAIN</div>
 
       <div class="pgrid md c3">
         <div class="card bull">
-          <div class="cname"><span class="cnum">1</span> MAX OI STRIKE (Support / Resistance)</div>
+          <div class="cname"><span class="cnum">1</span> MAX OPEN INTEREST STRIKE (Support / Resistance)</div>
           <div class="cdesc" style="text-align:left">
-            <b>Highest PE OI</b> = strongest <b>support</b>. Option writers have sold puts there and will defend that
-            level.<br>
-            <b>Highest CE OI</b> = strongest <b>resistance</b>. Option writers have sold calls there.<br><br>
-            <b style="color:var(--bull)">How to use:</b> If Nifty is at 24,400, Max PE OI at 24,000 and Max CE OI at
-            24,800 &rarr; expected range <b>24,000&ndash;24,800</b>. Trade inside the range until one side breaks with
-            volume.
+            <b>The simple idea:</b> The strike with the most parked money becomes a magnet (or a
+            wall) for price.<br><br>
+            &middot; <b>Highest Put Option Open Interest</b> = the strongest <b>support</b> level
+            today. Why? Put writers have sold puts at this strike and will defend it (because if
+            Nifty falls below, THEY lose money).<br>
+            &middot; <b>Highest Call Option Open Interest</b> = the strongest <b>resistance</b>
+            level. Call writers will defend it from above.<br><br>
+            <b style="color:var(--bull)">Real example:</b> Nifty is at 24,400 right now. The
+            biggest Put Option Open Interest is at 24,000. The biggest Call Option Open Interest is
+            at 24,800. So today&rsquo;s expected trading range = <b>24,000 to 24,800</b>. Trade
+            inside this range until one side BREAKS with high volume.
           </div>
         </div>
         <div class="card bear">
-          <div class="cname"><span class="cnum">2</span> MAX PAIN (Expiry Magnet)</div>
+          <div class="cname"><span class="cnum">2</span> MAX PAIN (The Expiry Day Magnet)</div>
           <div class="cdesc" style="text-align:left">
-            The strike where option <b>writers collectively make the most money</b> if price closes there on expiry.
-            Writers (operators with capital) <b>actively defend this level</b> because it is their optimal
-            outcome.<br><br>
-            <b style="color:var(--bear)">How to use:</b> On expiry day (Tue for Nifty, Thu for Sensex), price
-            <b>gravitates toward Max Pain</b> unless a major news event hits. Free Max Pain data on
-            <code>sensibull.com</code>, <code>opstra</code>, <code>nseindia.com</code>.
+            <b>The simple idea:</b> Max Pain is the strike at which option WRITERS lose the LEAST
+            money on expiry day.<br><br>
+            Writers are the big institutions with deep pockets. They have a strong incentive to
+            push price towards this level so that retail buyers lose the most. It is NOT a
+            conspiracy &mdash; it is the natural result of how writers hedge their positions.<br><br>
+            <b style="color:var(--bear)">Real use:</b> On expiry day (Tuesday for Nifty, Thursday
+            for Sensex), Nifty tends to gravitate towards the Max Pain level &mdash; UNLESS a
+            major news event happens.<br><br>
+            <b>Free Max Pain data:</b> sensibull.com, opstra.definedge.com, nseindia.com.
           </div>
         </div>
         <div class="card neu">
-          <div class="cname"><span class="cnum">3</span> PUT-CALL RATIO (PCR)</div>
+          <div class="cname"><span class="cnum">3</span> PUT-CALL RATIO (Overall Mood)</div>
           <div class="cdesc" style="text-align:left">
-            <b>PCR = Total PE OI &divide; Total CE OI</b><br><br>
-            <b>PCR &gt; 1.3</b> = bullish (more puts being written than calls)<br>
-            <b>PCR &lt; 0.7</b> = bearish (more calls being written than puts)<br>
-            <b>PCR 0.8&ndash;1.2</b> = neutral / range-bound<br><br>
-            <b style="color:var(--neutral)">Contrarian rule:</b> Extreme PCR (&gt;1.8 or &lt;0.5) often signals a
-            <b>reversal</b> &mdash; sentiment has become one-sided.
+            <b>The simple idea:</b> A single number that tells you whether the market mood today is
+            bullish or bearish.<br><br>
+            <b>Formula:</b> Put-Call Ratio = Total Put Option Open Interest divided by Total Call
+            Option Open Interest.<br><br>
+            <b>How to read it:</b><br>
+            &middot; Above 1.3 = <b>bullish</b> (more put writers means writers expect support to
+            hold).<br>
+            &middot; Below 0.7 = <b>bearish</b> (more call writers means writers expect resistance
+            to hold).<br>
+            &middot; Between 0.8 and 1.2 = <b>neutral / range-bound</b> day.<br><br>
+            <b style="color:var(--neutral)">Reverse rule (advanced):</b> Extreme readings (above
+            1.8 or below 0.5) often signal a REVERSAL is coming. The crowd is too one-sided.
           </div>
         </div>
         <div class="card info">
-          <div class="cname"><span class="cnum">4</span> OI CHANGE % (Fresh Positioning)</div>
+          <div class="cname"><span class="cnum">4</span> OPEN INTEREST CHANGE (Who is JOINING the trade?)</div>
           <div class="cdesc" style="text-align:left">
-            What matters most is <b>how OI is changing today</b>, not total OI. Below, "Price" = the <i>option's
-              premium</i> (LTP), not the index spot. Reading premium &amp; OI together tells you <b>which side is
-              initiating</b>.<br><br>
-            <b style="color:var(--text)">CE strike (resistance side):</b><br>
-            &bull; CE premium &uarr; + CE OI &uarr; &rarr; <b>aggressive call buyers</b> (bullish for index, stronger if
-            at strikes near or below spot)<br>
-            &bull; CE premium &darr; + CE OI &uarr; &rarr; <b>aggressive call writers building resistance</b> (bearish
-            bias at that strike &mdash; ceiling forming)<br>
-            &bull; CE premium &uarr; + CE OI &darr; &rarr; <b>short covering by writers</b> (weak rally, often
-            fades)<br>
-            &bull; CE premium &darr; + CE OI &darr; &rarr; <b>long unwind</b> (CE buyers bailing)<br><br>
-            <b style="color:var(--text)">PE strike (support side):</b><br>
-            &bull; PE premium &uarr; + PE OI &uarr; &rarr; <b>aggressive put buyers</b> (bearish for index)<br>
-            &bull; PE premium &darr; + PE OI &uarr; &rarr; <b>aggressive put writers building support</b> (bullish bias
-            at that strike &mdash; floor forming)<br>
-            &bull; PE premium &uarr; + PE OI &darr; &rarr; <b>short covering by put writers</b> (weak decline, often
-            fades)<br>
-            &bull; PE premium &darr; + PE OI &darr; &rarr; <b>long unwind</b> (PE buyers bailing)<br><br>
-            <b style="color:var(--bull)">Quick rule:</b> rising CE OI <i>above</i> spot = resistance; rising PE OI
-            <i>below</i> spot = support. The premium direction tells you whether buyers or writers are doing the
-            building.
+            <b>The simple idea:</b> Total Open Interest tells you what is parked there. Open
+            Interest CHANGE today tells you who is JOINING the party right now &mdash; and that
+            matters more.<br><br>
+            <b>Read this with the option PREMIUM together. Two clues = one decision.</b><br><br>
+            <b style="color:var(--text)">For a Call Option strike (resistance side):</b><br>
+            &middot; <b>Premium UP + Open Interest UP</b> → call BUYERS are aggressive.
+            <i>Bullish</i> for Nifty.<br>
+            &middot; <b>Premium DOWN + Open Interest UP</b> → call WRITERS are aggressive,
+            building a ceiling. <i>Bearish</i> at this strike.<br>
+            &middot; <b>Premium UP + Open Interest DOWN</b> → writers are running away (short
+            covering). The rally is usually weak and fades.<br>
+            &middot; <b>Premium DOWN + Open Interest DOWN</b> → call buyers are giving up. Trend
+            losing energy.<br><br>
+            <b style="color:var(--text)">For a Put Option strike (support side):</b><br>
+            &middot; <b>Premium UP + Open Interest UP</b> → put BUYERS are aggressive.
+            <i>Bearish</i> for Nifty.<br>
+            &middot; <b>Premium DOWN + Open Interest UP</b> → put WRITERS are aggressive, building
+            a floor. <i>Bullish</i> at this strike.<br>
+            &middot; <b>Premium UP + Open Interest DOWN</b> → put writers running away (short
+            covering). Decline usually fades.<br>
+            &middot; <b>Premium DOWN + Open Interest DOWN</b> → put buyers giving up.<br><br>
+            <b style="color:var(--bull)">Easy rule of thumb:</b> Rising Call Option Open Interest
+            ABOVE Nifty spot = a ceiling. Rising Put Option Open Interest BELOW Nifty spot = a
+            floor.
           </div>
         </div>
         <div class="card bear">
-          <div class="cname"><span class="cnum">5</span> IV SKEW (Fear Index)</div>
+          <div class="cname"><span class="cnum">5</span> IMPLIED VOLATILITY SKEW (Where is the FEAR?)</div>
           <div class="cdesc" style="text-align:left">
-            Compare ATM PE IV vs ATM CE IV. Normally they are similar. When they diverge it reveals <b>asymmetric
-              fear</b>.<br><br>
-            <b>PE IV &gt;&gt; CE IV</b> = market fears a crash &rarr; put protection in demand &rarr; often precedes a
-            bottom<br>
-            <b>CE IV &gt; PE IV</b> = chasing upside, euphoric &rarr; often precedes a top<br>
-            <b>Both IV surging</b> = event priced in, expect IV crush post-event
+            <b>The simple idea:</b> Compare the Implied Volatility of the At The Money Put Option
+            with the Implied Volatility of the At The Money Call Option. Normally they are close.
+            When they DIFFER &mdash; that is a clue.<br><br>
+            <b>Three readings:</b><br>
+            &middot; <b>Put IV is much higher than Call IV</b> → the market is buying CRASH
+            protection. Often the sign of a coming BOTTOM.<br>
+            &middot; <b>Call IV is higher than Put IV</b> → traders are chasing upside in
+            euphoria. Often the sign of a coming TOP.<br>
+            &middot; <b>Both Implied Volatilities are very high</b> → a big event is around the
+            corner. Expect &quot;Implied Volatility crush&quot; (a sudden premium drop) AFTER the
+            event.
           </div>
         </div>
         <div class="card neu">
-          <div class="cname"><span class="cnum">6</span> LIQUIDITY (Bid-Ask Spread)</div>
+          <div class="cname"><span class="cnum">6</span> LIQUIDITY (Can you EXIT easily?)</div>
           <div class="cdesc" style="text-align:left">
-            A strike with wide bid-ask spread (&gt;1&ndash;2% of premium) is <b>illiquid</b>. You bleed entry + exit
-            slippage.<br><br>
-            <b style="color:var(--neutral)">Rule:</b> Trade only strikes with spread &lt;0.5% of premium. For
-            Nifty/BankNifty, only ATM &plusmn; 3 strikes are safe for intraday. Deep OTM looks cheap but you lose
-            &#8377;5&ndash;&#8377;15 per contract just to exit.
+            <b>The simple idea:</b> The bid-ask spread is the difference between the BUY price and
+            SELL price of the option. A wide spread = no buyers when you want to exit = you LOSE
+            money on every entry and exit.<br><br>
+            <b>Rule:</b> Only trade strikes where the spread is LESS than 0.5 percent of the
+            premium. For Nifty and Bank Nifty, only the At The Money strikes &plusmn; 3 strikes on
+            either side are safe for intraday trading.<br><br>
+            <b style="color:var(--bear)">Warning:</b> Far Out Of The Money strikes look CHEAP
+            (only &#8377;5-10 premium) &mdash; but you can lose &#8377;5 to &#8377;15 per
+            contract JUST in spread when you exit. They look cheap and feel expensive.
           </div>
         </div>
       </div>
@@ -1114,24 +1152,65 @@
         <ul>
           <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="9,6 15,12 9,18" />
-              </svg> 9:00 AM:</b> Note Max CE OI strike (resistance) + Max PE OI strike (support) &rarr; this is today's
-            expected range.</li>
+              </svg> 9:00 AM IST:</b> Note the maximum Call Option Open Interest strike (today&rsquo;s
+            resistance) and the maximum Put Option Open Interest strike (today&rsquo;s support)
+            → this is today&rsquo;s expected trading range.</li>
           <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="9,6 15,12 9,18" />
-              </svg> 9:30 AM:</b> Check PCR direction from previous close. Confirms bullish / bearish / neutral bias.
-          </li>
+              </svg> 9:30 AM IST:</b> Check the Put-Call Ratio direction compared to yesterday&rsquo;s
+            close. This confirms a bullish, bearish, or neutral bias.</li>
           <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="9,6 15,12 9,18" />
-              </svg> 11:00 AM:</b> Recheck OI Change. Are fresh longs being built at CE? Fresh shorts at PE? &rarr;
-            direction confirmation.</li>
+              </svg> 11:00 AM IST:</b> Re-check the Change in Open Interest. Are fresh long
+            positions being built on the Call Option side? Are fresh short positions being built
+            on the Put Option side? → This is your direction confirmation.</li>
           <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="9,6 15,12 9,18" />
-              </svg> 2:00 PM:</b> Final chain check before close. Where is Max Pain moving? Any sudden OI shifts?</li>
+              </svg> 2:00 PM IST:</b> A final chain check before the close. Where is the Max Pain
+            moving? Are there any sudden Open Interest shifts?</li>
           <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="9,6 15,12 9,18" />
-              </svg> End of day:</b> Log today's Max OI strikes, PCR, and whether price respected them. This builds your
-            pattern library over time.</li>
+              </svg> End of day:</b> Log today&rsquo;s Maximum Open Interest strikes, the Put-Call
+            Ratio, and whether price respected those levels. This builds your pattern library
+            over time.</li>
         </ul>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; The Option-Chain Wall Bounce
+        (the most reliable option-chain setup)</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>It is between 10:00 AM and 1:00 PM IST. You have just refreshed the option chain. The
+            Put Option side shows a very large concentration of Open Interest at one specific
+            strike (for example, 24,800), and that Open Interest is GROWING (more Put writers are
+            piling in to defend this level). This is the &quot;Put Wall&quot; &mdash; it acts as
+            support. The current spot price is 50 to 100 points ABOVE this strike, and it is
+            pulling back DOWN towards it. The India Volatility Index is between 12 and 18. The
+            Put-Call Ratio is above 1.0 (a bullish lean overall).</dd>
+          <dt>Entry</dt>
+          <dd>Wait for price to reach the Put Wall strike on the spot index, AND for a bullish
+            reversal candle (a hammer, bullish engulfing, or a long lower-wick rejection) to print
+            on the 5-minute or 15-minute chart, AND for the volume to be greater than the recent
+            average. BUY one lot of an At The Money Call Option of the current-week expiry on the
+            next candle&rsquo;s open.</dd>
+          <dt>Stop Loss</dt>
+          <dd>10 to 15 points below the Put Wall strike on the spot index (the wall is broken if
+            price closes there). On the option premium itself, set a hard stop at 30 percent loss.
+            Place a Stop-Loss-Market order on the broker.</dd>
+          <dt>Target</dt>
+          <dd>Target 1 = the next major Open Interest level on the upside (the maximum Call Option
+            Open Interest strike) &mdash; book 50 percent here. Target 2 = the Max Pain level if
+            it is above (book 30 percent). Trail the rest with a 5-minute Volume Weighted Average
+            Price stop. Exit by 2:30 PM IST.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The Put Wall Open Interest is SHRINKING (Put writers are running away &mdash; the
+            wall is about to break, do NOT buy a Call Option here), OR the current spot price is
+            already BELOW the Put Wall (the wall has been broken &mdash; it now becomes resistance,
+            not support), OR the Put-Call Ratio is below 0.8 (overall bearish lean &mdash; the
+            Call Option has poor odds), OR the India Volatility Index is above 22 (an inflated
+            premium will be hurt by an Implied Volatility crush after the bounce).</dd>
+        </dl>
       </div>
 
     </div>

@@ -1,0 +1,194 @@
+/* ── IN-APP CONFIRM MODAL ──────────────────────────────────────────────
+   Replaces the ugly native window.confirm() dialog ("localhost:8000
+   says…") with an in-app modal that matches the rest of the app's
+   design language. Used by the destructive paper-trade actions:
+   Reset, Clear History, Exit All, Cancel All Pending, and the
+   sanity-check warnings when placing a LIMIT/STOP that would fire
+   on the very next tick.
+
+   Markup contract (see modal block in candlestick-patterns.html):
+     .pt-confirm                — full-viewport overlay (display:none by default)
+       .pt-confirm.open         — toggled by JS to show
+       .pt-confirm-backdrop     — click-to-dismiss layer
+       .pt-confirm-card         — centered dialog card
+         .pt-confirm-head       — icon + title row
+         .pt-confirm-body       — message (one <p> per paragraph)
+         .pt-confirm-actions    — right-aligned Cancel + Confirm buttons
+   ----------------------------------------------------------------- */
+
+.pt-confirm {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+}
+
+.pt-confirm.open {
+  display: block;
+}
+
+.pt-confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 12, 18, 0.65);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: ptConfirmFade 0.18s ease-out;
+}
+
+.pt-confirm-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100vw - 32px));
+  background: var(--bg);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  padding: 22px 24px 16px;
+  animation: ptConfirmPop 0.22s cubic-bezier(.2, .8, .25, 1);
+}
+
+[data-theme="light"] .pt-confirm-card {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04) inset;
+}
+
+.pt-confirm-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.pt-confirm-icon {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  /* Default = warning amber; flips to red via .danger modifier */
+  background: rgba(212, 148, 26, 0.14);
+  color: var(--neutral, #d4941a);
+}
+
+.pt-confirm-icon.danger {
+  background: rgba(228, 99, 99, 0.14);
+  color: var(--bear);
+}
+
+.pt-confirm-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pt-confirm-head h3 {
+  margin: 0;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.pt-confirm-body {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.pt-confirm-body p {
+  margin: 0 0 8px;
+}
+
+.pt-confirm-body p:last-child {
+  margin-bottom: 0;
+}
+
+.pt-confirm-body b,
+.pt-confirm-body strong {
+  color: var(--text);
+}
+
+.pt-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--bd);
+  padding-top: 14px;
+}
+
+.pt-confirm-btn {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 9px 18px;
+  border-radius: 7px;
+  border: 1px solid var(--bd);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.05s, filter 0.15s;
+}
+
+.pt-confirm-btn:hover {
+  background: var(--s2);
+}
+
+.pt-confirm-btn:active {
+  transform: translateY(1px);
+}
+
+.pt-confirm-btn:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+}
+
+.pt-confirm-btn-ok {
+  background: var(--info);
+  color: #fff;
+  border-color: transparent;
+}
+
+.pt-confirm-btn-ok:hover {
+  filter: brightness(1.08);
+  background: var(--info);
+}
+
+.pt-confirm-btn-ok.danger {
+  background: var(--bear);
+}
+
+.pt-confirm-btn-ok.danger:hover {
+  filter: brightness(1.06);
+  background: var(--bear);
+}
+
+@keyframes ptConfirmFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ptConfirmPop {
+  from { opacity: 0; transform: translate(-50%, -45%) scale(0.96); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Slightly tighter on phones */
+@media (max-width: 480px) {
+  .pt-confirm-card {
+    padding: 18px 18px 14px;
+  }
+  .pt-confirm-actions {
+    flex-direction: column-reverse;
+  }
+  .pt-confirm-btn {
+    width: 100%;
+    padding: 11px 16px;
+  }
+}

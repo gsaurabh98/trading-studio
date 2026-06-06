@@ -1,0 +1,2356 @@
+/* ═════════ PAPER TRADING (Level 1 - Index direction) ═════════ */
+.pt-shell {
+  --pt-lbl-w: 128px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.pt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--s2);
+  border-bottom: 1px solid var(--bd);
+  flex-wrap: wrap;
+}
+
+.pt-head h3 {
+  margin: 0;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.pt-head .pt-disc {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  background: var(--s1);
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--bd);
+}
+
+/* Top stats strip — Equity, P&L (Open), P&L (Today), Spot, Expiry */
+.pt-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  background: var(--s2);
+  border-bottom: 1px solid var(--bd);
+}
+
+.pt-stat-cell {
+  padding: 12px 18px;
+  border-right: 1px solid var(--bd);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.pt-stat-cell:last-child {
+  border-right: 0;
+}
+
+.pt-stat-cell .pt-stat-k {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.pt-stat-cell .pt-stat-v {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-stat-cell .pt-stat-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Position config row (lots + exit all + reset) */
+.pt-ticket {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--bd);
+}
+
+.pt-ticket-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.pt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 20px;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.15s;
+  min-width: 140px;
+}
+
+.pt-btn.pt-buy {
+  background: var(--bull);
+}
+
+.pt-btn.pt-buy:hover:not(:disabled) {
+  background: var(--bull-hover);
+  transform: translateY(-1px);
+}
+
+.pt-btn.pt-sell {
+  background: var(--bear);
+}
+
+.pt-btn.pt-sell:hover:not(:disabled) {
+  background: var(--bear-hover);
+  transform: translateY(-1px);
+}
+
+.pt-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pt-btn .pt-arrow {
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.pt-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  height: 36px;
+}
+
+.pt-qty label {
+  padding: 0 10px 0 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-transform: uppercase;
+  border-right: 1px solid var(--bd);
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+}
+
+.pt-qty button {
+  background: transparent;
+  color: var(--text);
+  border: 0;
+  width: 30px;
+  height: 100%;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.pt-qty button:hover {
+  background: var(--s1);
+}
+
+.pt-qty input {
+  width: 42px;
+  height: 100%;
+  text-align: center;
+  background: transparent;
+  color: var(--text);
+  border: 0;
+  border-left: 1px solid var(--bd);
+  border-right: 1px solid var(--bd);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  outline: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pt-qty input::-webkit-outer-spin-button,
+.pt-qty input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Compact variant used inside the BUY CE / BUY PE cards (per-side lots) */
+.pt-qty.pt-qty-mini {
+  height: 30px;
+  background: var(--s1);
+}
+
+.pt-qty.pt-qty-mini label {
+  padding: 0 8px 0 10px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.pt-qty.pt-qty-mini button {
+  width: 24px;
+  font-size: 0.95rem;
+}
+
+.pt-qty.pt-qty-mini input {
+  width: 36px;
+  font-size: 0.85rem;
+}
+
+/* On touch devices give the lots stepper a comfortable hit area without
+   enlarging it for desktop users. 40px height + 32px-wide buttons puts us
+   inside the WCAG AA 24px floor and close to AAA 44px target. */
+@media (hover: none) and (pointer: coarse) {
+  .pt-qty.pt-qty-mini { height: 40px; }
+  .pt-qty.pt-qty-mini button { width: 32px; font-size: 1.05rem; }
+  .pt-qty.pt-qty-mini input { width: 44px; font-size: 0.95rem; }
+}
+
+.pt-lot-hint {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* ═══════════════ ORDER-TYPE TICKET (per CE/PE card) ═══════════════
+   Compact MARKET/LIMIT/STOP segmented selector + optional trigger
+   price + optional attached SL/TGT. Sits inside each .pt-opt-side
+   card under the lots stepper. Default state (MARKET) hides the
+   trigger and risk rows so the card looks identical to the original
+   one-click flow; LIMIT/STOP reveals them (progressive disclosure). */
+.pt-ot-type {
+  display: inline-flex;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  overflow: hidden;
+  height: 28px;
+  align-self: flex-start;
+}
+
+.pt-ot-pill {
+  padding: 0 11px;
+  background: transparent;
+  color: var(--muted);
+  border: 0;
+  border-right: 1px solid var(--bd);
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition: all 0.12s;
+}
+
+.pt-ot-pill:last-child {
+  border-right: 0;
+}
+
+.pt-ot-pill:hover:not(.active) {
+  color: var(--text);
+  background: var(--s1);
+}
+
+.pt-ot-pill.active {
+  background: var(--info);
+  color: #fff;
+}
+
+.pt-ot-trigger,
+.pt-ot-risk input {
+  width: 100%;
+  height: 30px;
+  padding: 0 10px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  outline: none;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pt-ot-trigger::-webkit-outer-spin-button,
+.pt-ot-trigger::-webkit-inner-spin-button,
+.pt-ot-risk input::-webkit-outer-spin-button,
+.pt-ot-risk input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pt-ot-trigger:focus,
+.pt-ot-risk input:focus {
+  border-color: var(--info);
+}
+
+.pt-ot-trigger {
+  border-color: rgba(33, 142, 247, 0.4);
+  background: rgba(33, 142, 247, 0.06);
+}
+
+.pt-ot-risk {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 100%;
+}
+
+.pt-ot-risk input[data-which="sl"] {
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.pt-ot-risk input[data-which="tgt"] {
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.pt-ot-hint {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-top: -2px;
+  line-height: 1.3;
+}
+
+.pt-ot-hint b {
+  color: var(--text);
+}
+
+/* Hide rows when their wrapper has [hidden]. We use [hidden] (not
+   display:none in JS) so screen-readers / form-validation behave
+   correctly without us having to remember to toggle aria-hidden. */
+.pt-ot-trigger[hidden],
+.pt-ot-risk[hidden],
+.pt-ot-hint[hidden] {
+  display: none !important;
+}
+
+/* ═══════════════ PENDING ORDERS (legacy table styles removed — card
+   redesign at the bottom of this block owns .pt-pending-tag now) ═══════ */
+.pt-cancel-btn {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: var(--bear);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition: all 0.12s;
+}
+
+.pt-cancel-btn:hover {
+  background: var(--bear);
+  color: #fff;
+}
+
+.pt-mini {
+  padding: 0 12px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--bd);
+  color: var(--muted);
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: all 0.12s;
+  display: inline-flex;
+  align-items: center;
+}
+
+.pt-mini:hover {
+  border-color: var(--bear);
+  color: var(--bear);
+}
+
+/* Trade rows (Index, Options) */
+.pt-trade-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--bd);
+}
+
+.pt-trade-row:last-of-type {
+  border-bottom: 0;
+}
+
+.pt-trade-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+  min-width: var(--pt-lbl-w);
+  flex-shrink: 0;
+}
+
+.pt-trade-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 1 1 auto;
+}
+
+.pt-btn-sm {
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  min-width: 0;
+}
+
+/* Options panel */
+.pt-trade-opts {
+  background: rgba(33, 142, 247, 0.04);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.pt-opts-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.pt-opt-strike {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pt-opt-strike label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Custom strike picker */
+.pt-strike-picker {
+  position: relative;
+  display: inline-block;
+}
+
+.pt-strike-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  padding: 0 12px;
+  height: 36px;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  min-width: 170px;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.pt-strike-trigger:hover:not(:disabled) {
+  border-color: var(--info);
+  background: var(--s1);
+}
+
+.pt-strike-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pt-strike-trigger-num {
+  flex: 1;
+  text-align: left;
+  letter-spacing: -0.005em;
+}
+
+/* ATM-only flag on the strike-picker trigger button. ITM/OTM are
+   deliberately not shown here because a single strike has different
+   moneyness on CE vs PE — those side-aware labels live on the
+   CE/PE Premium chips inside the trade ticket. */
+.pt-strike-trigger-tag {
+  padding: 1px 6px;
+  background: rgba(33, 142, 247, 0.16);
+  color: var(--info);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  border-radius: 2px;
+}
+
+.pt-strike-trigger-tag[hidden] {
+  display: none;
+}
+
+.pt-strike-chev {
+  width: 12px;
+  height: 12px;
+  color: var(--muted);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.pt-strike-picker.open .pt-strike-chev {
+  transform: rotate(180deg);
+  color: var(--info);
+}
+
+.pt-strike-picker.open .pt-strike-trigger {
+  border-color: var(--info);
+}
+
+.pt-strike-pop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 50;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .pt-strike-pop {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.pt-strike-pop[hidden] {
+  display: none;
+}
+
+.pt-strike-pop-head {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--bd);
+  background: var(--s2);
+}
+
+.pt-strike-search {
+  width: 100%;
+  height: 36px;
+  padding: 0 14px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  color: var(--text);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.pt-strike-search:focus {
+  border-color: var(--info);
+}
+
+/* Upstox-style 3-column grid: CE on the left, STRIKE in the middle,
+   PE on the right. CE prices right-align so they sit next to the strike;
+   PE prices left-align so they sit next to the strike. The strike column
+   is narrower since it's just a 5-digit number. */
+.pt-strike-list-head {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr 1fr;
+  gap: 12px;
+  padding: 11px 22px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  border-bottom: 1px solid var(--bd);
+  background: var(--s2);
+}
+
+.pt-strike-col-ce {
+  text-align: right;
+  color: var(--bull);
+}
+
+.pt-strike-col-strike {
+  text-align: center;
+}
+
+.pt-strike-col-pe {
+  text-align: left;
+  color: var(--bear);
+}
+
+.pt-strike-list {
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.pt-strike-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pt-strike-list::-webkit-scrollbar-track {
+  background: var(--s1);
+}
+
+.pt-strike-list::-webkit-scrollbar-thumb {
+  background: var(--bd);
+  border-radius: 4px;
+}
+
+.pt-strike-list::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+.pt-strike-item {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr 1fr;
+  gap: 12px;
+  padding: 12px 22px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--bd);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 13px;
+  transition: background 0.1s;
+  align-items: center;
+}
+
+.pt-strike-item:hover {
+  background: var(--s2);
+}
+
+.pt-strike-item:last-child {
+  border-bottom: 0;
+}
+
+.pt-strike-item.selected {
+  background: rgba(33, 142, 247, 0.10);
+}
+
+.pt-strike-item.atm {
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.pt-strike-item.atm.selected {
+  background: rgba(33, 142, 247, 0.15);
+}
+
+/* Centered strike number (middle column). No chip here — moneyness
+   chips live on each side's price cell so the trader can see at a
+   glance "this strike makes CE ITM and PE OTM". */
+.pt-strike-item-strike {
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: -0.005em;
+}
+
+/* Per-row moneyness chip in the strike-picker dropdown.
+   Default look matches the trigger pill (info blue) so the ATM strike
+   reads consistently across the trigger, the dropdown row, and the
+   trade-ticket Premium chips. .itm / .otm modifiers tint differently. */
+.pt-strike-item-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 1px 5px;
+  background: rgba(33, 142, 247, 0.16);
+  color: var(--info);
+  border-radius: 2px;
+}
+
+.pt-strike-item-tag.itm {
+  background: rgba(9, 168, 110, 0.18);
+  color: var(--bull);
+}
+
+.pt-strike-item-tag.otm {
+  background: rgba(160, 184, 216, 0.14);
+  color: var(--text-dim);
+}
+
+/* Moneyness chip shown next to the CE Premium / PE Premium labels in
+   the trade ticket. Side-aware: each side flips between ITM/ATM/OTM
+   independently as the strike changes. */
+.pt-money-tag {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-left: 6px;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+
+.pt-money-tag.itm {
+  background: rgba(9, 168, 110, 0.18);
+  color: var(--bull);
+}
+
+.pt-money-tag.atm {
+  background: rgba(33, 142, 247, 0.16);
+  color: var(--info);
+}
+
+.pt-money-tag.otm {
+  background: rgba(160, 184, 216, 0.14);
+  color: var(--text-dim);
+}
+
+/* CE / PE side cells: flex rows that pull the inner-edge content
+   (the chip on PE side, the price on CE side) toward the strike for
+   NSE/Upstox-style scannability. */
+.pt-strike-item-ce,
+.pt-strike-item-pe {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pt-strike-item-ce {
+  color: var(--bull);
+  justify-content: flex-end;
+}
+
+.pt-strike-item-pe {
+  color: var(--bear);
+  justify-content: flex-start;
+}
+
+/* The price text inside each side cell. Dim variant is used when the
+   broker hasn't sent a premium for that leg (closed market, illiquid). */
+.pt-strike-item-price {
+  white-space: nowrap;
+}
+
+.pt-strike-item-price.dim {
+  color: var(--muted);
+  opacity: 0.55;
+}
+
+.pt-strike-empty {
+  padding: 28px 22px;
+  text-align: center;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Live tag — sits next to REFRESH button, shows last update time */
+.pt-live-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(9, 168, 110, 0.10);
+  border: 1px solid rgba(9, 168, 110, 0.25);
+  border-radius: 999px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--bull);
+  height: 30px;
+  box-sizing: border-box;
+}
+
+.pt-live-tag[hidden] {
+  display: none;
+}
+
+.pt-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bull);
+  animation: ptLivePulse 1.6s infinite;
+}
+
+@keyframes ptLivePulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+.pt-live-txt {
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.pt-live-ago {
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.pt-live-tag.stale {
+  background: rgba(245, 158, 11, 0.10);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: var(--amber);
+}
+
+.pt-live-tag.stale .pt-live-dot {
+  background: var(--amber);
+  animation-duration: 2.4s;
+}
+
+.pt-live-tag.stale .pt-live-txt::before {
+  content: 'STALE';
+}
+
+.pt-live-tag.stale .pt-live-txt {
+  font-size: 0;
+}
+
+.pt-live-tag.stale .pt-live-txt::before {
+  font-size: 10.5px;
+}
+
+/* Market closed — solid grey, no pulse. Premiums are last-traded values. */
+.pt-live-tag.closed {
+  background: rgba(148, 163, 184, 0.10);
+  border-color: rgba(148, 163, 184, 0.25);
+  color: var(--muted);
+}
+
+.pt-live-tag.closed .pt-live-dot {
+  background: var(--muted);
+  animation: none;
+  opacity: 0.85;
+}
+
+.pt-live-tag.closed .pt-live-txt::before {
+  content: 'CLOSED';
+}
+
+.pt-live-tag.closed .pt-live-txt {
+  font-size: 0;
+}
+
+.pt-live-tag.closed .pt-live-txt::before {
+  font-size: 10.5px;
+}
+
+/* CE/PE side-by-side */
+.pt-opt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Stacked vertical layout so the order ticket controls (order-type
+   pills, lots stepper, trigger input, attached SL/TGT, hint, BUY
+   button) each get the FULL width of the card on their own row.
+   The previous horizontal layout crammed everything onto a single
+   line which truncated "Stop" → "St", "Market" → "Mar", and squashed
+   the trigger / SL / TGT inputs to ~40 px wide. align-items:stretch
+   (the default for column flex) gives full-width children; controls
+   that should stay compact opt out via align-self:flex-start
+   (see .pt-ot-type, .pt-opt-side .pt-qty rules below). */
+.pt-opt-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  padding: 14px 16px;
+}
+
+/* Compact controls inside the stacked card stay at their natural
+   width — full-stretch would leave dead space to the right of the
+   lots stepper buttons. */
+.pt-opt-side .pt-qty.pt-qty-mini {
+  align-self: flex-start;
+}
+
+/* Premium row reads better with a small bottom divider that
+   visually separates the "this is the current price" block from
+   the "this is your order ticket" block underneath. */
+.pt-opt-side .pt-opt-prem {
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--bd);
+}
+
+/* BUY button sits at the bottom of the stack and gets full width
+   (large tap target, easy thumb reach on mobile). */
+.pt-opt-side .pt-btn {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.pt-opt-side.pt-opt-ce {
+  border-left: 3px solid var(--bull);
+}
+
+.pt-opt-side.pt-opt-pe {
+  border-left: 3px solid var(--bear);
+}
+
+.pt-opt-prem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pt-opt-prem-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.pt-opt-prem-val {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+/* ── Auto square-off badge in the section heading ── */
+.pt-eod-tag {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  background: rgba(245, 158, 11, 0.10);
+  border: 1px solid rgba(245, 158, 11, 0.30);
+  color: var(--amber);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.pt-eod-tag b {
+  color: var(--amber);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.pt-eod-tag svg {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+/* Combined-notice variant: same amber palette but sits in the toolbar
+   row (next to EXIT ALL / RESET) instead of in a section header, and
+   carries the full "positions auto square-off · pending orders auto-
+   cancel" copy. Pushed to the right via margin-left:auto so it visually
+   balances the lot-hint label on the left and the action buttons on
+   the right. */
+.pt-eod-tag.pt-eod-tag-combined {
+  margin-left: auto;
+  margin-right: 8px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+}
+
+/* On the narrowest screens the combined badge would push the action
+   buttons onto a second row anyway — let it claim its own row so the
+   lot-hint / actions stay paired. */
+@media (max-width: 720px) {
+  .pt-eod-tag.pt-eod-tag-combined {
+    order: 99;
+    margin-left: 0;
+    margin-right: 0;
+    flex-basis: 100%;
+    justify-content: center;
+  }
+}
+
+/* Stop Loss / Target column inputs — neutral styling, distinguished by
+header label and a thin colored left border on the input.
+vertical-align:top keeps inputs aligned with BUY CE/PE pills and EXIT button. */
+.pt-c-sl,
+.pt-c-tgt {
+  vertical-align: top;
+}
+
+.pt-c-na {
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+}
+
+.pt-risk-input {
+  width: 110px;
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid var(--bd);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+  line-height: 1.35;
+  cursor: text;
+  transition: border-color 0.15s, background 0.15s;
+  box-sizing: border-box;
+}
+
+.pt-risk-input::placeholder {
+  color: var(--muted);
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+  text-transform: uppercase;
+}
+
+.pt-risk-input:hover {
+  background: var(--s2);
+  border-color: var(--text-soft);
+}
+
+.pt-risk-input:focus {
+  outline: none;
+  background: var(--s2);
+  border-color: var(--info);
+}
+
+.pt-risk-input::-webkit-outer-spin-button,
+.pt-risk-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pt-risk-input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Subtle 3px accent strip on the left edge so the two columns are still
+visually distinguishable without coloring the text itself. */
+.pt-risk-input-sl {
+  border-left: 3px solid rgba(201, 31, 58, 0.55);
+}
+
+.pt-risk-input-tgt {
+  border-left: 3px solid rgba(9, 168, 110, 0.55);
+}
+
+/* Exit reason pill in Trade History */
+.pt-reason-tag {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.pt-reason-tag.manual {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--muted);
+}
+
+.pt-reason-tag.sl {
+  background: rgba(201, 31, 58, 0.12);
+  color: var(--bear);
+}
+
+.pt-reason-tag.tgt {
+  background: rgba(9, 168, 110, 0.12);
+  color: var(--bull);
+}
+
+.pt-reason-tag.eod {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--amber);
+}
+
+/* Toast for auto-exit notifications */
+.pt-toast-host {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.pt-toast {
+  pointer-events: auto;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  padding: 10px 14px;
+  min-width: 240px;
+  max-width: 320px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 12.5px;
+  color: var(--text);
+  animation: ptToastIn 0.22s ease-out;
+}
+
+.pt-toast.sl {
+  border-left: 3px solid var(--bear);
+}
+
+.pt-toast.tgt {
+  border-left: 3px solid var(--bull);
+}
+
+.pt-toast.eod {
+  border-left: 3px solid var(--amber);
+}
+
+.pt-toast-title {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.pt-toast.sl .pt-toast-title {
+  color: var(--bear);
+}
+
+.pt-toast.tgt .pt-toast-title {
+  color: var(--bull);
+}
+
+.pt-toast.eod .pt-toast-title {
+  color: var(--amber);
+}
+
+.pt-toast-body {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.pt-toast-body b {
+  color: var(--text);
+}
+
+@keyframes ptToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.pt-toast.fade {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.pt-inst-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.pt-inst-tag.idx {
+  background: var(--s2);
+  color: var(--text-soft);
+}
+
+.pt-inst-tag.ce {
+  background: var(--bull-tint);
+  color: var(--bull);
+}
+
+.pt-inst-tag.pe {
+  background: var(--bear-tint);
+  color: var(--bear);
+}
+
+.pt-section {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--bd);
+}
+
+.pt-section:last-child {
+  border-bottom: 0;
+}
+
+.pt-section h4 {
+  margin: 0 0 10px;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pt-section h4 .pt-cnt {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-soft);
+}
+
+.pt-section h4 .pt-actions {
+  margin-left: auto;
+}
+
+.pt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.pt-table th {
+  padding: 8px 10px;
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--bd);
+  font-weight: 600;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  background: var(--s1);
+  z-index: 1;
+}
+
+.pt-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--bd);
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.pt-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.pt-empty {
+  text-align: center;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 24px 10px !important;
+  font-style: italic;
+}
+
+.pt-side-tag {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 3px;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+}
+
+.pt-side-tag.long {
+  background: var(--bull-tint);
+  color: var(--bull);
+}
+
+.pt-side-tag.short {
+  background: var(--bear-tint);
+  color: var(--bear);
+}
+
+.pt-result-tag {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 3px;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+}
+
+.pt-result-tag.win {
+  background: var(--bull-tint);
+  color: var(--bull);
+}
+
+.pt-result-tag.loss {
+  background: var(--bear-tint);
+  color: var(--bear);
+}
+
+.pt-result-tag.flat {
+  background: var(--s2);
+  color: var(--muted);
+}
+
+.pt-exit-btn {
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid var(--bear);
+  color: var(--bear);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: all 0.12s;
+}
+
+.pt-exit-btn:hover {
+  background: var(--bear);
+  color: #fff;
+}
+
+.pt-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.pt-stat {
+  background: var(--s2);
+  padding: 10px 12px;
+  border-radius: 6px;
+  border-left: 3px solid var(--info);
+}
+
+.pt-stat-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.pt-stat-val {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+@media (max-width:720px) {
+  .pt-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pt-stats-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pt-stat-cell:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .pt-stat-cell {
+    border-bottom: 1px solid var(--bd);
+  }
+
+  .pt-stat-cell:nth-last-child(-n+1) {
+    border-bottom: 0;
+  }
+
+  .pt-opt-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pt-btn {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .pt-ticket-actions {
+    margin-left: 0;
+  }
+}
+
+@media (min-width:721px) and (max-width:1100px) {
+  .pt-stats-strip {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .pt-stat-cell:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .pt-stat-cell:nth-child(-n+3) {
+    border-bottom: 1px solid var(--bd);
+  }
+}
+
+@media (max-width:480px) {
+  .pt-stats-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .pt-stat-cell {
+    border-right: 0;
+    border-bottom: 1px solid var(--bd);
+  }
+
+  .pt-stat-cell:last-child {
+    border-bottom: 0;
+  }
+}
+
+/* ═══════════ PAPER TRADING — VISUAL REDESIGN (May 2026) ═══════════
+   Hero account summary, position cards, history timeline rows, and
+   metric tiles. Layered on top of the existing .pt-shell card chrome
+   so the rest of the surface (CE/PE buy cards, toolbar, strike
+   picker, toasts) stays untouched. */
+
+/* ── HERO SUMMARY ───────────────────────────────────────────────
+   3-column dashboard at the top of the paper-trade shell:
+     | Equity (large hero)  |  P&L pair (today + open)  |  Context (spot / expiry) |
+   Collapses gracefully to 2-col then 1-col on narrower screens. */
+.pt-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, var(--s2) 0%, var(--s1) 100%);
+  border-bottom: 1px solid var(--bd);
+}
+
+@media (max-width: 1100px) {
+  .pt-hero { grid-template-columns: 1fr 1fr; }
+  .pt-hero-ctx { grid-column: 1 / -1; }
+}
+
+@media (max-width: 720px) {
+  .pt-hero { grid-template-columns: 1fr; padding: 14px; gap: 10px; }
+}
+
+/* Equity hero card: oversized number, accent stripe, soft surface */
+.pt-hero-equity {
+  position: relative;
+  padding: 14px 16px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pt-hero-equity::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--info) 0%, var(--bull) 100%);
+}
+
+.pt-hero-equity-lbl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.pt-hero-equity-lbl svg { opacity: 0.85; flex-shrink: 0; }
+
+.pt-hero-equity-val {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-hero-equity-foot {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pt-hero-equity-pct {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+}
+
+.pt-hero-equity-base {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* P&L pair: two side-by-side tinted cards (today + open) */
+.pt-hero-pnl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  .pt-hero-pnl { grid-template-columns: 1fr; }
+}
+
+.pt-hero-pnl-card {
+  position: relative;
+  padding: 12px 14px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pt-hero-pnl-card:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05); }
+
+.pt-hero-pnl-card::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  background: var(--muted);
+  opacity: 0.4;
+}
+
+.pt-hero-today::before { background: linear-gradient(90deg, var(--info), var(--bull)); opacity: 1; }
+.pt-hero-open::before  { background: linear-gradient(90deg, var(--amber), var(--info)); opacity: 1; }
+
+.pt-hero-pnl-lbl {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.pt-hero-pnl-lbl svg { opacity: 0.7; flex-shrink: 0; }
+
+.pt-hero-pnl-val {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-hero-pnl-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+/* Context card: spot + expiry, slim stacked layout */
+.pt-hero-ctx {
+  padding: 12px 14px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pt-hero-ctx-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  row-gap: 0;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.pt-hero-ctx-key {
+  grid-row: 1;
+  grid-column: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.pt-hero-ctx-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 2px var(--s1);
+}
+.pt-hero-ctx-dot-spot {
+  background: var(--bull);
+  animation: ptDotPulse 1.6s ease-in-out infinite;
+}
+.pt-hero-ctx-dot-expiry { background: var(--amber); }
+
+@keyframes ptDotPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(9, 168, 110, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(9, 168, 110, 0); }
+}
+
+.pt-hero-ctx-val {
+  grid-row: 1;
+  grid-column: 2;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.005em;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pt-hero-ctx-sub {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-align: right;
+}
+
+.pt-hero-ctx-divider {
+  height: 1px;
+  background: var(--bd);
+  margin: 2px 0;
+}
+
+/* ── POSITION / PENDING CARDS ────────────────────────────────── */
+.pt-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .pt-cards { grid-template-columns: 1fr; }
+}
+
+/* Empty state shared by all card lists */
+.pt-empty-card {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 26px 16px;
+  font-style: italic;
+  background: var(--s2);
+  border: 1px dashed var(--bd);
+  border-radius: 10px;
+}
+
+/* Open position card */
+.pt-pos-card {
+  position: relative;
+  padding: 12px 14px 14px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.pt-pos-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--muted);
+  opacity: 0.5;
+}
+
+.pt-pos-card.ce::before { background: var(--bull); }
+.pt-pos-card.pe::before { background: var(--bear); }
+
+.pt-pos-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.pt-pos-lots {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text-soft);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  background: var(--s2);
+  border-radius: 4px;
+}
+
+.pt-pos-time {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* P&L hero strip — large coloured number on tinted background */
+.pt-pos-pnl-strip {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 0;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pt-pos-pnl-strip.pos { background: linear-gradient(135deg, rgba(9, 168, 110, 0.08) 0%, rgba(9, 168, 110, 0.02) 100%); border-color: rgba(9, 168, 110, 0.25); }
+.pt-pos-pnl-strip.neg { background: linear-gradient(135deg, rgba(201, 31, 58, 0.08) 0%, rgba(201, 31, 58, 0.02) 100%); border-color: rgba(201, 31, 58, 0.25); }
+
+.pt-pos-pnl-block,
+.pt-pos-pts-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  min-width: 0;
+}
+
+.pt-pos-pts-block { border-left: 1px solid var(--bd); }
+
+.pt-pos-pnl-lbl,
+.pt-pos-pts-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.pt-pos-pnl-val {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-pos-pts-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+
+/* Entry / LTP metrics row */
+.pt-pos-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pt-pos-m {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: var(--s2);
+  border-radius: 6px;
+  min-width: 0;
+}
+
+.pt-pos-m-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.pt-pos-m-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Risk / exit row */
+.pt-pos-risk {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+
+@media (max-width: 480px) {
+  .pt-pos-risk { grid-template-columns: 1fr 1fr; }
+  .pt-pos-risk .pt-pos-exit { grid-column: 1 / -1; }
+}
+
+.pt-pos-risk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.pt-pos-risk-field label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.pt-pos-risk-field .pt-risk-input {
+  width: 100%;
+  height: 32px;
+  text-align: left;
+  padding-left: 10px;
+  font-size: 12px;
+}
+
+.pt-pos-exit {
+  height: 32px;
+  padding: 0 14px;
+  font-weight: 700;
+}
+
+.pt-pos-na {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  color: var(--muted);
+  padding: 8px 0;
+}
+
+/* ── PENDING ORDER CARD ───────────────────────────────────────── */
+.pt-pend-card {
+  position: relative;
+  padding: 12px 14px 14px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.pt-pend-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--info);
+  opacity: 0.6;
+}
+
+.pt-pend-card.stop::before { background: var(--amber); }
+
+.pt-pend-card .pt-pos-head { gap: 6px; }
+
+.pt-pending-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.pt-pending-tag.limit {
+  background: rgba(33, 142, 247, 0.12);
+  color: var(--info);
+}
+.pt-pending-tag.stop {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--amber);
+}
+
+.pt-pend-prices {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .pt-pend-prices { grid-template-columns: 1fr 1fr; }
+}
+
+.pt-pend-prices .pt-pos-m { padding: 9px 10px; }
+
+.pt-pend-prices .pt-pend-dist-card {
+  background: var(--s2);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 10px;
+  min-width: 0;
+}
+
+.pt-pend-dist-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-pend-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pt-pend-risk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 999px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-soft);
+}
+
+.pt-pend-risk-chip.sl  { border-color: rgba(201, 31, 58, 0.4); color: var(--bear); }
+.pt-pend-risk-chip.tgt { border-color: rgba(9, 168, 110, 0.4); color: var(--bull); }
+.pt-pend-risk-chip.empty { opacity: 0.55; }
+
+.pt-pend-foot .pt-cancel-btn {
+  margin-left: auto;
+}
+
+/* ── HISTORY TIMELINE ROWS ──────────────────────────────────── */
+.pt-hist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: 560px;
+  overflow-y: auto;
+}
+
+.pt-hist-list::-webkit-scrollbar { width: 6px; }
+.pt-hist-list::-webkit-scrollbar-thumb { background: var(--bd); border-radius: 3px; }
+
+.pt-hist-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 2.2fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px 10px 18px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+@media (max-width: 720px) {
+  .pt-hist-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'result pnl'
+      'inst   inst';
+    gap: 8px;
+  }
+  .pt-hist-result { grid-area: result; }
+  .pt-hist-pnl    { grid-area: pnl; text-align: right; }
+  .pt-hist-inst   { grid-area: inst; }
+}
+
+.pt-hist-row::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+}
+.pt-hist-row.win::before  { background: var(--bull); }
+.pt-hist-row.loss::before { background: var(--bear); }
+.pt-hist-row.flat::before { background: var(--muted); opacity: 0.5; }
+
+.pt-hist-result {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+}
+
+.pt-hist-inst {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.pt-hist-inst-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.pt-hist-inst-line .pt-pos-lots {
+  padding: 1px 6px;
+  font-size: 10px;
+}
+
+.pt-hist-flow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pt-hist-flow b { color: var(--text-soft); font-weight: 600; }
+
+.pt-hist-pnl {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  min-width: 0;
+}
+
+.pt-hist-pnl-val {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.pt-hist-pnl-pts {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+/* ── METRIC TILES (Stats) ─────────────────────────────────────── */
+.pt-metric-tiles {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 900px) { .pt-metric-tiles { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 540px) { .pt-metric-tiles { grid-template-columns: repeat(2, 1fr); } }
+
+.pt-metric-tile {
+  position: relative;
+  padding: 12px 12px 10px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-width: 0;
+}
+
+.pt-metric-tile:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); }
+
+.pt-metric-tile::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px;
+}
+.pt-mt-trades::before { background: var(--info); }
+.pt-mt-wr::before     { background: linear-gradient(90deg, var(--bear), var(--amber), var(--bull)); }
+.pt-mt-avg::before    { background: var(--text-soft); }
+.pt-mt-best::before   { background: var(--bull); }
+.pt-mt-worst::before  { background: var(--bear); }
+
+.pt-metric-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--s2);
+  color: var(--text-soft);
+  margin-bottom: 2px;
+}
+.pt-mt-trades .pt-metric-icon { color: var(--info);    background: rgba(33, 142, 247, 0.10); }
+.pt-mt-wr     .pt-metric-icon { color: var(--amber);   background: rgba(245, 158, 11, 0.10); }
+.pt-mt-best   .pt-metric-icon { color: var(--bull);    background: var(--bull-tint); }
+.pt-mt-worst  .pt-metric-icon { color: var(--bear);    background: var(--bear-tint); }
+
+.pt-metric-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.pt-metric-value {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.005em;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tighten section spacing when card lists are below */
+.pt-section .pt-cards,
+.pt-section .pt-hist-list,
+.pt-section .pt-metric-tiles { margin-top: 2px; }
+
+/* ─── Options API pause banner ─── */
+.pt-api-pause-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.pt-api-pause-banner[data-state="paused"] {
+  border-color: #d97706;
+  background: rgba(245, 158, 11, 0.08);
+}
+.pt-api-pause-meta {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pt-api-pause-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.pt-api-pause-dot-active {
+  background: var(--bull);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+}
+.pt-api-pause-dot-paused {
+  background: #d97706;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22);
+}
+.pt-api-pause-status {
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+  white-space: nowrap;
+}
+.pt-api-pause-banner[data-state="paused"] .pt-api-pause-status {
+  color: #d97706;
+}
+.pt-api-pause-hint {
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.pt-api-pause-btn {
+  flex: 0 0 auto;
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.pt-api-pause-btn:hover {
+  border-color: var(--bull);
+  color: var(--bull);
+  background: rgba(34, 197, 94, 0.06);
+}
+.pt-api-pause-banner[data-state="paused"] .pt-api-pause-btn {
+  border-color: #d97706;
+  background: #d97706;
+  color: #fff;
+}
+.pt-api-pause-banner[data-state="paused"] .pt-api-pause-btn:hover {
+  background: #b45309;
+  border-color: #b45309;
+}
+@media (max-width: 640px) {
+  .pt-api-pause-banner { flex-direction: column; align-items: stretch; }
+  .pt-api-pause-btn    { align-self: stretch; text-align: center; }
+}
+

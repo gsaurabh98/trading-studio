@@ -4,11 +4,13 @@
       </div>
 
       <div style="margin:6px 0 18px;font-size:14.5px;line-height:1.75">
-        A <b>bias calculator</b> is a 30-second pre-market checklist. Feed it yesterday's Nifty <b>H, L, C</b> + current
-        spot, and it applies the rules from this app (CPR shape, width, price location, VIX, PCR, higher-TF trend) to
-        give one structured answer: <b style="color:var(--bull)">STRONG CE</b> &middot; <b style="color:var(--bull)">CE
-          BIAS</b> &middot; <b style="color:var(--neutral)">NO TRADE</b> &middot; <b style="color:var(--bear)">PE
-          BIAS</b> &middot; <b style="color:var(--bear)">STRONG PE</b>.
+        A <b>bias calculator</b> is a 30-second checklist you run before the market opens. You feed it
+        yesterday's Nifty <b>High, Low, and Close</b> prices plus the current spot price, and it applies all
+        the rules from this app (the Central Pivot Range shape and width, where the price sits, India
+        Volatility Index, Put-Call Ratio, and the higher-timeframe trend) to give you one clear answer:
+        <b style="color:var(--bull)">STRONG CALL</b> &middot; <b style="color:var(--bull)">CALL BIAS</b>
+        &middot; <b style="color:var(--neutral)">NO TRADE</b> &middot; <b style="color:var(--bear)">PUT
+        BIAS</b> &middot; <b style="color:var(--bear)">STRONG PUT</b>.
       </div>
 
       <div
@@ -16,21 +18,47 @@
         <div
           style="padding:12px 14px;background:rgba(9,168,110,0.07);border-left:3px solid var(--bull);border-radius:5px">
           <b style="color:var(--bull);letter-spacing:0.5px">WHAT IT IS</b><br>
-          A rules engine, not a predictor. The same CPR / VIX / PCR / trend logic you've already learned, automated into
-          one click.
+          A rules engine, not a predictor. The same Central Pivot Range, Volatility Index, Put-Call Ratio, and
+          trend logic you have already learned, automated into one click.
         </div>
         <div
           style="padding:12px 14px;background:rgba(33,142,247,0.07);border-left:3px solid var(--info);border-radius:5px">
-          <b style="color:var(--info);letter-spacing:0.5px">WHEN TO USE</b><br>
-          9:00 AM daily, before market opens. Sets your bias for the day in 30 seconds. Re-check intraday whenever spot
-          moves significantly.
+          <b style="color:var(--info);letter-spacing:0.5px">WHEN TO USE IT</b><br>
+          At 9:00 AM every day, before the market opens. Sets your trading bias for the day in 30 seconds.
+          Check it again intraday whenever the spot price moves significantly.
         </div>
         <div
           style="padding:12px 14px;background:rgba(201,31,58,0.07);border-left:3px solid var(--bear);border-radius:5px">
-          <b style="color:var(--bear);letter-spacing:0.5px">WHAT IT ISN'T</b><br>
-          Not a buy/sell signal. Not advice. Not live data. Always wait for a candle trigger at TC / BC / VWAP / Fib
-          confluence before any trade.
+          <b style="color:var(--bear);letter-spacing:0.5px">WHAT IT IS NOT</b><br>
+          It is not a buy or sell signal. It is not advice. It is not based on live data. Always wait for a
+          candle trigger at the Top Central, Bottom Central, Volume Weighted Average Price, or Fibonacci
+          confluence levels before taking any trade.
         </div>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Using the Bias Calculator Output</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>You have run the bias calculator at 9:00 AM with yesterday's data and current spot price.
+            The output shows either STRONG CALL or STRONG PUT (not the weaker BIAS levels). The market
+            has opened and the first 15-minute candle has formed.</dd>
+          <dt>Entry</dt>
+          <dd>For STRONG CALL bias: Wait for price to pull back to a Central Pivot Range level (Top
+            Central, Bottom Central, or a pivot like Resistance 1) and form a green reversal candle.
+            Buy an At the Money Call Option at that point. For STRONG PUT bias: Wait for price to rally
+            up to a pivot level and form a red reversal candle, then buy an At the Money Put Option.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Place the stop loss on the wrong side of the pivot level by 10 to 15 points on Nifty. For
+            the option premium, exit if you lose 30 to 40 percent.</dd>
+          <dt>Target</dt>
+          <dd>Aim for the next pivot level in your bias direction. Minimum target is 2 times your stop
+            loss distance. Book half there and trail the stop on the rest.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The calculator shows NO TRADE or only weak BIAS, intraday news has flipped the sentiment
+            (bias from 9:00 AM is now stale), or the spot price is right in the middle of the Central
+            Pivot Range with no candle trigger yet.</dd>
+        </dl>
       </div>
 
       <div class="calc-card" style="max-width:none">
@@ -46,7 +74,7 @@
               oninput="calcBias()"></div>
         </div>
         <div class="calc-row">
-          <div class="calc-field"><label>Higher-TF Trend</label>
+          <div class="calc-field"><label>Higher Timeframe Trend</label>
             <select id="bc-trend" onchange="calcBias()">
               <option value="2">Strong Up</option>
               <option value="1">Up</option>
@@ -55,11 +83,12 @@
               <option value="-2">Strong Down</option>
             </select>
           </div>
-          <div class="calc-field"><label>India VIX <span
+          <div class="calc-field"><label>India Volatility Index <span
                 style="opacity:0.6;font-weight:400">(optional)</span></label><input type="number" id="bc-vix"
               value="14.5" step="0.1" oninput="calcBias()"></div>
-          <div class="calc-field"><label>PCR <span style="opacity:0.6;font-weight:400">(optional)</span></label><input
-              type="number" id="bc-pcr" value="0.92" step="0.01" oninput="calcBias()"></div>
+          <div class="calc-field"><label>Put-Call Ratio <span
+                style="opacity:0.6;font-weight:400">(optional)</span></label><input type="number" id="bc-pcr"
+              value="0.92" step="0.01" oninput="calcBias()"></div>
           <div class="calc-field"><label>&nbsp;</label><button class="bias-reset-btn" onclick="loadBiasExample()"
               type="button">LOAD EXAMPLE</button></div>
         </div>
@@ -95,14 +124,19 @@
           <div id="bc-breakdown" class="calc-result">&mdash;</div>
           <div
             style="margin-top:14px;padding:14px 16px;background:var(--hover-bg);border-left:3px solid var(--neutral);border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.75">
-            <b>How the score is computed:</b><br>
-            &bull; CPR shape (&plusmn;1): Normal +1 / Inverted -1<br>
-            &bull; Price vs CPR band (&plusmn;2): Above +2 / Inside 0 / Below -2<br>
-            &bull; CPR width (&plusmn;1): Narrow boosts existing bias / Wide softens it<br>
-            &bull; VIX (&plusmn;1): &lt;13 boosts trend / &gt;20 = -1 caution<br>
-            &bull; PCR (&plusmn;1): &gt;1.2 = +1 CE / &lt;0.8 = -1 PE / 0.8&ndash;1.2 = neutral<br>
-            &bull; Higher-TF trend (&plusmn;2): Strong Up +2 to Strong Down -2<br>
-            &bull; Buckets: &ge;+4 STRONG CE / +1 to +3 CE BIAS / 0 NO TRADE / -1 to -3 PE BIAS / &le;-4 STRONG PE
+            <b>How the score is calculated:</b><br>
+            &bull; Central Pivot Range shape (plus or minus 1): Normal gives +1, Inverted gives -1<br>
+            &bull; Price vs Central Pivot Range band (plus or minus 2): Above gives +2, Inside gives 0, Below
+            gives -2<br>
+            &bull; Central Pivot Range width (plus or minus 1): Narrow boosts the existing bias, Wide softens
+            it<br>
+            &bull; India Volatility Index (plus or minus 1): Below 13 boosts the trend, above 20 gives -1
+            caution<br>
+            &bull; Put-Call Ratio (plus or minus 1): Above 1.2 gives +1 (Call bias), below 0.8 gives -1 (Put
+            bias), 0.8 to 1.2 is neutral<br>
+            &bull; Higher timeframe trend (plus or minus 2): Strong Up gives +2, Strong Down gives -2<br>
+            &bull; Final buckets: 4 or more = STRONG CALL / +1 to +3 = CALL BIAS / 0 = NO TRADE / -1 to -3 =
+            PUT BIAS / -4 or less = STRONG PUT
           </div>
         </div>
       </details>
@@ -113,18 +147,21 @@
           &#9656; Live TradingView / Upstox Pine Script</summary>
         <div style="padding:14px 4px 4px">
           <div style="font-size:13.5px;line-height:1.75;margin-bottom:12px">
-            <b>Install in 60 seconds:</b> TradingView/Upstox &rarr; Pine Editor tab &rarr; paste &rarr; Save &rarr; Add
-            to chart. Plots CPR, VWAP, and a top-right bias label live on every bar.
+            <b>Install in 60 seconds:</b> Open TradingView or Upstox, click on the Pine Editor tab, paste the
+            code below, click Save, then click Add to Chart. This plots the Central Pivot Range, the Volume
+            Weighted Average Price line, and a top-right bias label live on every bar.
           </div>
           <div style="position:relative">
             <button class="pine-copy-btn" onclick="copyPine()" type="button">COPY PINE</button>
             <pre id="pine-code"><code>(loading...)</code></pre>
           </div>
           <div style="margin-top:10px;font-size:12.5px;color:var(--muted);font-family:'IBM Plex Mono',monospace">Note:
-            on-chart Pine uses CPR+VWAP only (no PCR / VIX / higher-TF). Its score range is &plusmn;5 vs the
-            calculator's &plusmn;8, so its STRONG threshold is &ge;&plusmn;3 (vs &ge;&plusmn;4 in the calculator). The
-            two tools are <b>calibrated to give similar conclusions, not identical scores</b> &mdash; treat them as
-            cross-checks, not as a single number.</div>
+            the on-chart Pine script uses only the Central Pivot Range plus the Volume Weighted Average
+            Price (no Put-Call Ratio, India Volatility Index, or higher timeframe input). Its score range
+            is plus or minus 5 versus the calculator's plus or minus 8, so its STRONG threshold is plus or
+            minus 3 (versus plus or minus 4 in the calculator). The two tools are <b>calibrated to give
+            similar conclusions, not identical scores</b> &mdash; treat them as cross-checks for each other,
+            not as a single number.</div>
           <div class="aff-inline" style="margin-top:14px">
             <span><b>Don't have TradingView yet?</b> The Pine script above runs on the free plan, but the paid plan
               gives you multi-chart layouts, custom timeframes, and saved templates &mdash; ideal for serious intraday

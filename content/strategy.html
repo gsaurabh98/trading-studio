@@ -3,6 +3,24 @@
         <h2>COMPLETE STRATEGY GUIDE <span class="count-badge">MASTER TABLE</span></h2>
       </div>
 
+      <div class="infobox"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg> <b>How to read the tables below:</b><br>
+        &middot; <b>BUY Call Option</b> means buy a Call Option of the index (also written as
+        &quot;BUY CE&quot; in some places &mdash; the same thing).<br>
+        &middot; <b>BUY Put Option</b> means buy a Put Option of the index (also written as
+        &quot;BUY PE&quot; in some places &mdash; the same thing).<br>
+        &middot; <b>TF</b> means timeframe (the chart period &mdash; 5-minute, 15-minute, 60-minute,
+        daily).<br>
+        &middot; <b>S/R</b> means support and resistance &mdash; horizontal price levels where past
+        buying or selling was strong.<br>
+        &middot; <b>VWAP</b> means Volume Weighted Average Price &mdash; the average traded price of
+        the day, used as a fair-value reference.<br>
+        Each row shows: the candle / chart pattern, where it appears, the signal it gives, the
+        action to take, and the timeframe to use.</div>
+
       <div class="catdiv">SINGLE CANDLE → ACTION</div>
       <div class="strat-wrap">
         <table class="strat-table">
@@ -805,35 +823,76 @@
       <div class="rbox">
         <h3><svg class="ico ico-zap" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
-          </svg> 10 GOLDEN RULES &mdash; TL;DR CHEAT SHEET</h3>
-        <p style="margin:0 0 10px 0;color:var(--text-dim);font-size:0.9rem">Quick pointers only. Each rule has a
-          dedicated tab with the full playbook.</p>
+          </svg> 10 GOLDEN RULES &mdash; QUICK CHEAT SHEET</h3>
+        <p style="margin:0 0 10px 0;color:var(--text-dim);font-size:0.9rem">Quick pointers only.
+          Each rule has a dedicated tab with the full playbook.</p>
         <ul>
-          <li><b>Pattern + Level:</b> A pattern alone means nothing &mdash; it must sit AT support/resistance. <button
-              onclick="show('snr')"
-              style="background:none;border:none;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit;padding:0">S&amp;R
-              &rarr;</button></li>
-          <li><b>Volume is mandatory:</b> No volume spike = no conviction = skip. <button onclick="show('ind-volume')"
+          <li><b>Pattern + Level:</b> A pattern alone means nothing &mdash; it must sit AT support
+            or resistance. <button onclick="show('snr')"
+              style="background:none;border:none;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit;padding:0">Support
+              and Resistance &rarr;</button></li>
+          <li><b>Volume is mandatory:</b> No volume spike = no conviction = skip the trade. <button
+              onclick="show('ind-volume')"
               style="background:none;border:none;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit;padding:0">Volume
               &rarr;</button></li>
-          <li><b>Trend alignment:</b> Trade WITH the higher-timeframe trend. <button onclick="show('timeframe')"
+          <li><b>Trend alignment:</b> Trade WITH the higher-timeframe trend. <button
+              onclick="show('timeframe')"
               style="background:none;border:none;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit;padding:0">Timeframe
               &rarr;</button></li>
-          <li><b>Doji = pause:</b> Always wait for the next candle to confirm.</li>
-          <li><b>Trap awareness:</b> Failed breakouts &amp; liquidity sweeps flip direction. <button
-              onclick="show('traps')"
+          <li><b>Doji = pause:</b> Always wait for the next candle to confirm before acting.</li>
+          <li><b>Trap awareness:</b> Failed breakouts and liquidity sweeps flip the direction.
+            <button onclick="show('traps')"
               style="background:none;border:none;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit;padding:0">Traps
               &rarr;</button></li>
-          <li><b>Strike, expiry, sizing, SL:</b> Live in <button onclick="show('options')"
+          <li><b>Strike, expiry, sizing, stop loss:</b> Covered in <button onclick="show('options')"
               style="background:none;border:none;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit;padding:0">Options
               Trading &rarr;</button> and <button onclick="show('risk')"
               style="background:none;border:none;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit;padding:0">Risk
               Management &rarr;</button></li>
-          <li><b>When to trade:</b> Best windows, theta zones, expiry-day rules &mdash; see <button
-              onclick="show('checklist')"
+          <li><b>When to trade:</b> The best time windows, the Theta zones, the expiry-day rules
+            &mdash; see <button onclick="show('checklist')"
               style="background:none;border:none;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit;padding:0">Daily
               Checklist &rarr;</button></li>
         </ul>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; The Universal Pattern + Level
+        + Volume Setup (the only formula that works across every table above)</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>You spot a candle pattern from any table above (for example, a hammer, a bullish
+            engulfing, or a morning star). The pattern is forming AT a major level (the previous
+            day&rsquo;s low, the daily Volume Weighted Average Price, the Central Pivot Range Top
+            Central or Bottom Central, the 200-day Exponential Moving Average, or a horizontal
+            support / resistance from the daily chart). The volume on the pattern candle is greater
+            than 1.5 times the recent average. The higher-timeframe trend (the daily chart) agrees
+            with your trade direction.</dd>
+          <dt>Entry</dt>
+          <dd>Wait for the NEXT candle after the pattern to confirm the direction (a bullish
+            confirmation candle for a Call Option, a bearish confirmation candle for a Put Option).
+            BUY one lot of an At The Money Call Option or Put Option of the current-week expiry on
+            the next candle&rsquo;s open. Use a Limit order at the planned entry price (NOT a
+            Market order).</dd>
+          <dt>Stop Loss</dt>
+          <dd>Place the stop loss 5 to 10 points beyond the wick of the pattern candle on the spot
+            index (below the wick low for a Call Option, above the wick high for a Put Option). On
+            the option premium itself, set a hard stop at 30 percent loss. Place a
+            Stop-Loss-Market order on the broker IMMEDIATELY after your buy order is filled.</dd>
+          <dt>Target</dt>
+          <dd>Target 1 = the next clear support / resistance level on the chart (book 50 percent
+            here AND move the stop loss to your entry / break-even). Target 2 = the level after
+            that, OR a 1 to 3 risk-to-reward (book another 25 percent). Trail the rest with a stop
+            at the previous swing low (for a Call Option) or swing high (for a Put Option). Be flat
+            by 3:00 PM IST.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The pattern is NOT at a major level (it is just floating in mid-range &mdash; low
+            edge), OR the volume is below the recent average (no institutional commitment), OR the
+            higher-timeframe trend is against you (you would be fighting the daily flow), OR the
+            pattern is from the &quot;trap&quot; table above (those need the OPPOSITE action), OR
+            the India Volatility Index is above 22 (the Implied Volatility crush will damage your
+            premium even if you are right on direction).</dd>
+        </dl>
       </div>
 
     </div>

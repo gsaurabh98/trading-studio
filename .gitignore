@@ -13,6 +13,21 @@ build/
 *.log
 .npm
 
+# ── Secrets — NEVER commit (live broker tokens) ──────────
+# data/config.json holds the Upstox + Angel One JWTs that the local
+# dev app / server.py / backtest tooling auto-load. On a PUBLIC host
+# (GitHub Pages) it would be served at /data/config.json for anyone to
+# read AND would auto-inject YOUR token into every visitor's browser.
+# The runtime fetch handles its absence gracefully (404 → null → no-op),
+# so excluding it is safe: deployed users paste their own token instead.
+data/config.json
+# data/angel-one-creds.json holds api_key + client_code + pin + totp_secret
+# (the TOTP seed = full 2FA access to the Angel One account). Never commit.
+data/angel-one-creds.json
+# also catch any future *creds*/*secret* json under data/
+data/*creds*.json
+data/*secret*.json
+
 # ── Cloudflare Wrangler ──────────────────────────────────
 .wrangler/
 .dev.vars

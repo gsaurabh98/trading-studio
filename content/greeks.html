@@ -7,94 +7,152 @@
           <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg> Retail option buyers lose primarily because they ignore 3 of the 4 Greeks. They look only at Delta
-        (direction) &mdash; but <b>Theta bleeds the premium daily</b> and <b>IV crush can destroy it in minutes</b>.
-        Understanding all four turns random speculation into calculated trades.</div>
+        </svg> <b>What are &quot;the Greeks&quot;?</b> The Greeks are 4 simple numbers that explain
+        how the option premium moves. They are called &quot;Greeks&quot; because they are named
+        after Greek letters (Delta, Theta, Vega, Gamma).<br><br>
+        <b>Why beginners lose money:</b> Most retail traders look at only ONE Greek &mdash; Delta
+        (the direction). They forget that THREE other forces are working AGAINST them:<br>
+        &middot; <b>Theta</b> &mdash; the option loses value every day, like an ice cube melting.<br>
+        &middot; <b>Vega</b> &mdash; the option loses value when fear in the market drops.<br>
+        &middot; <b>Gamma</b> &mdash; the option becomes more sensitive close to expiry day (small
+        moves cause big premium swings).<br><br>
+        Understand these 4 numbers, and you stop losing money to forces you cannot even see.</div>
 
-      <div class="catdiv">THE 4 GREEKS YOU MUST KNOW</div>
+      <div class="catdiv">THINK OF THE 4 GREEKS LIKE THIS &mdash; A SIMPLE CAR ANALOGY</div>
+      <div class="infobox" style="border-left-color:var(--info)"><svg class="ico ico-info" viewBox="0 0 24 24"
+          aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg> Imagine your option premium is a CAR moving on a road. The 4 Greeks are different
+        forces affecting that car:<br>
+        &middot; <b>Delta</b> = the SPEED of the car (how fast premium moves with the index).<br>
+        &middot; <b>Theta</b> = a slow PUNCTURE in the tyre (the car loses speed every day, even
+        when standing still).<br>
+        &middot; <b>Vega</b> = the WEATHER (when fear / volatility changes, the road conditions
+        change).<br>
+        &middot; <b>Gamma</b> = the ACCELERATION (how fast the speed itself can change &mdash;
+        sudden braking or sudden burst).</div>
+
+      <div class="catdiv">THE 4 GREEKS YOU MUST KNOW &mdash; ONE BY ONE</div>
       <div class="pgrid md">
         <div class="card bull">
-          <div class="cname">&Delta; DELTA</div>
+          <div class="cname">&Delta; DELTA &mdash; THE SPEED</div>
           <div
             style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--bull);margin:8px 0">
             0.5</div>
-          <div class="badge bull">ATM OPTION</div>
-          <div class="cdesc">How much option price moves per &#8377;1 move in underlying. ATM Delta &asymp; 0.5. Deep
-            ITM &asymp; 1. Deep OTM &asymp; 0.1. Buy options with Delta &gt; 0.4 for responsive moves.</div>
+          <div class="badge bull">AT THE MONEY OPTION</div>
+          <div class="cdesc"><b>Plain English:</b> If Nifty moves &#8377;1, how much will the
+            option premium move?<br><br>
+            &middot; <b>At The Money option:</b> Delta is around 0.5 → if Nifty moves &#8377;1, the
+            premium moves &#8377;0.50.<br>
+            &middot; <b>Deep In The Money option:</b> Delta is around 1 → premium moves rupee-for-rupee
+            with Nifty.<br>
+            &middot; <b>Deep Out Of The Money option:</b> Delta is only 0.1 → premium barely moves.<br><br>
+            <b>Beginner rule:</b> Always buy options with Delta above 0.4. Anything below moves too
+            slowly to be worth your time.</div>
         </div>
         <div class="card bear">
-          <div class="cname">&Theta; THETA (TIME DECAY)</div>
+          <div class="cname">&Theta; THETA &mdash; THE TIME LEAK</div>
           <div
             style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--bear);margin:8px 0">
             -ve</div>
-          <div class="badge bear">YOUR ENEMY</div>
-          <div class="cdesc">Amount your option loses every single day even if price doesn't move. Theta accelerates
-            near expiry. NEVER hold options overnight near expiry &mdash; theta will destroy premium.</div>
+          <div class="badge bear">YOUR DAILY ENEMY</div>
+          <div class="cdesc"><b>Plain English:</b> How much premium does your option LOSE every day,
+            EVEN if Nifty does not move?<br><br>
+            Theta is always NEGATIVE for buyers. It is like a slow leak in your tyre &mdash; you are
+            losing money every day you hold.<br><br>
+            &middot; Day 1 of the week: Theta is small.<br>
+            &middot; Day before expiry: Theta is HUGE &mdash; the premium can drop 30-40 percent in
+            a single afternoon.<br><br>
+            <b>Beginner rule:</b> Never hold an At The Money weekly option overnight on the day
+            before expiry. Theta will destroy it.</div>
         </div>
         <div class="card neu">
-          <div class="cname">&nu; VEGA (VOLATILITY)</div>
+          <div class="cname">&nu; VEGA &mdash; THE FEAR FACTOR</div>
           <div
             style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--neutral);margin:8px 0">
             IV</div>
-          <div class="badge neu">WATCH CAREFULLY</div>
-          <div class="cdesc">How much option price changes with 1% change in IV. High IV = expensive options. Buy
-            options when IV is LOW. After events (results, budget), IV crashes = premium crashes even if price moves
-            right.</div>
+          <div class="badge neu">WATCH BEFORE EVENTS</div>
+          <div class="cdesc"><b>Plain English:</b> How much premium does your option lose or gain
+            when fear (volatility) in the market changes?<br><br>
+            Think of Vega as the &quot;fear premium&quot;. When traders are scared, they pay MORE
+            for options. When fear drops, the premium drops too &mdash; even if Nifty moves in your
+            favour.<br><br>
+            <b>Real example:</b> Before the Union Budget, the India Volatility Index might be 25
+            (high fear). After the Budget speech is done, fear drops to 15. Your option premium
+            also drops sharply &mdash; this is called &quot;Implied Volatility crush&quot; (or IV
+            crush).<br><br>
+            <b>Beginner rule:</b> Never buy options the day BEFORE a big event. The IV crush after
+            the event will hurt you.</div>
         </div>
         <div class="card info" style="border-left:3px solid var(--info)">
-          <div class="cname" style="color:var(--info)">&Gamma; GAMMA</div>
+          <div class="cname" style="color:var(--info)">&Gamma; GAMMA &mdash; THE ACCELERATION</div>
           <div
             style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--info);margin:8px 0">
             &Delta; rate</div>
-          <div class="badge info">ACCELERATION</div>
-          <div class="cdesc">Rate of change of Delta. High Gamma near ATM and near expiry. Weekly expiry options have
-            high Gamma &mdash; small moves can give large % returns but also large losses.</div>
+          <div class="badge info">EXPIRY DAY DRAMA</div>
+          <div class="cdesc"><b>Plain English:</b> How fast does Delta itself change?<br><br>
+            If Delta is the speed of the car, Gamma is the acceleration. High Gamma = the speed can
+            change very fast.<br><br>
+            &middot; Gamma is HIGHEST when the strike is At The Money AND expiry is close.<br>
+            &middot; This is why options on expiry day move WILDLY &mdash; one moment you are up
+            100 percent, the next you are down 50 percent.<br><br>
+            <b>Beginner rule:</b> Avoid weekly expiry-day options unless you are very experienced.
+            High Gamma cuts both ways &mdash; quick wins, but quicker losses.</div>
         </div>
       </div>
 
-      <div class="catdiv" style="margin-top:32px">DELTA SIGN &mdash; CE IS POSITIVE, PE IS NEGATIVE</div>
+      <div class="catdiv" style="margin-top:32px">DELTA: CALL OPTION IS POSITIVE, PUT OPTION IS NEGATIVE</div>
 
       <div class="infobox" style="background:rgba(9,168,110,.08);border-color:rgba(9,168,110,.35)"><svg
           class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="12" r="9" />
           <line x1="12" y1="11" x2="12" y2="16" />
           <circle cx="12" cy="8" r="0.8" fill="currentColor" stroke="none" />
-        </svg> The Delta number you see on most option chains (Zerodha, Upstox, Sensibull) is shown as a positive value for
-        CE and a <b>negative value for PE</b>. The minus sign is not a bug or a "loss indicator" &mdash; it tells you
-        <b>which direction the option profits from</b>. Read the rule below once and you will never confuse it again.</div>
+        </svg> <b>Confused by the minus sign?</b> When you open the option chain on Zerodha, Upstox,
+        or Sensibull, you see Delta as a positive number for Call Options and a NEGATIVE number for
+        Put Options.<br><br>
+        The minus sign is NOT a loss indicator. It just means &quot;this option moves in the
+        OPPOSITE direction to Nifty&quot;. A Put Option goes UP when Nifty goes DOWN &mdash; that
+        is what the minus sign is showing you.<br><br>
+        Read the two cards below once and you will never confuse it again.</div>
 
       <div class="pgrid md">
         <div class="card bull">
-          <div class="cname" style="color:var(--bull)">&Delta; CALL (CE) DELTA</div>
+          <div class="cname" style="color:var(--bull)">&Delta; CALL OPTION DELTA</div>
           <div
             style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--bull);margin:8px 0">
             0 to +1</div>
-          <div class="badge bull">POSITIVE &mdash; LONG NIFTY</div>
-          <div class="cdesc"><b>CE gains when Nifty goes UP.</b> Delta &asymp; +0.5 at ATM, &asymp; +0.9 deep ITM,
-            &asymp; +0.1 deep OTM. Holding a CE with Delta +0.5 is mathematically like being <b>long 0.5 lot of
-              Nifty</b>. <b>|Delta|</b> also gives you the <b>rough probability the option expires ITM</b> &mdash; ATM CE
-            (0.5) has ~50% chance, deep OTM CE (0.1) has ~10% chance.</div>
+          <div class="badge bull">POSITIVE &mdash; MOVES WITH NIFTY</div>
+          <div class="cdesc"><b>A Call Option goes UP when Nifty goes UP.</b> So its Delta is
+            POSITIVE.<br><br>
+            <b>Typical Delta values:</b><br>
+            &middot; At The Money Call Option: +0.5 (premium moves &#8377;0.5 for every &#8377;1
+            move in Nifty)<br>
+            &middot; Deep In The Money Call Option: +0.9 (almost rupee-for-rupee)<br>
+            &middot; Deep Out Of The Money Call Option: +0.1 (barely moves)<br><br>
+            <b>Bonus tip:</b> The Delta number also tells you the rough chance that the option will
+            be profitable at expiry. So an At The Money option (Delta 0.5) has roughly a 50 percent
+            chance, and a deep Out Of The Money option (Delta 0.1) has only a 10 percent chance.</div>
         </div>
         <div class="card bear">
-          <div class="cname" style="color:var(--bear)">&Delta; PUT (PE) DELTA</div>
+          <div class="cname" style="color:var(--bear)">&Delta; PUT OPTION DELTA</div>
           <div
             style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:2rem;color:var(--bear);margin:8px 0">
             &minus;1 to 0</div>
-          <div class="badge bear">NEGATIVE &mdash; SHORT NIFTY</div>
-          <div class="cdesc"><b>PE gains when Nifty goes DOWN.</b> Delta &asymp; &minus;0.5 at ATM, &asymp; &minus;0.9
-            deep ITM, &asymp; &minus;0.1 deep OTM. Holding a PE with Delta &minus;0.5 is mathematically like being
-            <b>short 0.5 lot of Nifty</b>. The minus sign just encodes the direction &mdash; <b>magnitude</b> still tells
-            you sensitivity and approximate ITM-probability.</div>
+          <div class="badge bear">NEGATIVE &mdash; MOVES OPPOSITE TO NIFTY</div>
+          <div class="cdesc"><b>A Put Option goes UP when Nifty goes DOWN.</b> So its Delta is
+            NEGATIVE (the minus sign just shows the opposite direction).<br><br>
+            <b>Typical Delta values:</b><br>
+            &middot; At The Money Put Option: -0.5<br>
+            &middot; Deep In The Money Put Option: -0.9<br>
+            &middot; Deep Out Of The Money Put Option: -0.1<br><br>
+            <b>Ignore the minus sign for the chance calculation.</b> A Put Option with Delta -0.5
+            also has roughly a 50 percent chance of being profitable at expiry. The size of the
+            number is what matters &mdash; the sign just tells you direction.</div>
         </div>
       </div>
-
-      <div class="infobox" style="margin-top:0"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="9" />
-          <line x1="12" y1="11" x2="12" y2="16" />
-          <circle cx="12" cy="8" r="0.8" fill="currentColor" stroke="none" />
-        </svg> <b>Mental model:</b> Delta is the <b>signed slope</b> of the option's price-vs-Nifty curve. <b>Sign = which
-          way the option leans</b> (CE leans up, PE leans down). <b>Magnitude = how steeply</b> (ATM ~ 0.5, ITM closer to
-        1, OTM closer to 0). Two facts in one number.</div>
 
       <div class="catdiv" style="margin-top:24px">WORKED EXAMPLE &mdash; SAME NIFTY MOVE, OPPOSITE P&amp;L</div>
 
@@ -469,13 +527,44 @@
             <path d="M8.5 12.5 11 15l4.5-6" />
           </svg> BEGINNER RULE OF THUMB &mdash; PICK YOUR STRIKE</h3>
         <ul>
-          <li><b>Expiry day (0 DTE):</b> <u>Only</u> ATM or 1-strike ITM. OTM is a trap &mdash; theta kills you in
-            minutes.</li>
-          <li><b>1&ndash;3 days to expiry:</b> ATM or slightly ITM. Delta &ge; 0.45.</li>
-          <li><b>4+ days to expiry:</b> You can use slightly OTM if you expect a big move, but ATM stays safest.</li>
-          <li><b>Never:</b> Far OTM "cheap" options. The maths is against you &mdash; the whole reason they are cheap is
-            because they have a &lt;20% chance of paying out.</li>
+          <li><b>Expiry day (0 Days To Expiry):</b> <u>ONLY</u> At The Money or 1-strike In The Money.
+            Out Of The Money is a trap &mdash; Theta kills you in minutes.</li>
+          <li><b>1 to 3 days to expiry:</b> At The Money or slightly In The Money. Delta should be 0.45
+            or more.</li>
+          <li><b>4 or more days to expiry:</b> You can use slightly Out Of The Money if you expect a big
+            move, but At The Money stays the safest choice.</li>
+          <li><b>Never:</b> Buy far Out Of The Money &quot;cheap&quot; options. The maths is stacked
+            against you &mdash; the entire reason they are cheap is that they have less than a 20
+            percent chance of paying out.</li>
         </ul>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; The Greeks-aware option buy
+        (avoid the &quot;right direction, still lost&quot; trap)</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>You have a clean directional signal on Nifty (a candle pattern at support / resistance with
+            volume confirmation). India Volatility Index is between 12 and 16 (so Implied Volatility is
+            on the cheaper side, NOT inflated). It is between 9:30 AM and 12:00 PM IST. There are at
+            least 3 days left until expiry.</dd>
+          <dt>Entry</dt>
+          <dd>Buy the <b>At The Money</b> strike of the <b>current-week expiry</b>. Confirm Delta is at
+            least 0.45 on your broker's option chain. Use a limit order at the mid-price.</dd>
+          <dt>Stop Loss</dt>
+          <dd>30 percent loss on the option premium &mdash; this is a hard stop, no exceptions. So if
+            you bought at &#8377;100, exit at &#8377;70.</dd>
+          <dt>Target</dt>
+          <dd>Book 50 percent of the position when the premium gains 50 percent. Trail the rest with the
+            Volume Weighted Average Price line on Nifty's 5-minute chart. Aim to close the entire
+            position before 2:30 PM IST &mdash; do NOT let Theta decay accelerate against you in the
+            final hour.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>India Volatility Index is above 22 (premiums are too inflated, so an Implied Volatility
+            crush will hurt you), OR there is a major event (Reserve Bank of India meeting, Federal
+            Reserve announcement, quarterly results) within the next 24 hours, OR the option expires
+            tomorrow (Theta will eat you alive overnight).</dd>
+        </dl>
       </div>
 
       <div class="catdiv" style="margin-top:32px">DTE (DAYS TO EXPIRY) &mdash; HOW THETA ACCELERATES</div>
@@ -542,20 +631,22 @@
         <ul>
           <li><b style="color:var(--bull)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="9,6 15,12 9,18" />
-              </svg> DELTA:</b> Pick options with Delta &gt; 0.4 (ATM or slightly ITM) for responsive moves. Deep OTM
-            has low Delta and near-zero hope.</li>
+              </svg> DELTA:</b> Pick options with Delta greater than 0.4 (At The Money or slightly In
+            The Money) for responsive moves. Deep Out Of The Money has very low Delta and near-zero
+            hope.</li>
           <li><b style="color:var(--bear)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="9,6 15,12 9,18" />
-              </svg> THETA:</b> Your daily rent. Pay attention after 2 PM on expiry day &mdash; premium can halve in 30
-            minutes on a stagnant index.</li>
+              </svg> THETA:</b> Your daily rent. Pay attention after 2 PM on expiry day &mdash; the
+            premium can be cut in half in 30 minutes on a stagnant index.</li>
           <li><b style="color:var(--neutral)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="9,6 15,12 9,18" />
-              </svg> VEGA:</b> Check India VIX. Below 13 &rarr; IV expansion tailwind. Above 20 &rarr; IV contraction
-            risk. Never buy options just before scheduled events.</li>
+              </svg> VEGA:</b> Check the India Volatility Index. Below 13 means an Implied Volatility
+            expansion tailwind. Above 20 means an Implied Volatility contraction risk. Never buy options
+            just before scheduled events.</li>
           <li><b style="color:var(--info)"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="9,6 15,12 9,18" />
-              </svg> GAMMA:</b> Weekly expiries have the highest Gamma. Small index moves = outsized P&amp;L. Great when
-            you're right, devastating when you're wrong.</li>
+              </svg> GAMMA:</b> Weekly expiries have the highest Gamma. Small index moves equal
+            outsized profits or losses. Great when you are right, devastating when you are wrong.</li>
         </ul>
       </div>
 

@@ -1,0 +1,1346 @@
+    <div class="wrap">
+      <div class="shead sw-hero">
+        <h2>Swing Trade Analyzer</h2>
+        <button type="button" class="sw-api-pill" id="sw-api-pill"
+          onclick="show('api-setup')" title="Manage Upstox API token">
+          <span class="sw-api-dot" id="sw-api-dot"></span>
+          <span id="sw-api-pill-label">Connect API</span>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
+            stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83
+              2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0
+              00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65
+              1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0
+              010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0
+              00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65
+              1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0
+              012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0
+              001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65
+              1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0
+              010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65
+              0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- ─── SECTOR DISCOVERY ───
+           Sector cards are rendered from `data/sectors.json` by
+           swingInitSectors() (called from wire()). Clicking a card
+           bulk-fetches LTPs via Upstox and renders the in-range
+           stock list inside the panel below. Click a stock row to
+           run the existing analyze() and populate the result panel
+           further down the page. -->
+      <!-- API pause master switch.
+           Always visible at the top of the swing section so the user
+           can quickly verify whether swing is allowed to hit Upstox.
+           When PAUSED:
+             &bull; bulk scan refuses to start
+             &bull; single-stock analyze() returns with an explainer
+             &bull; sector LTP fetches refuse
+           Browsing cached verdicts (today's tile) + last-known sector
+           quotes still works \u2014 just no fresh HTTP fires. Built after
+           the bulk scan burned through the user's Cloudflare budget
+           and IP-blocked them out of Options Trading for hours. -->
+      <div class="sw-api-pause-banner" id="sw-api-pause-banner"
+        data-state="active" aria-label="Swing API access toggle"></div>
+
+      <div class="sw-sector-card">
+        <!-- Grid of sector buttons (12 cards). The grid host stays
+             empty until swingInitSectors() loads data/sectors.json
+             and paints; failure shows a Retry button inline.
+             Now the FIRST thing in the card so the index/sector/watchlist
+             tiles lead; the heading + search sit below it. -->
+        <div class="sw-sector-grid" id="sw-sector-grid">
+          <div class="sw-sector-grid-loading">Loading sectors&hellip;</div>
+        </div>
+
+        <!-- Heading + cross-sector global stock search. Moved below the
+             sector grid (together) so the index/sector/watchlist cards are
+             the first thing the user sees; the heading + search are the
+             fallback "I know the company but not its sector" path beneath.
+             Search matches sym + name across every stock in
+             data/sectors.json as a pure DOM autocomplete (no network). -->
+        <div class="sw-sector-head">
+          <h3>PICK A STOCK</h3>
+          <span class="sw-sector-head-sub">
+            Browse by <b>index</b>, <b>sector</b>, or your own
+            <b>watchlist</b> &mdash; or search any NSE/BSE symbol below.
+          </span>
+        </div>
+        <div class="sw-global-search-wrap">
+          <svg class="sw-global-search-icon" width="16" height="16"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.4" stroke-linecap="round"
+               stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="search"
+            class="sw-global-search"
+            id="sw-global-search-input"
+            placeholder="Search any stock &mdash; e.g. L&amp;T, RELIANCE, TCS, INFY, HDFC&hellip;"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Search any stock across all sectors"
+            aria-controls="sw-global-search-results"
+            aria-autocomplete="list"
+            oninput="swingGlobalSearch(this.value)"
+            onfocus="swingGlobalSearch(this.value)"
+            onkeydown="if(event.key==='Escape'){this.value='';swingGlobalSearch('');this.blur();}"
+          />
+          <button
+            type="button"
+            class="sw-global-search-clear"
+            id="sw-global-search-clear"
+            title="Clear search"
+            aria-label="Clear search"
+            onclick="(function(){var el=document.getElementById('sw-global-search-input');if(el){el.value='';el.focus();}swingGlobalSearch('');})()"
+            hidden
+          >&times;</button>
+          <div
+            class="sw-global-search-results"
+            id="sw-global-search-results"
+            role="listbox"
+            hidden
+          ></div>
+        </div>
+
+        <!-- Scannable-universe size + active price band. Filled by
+             swingRenderUniverseStat() once data/sectors.json +
+             instruments-index.json resolve. Sits under the sector cards
+             so the count is visible independent of the (optional)
+             Today's Setups scan tile below. -->
+        <div class="sw-universe-stat" id="sw-universe-stat" aria-live="polite"></div>
+
+        <!-- Stocks-in-sector panel (the drill-down detail table). Empty
+             until a sector card or a Today's-Setups / search row is
+             clicked. Placed directly under the sector grid (above Today's
+             Setups) so picking a sector shows its stock list right where the
+             user is looking. Empty in source = zero height, so it adds no
+             gap until a sector is opened. Click handlers scroll it / the
+             chart into view. -->
+        <div class="sw-sector-panel-host" id="sw-sector-panel"></div>
+
+        <!-- Today's Setups tile (Phase 0 discovery loop).
+             Single panel with two states:
+               &bull; Empty (no compute has run yet) &mdash; shows a
+                 short pitch + the "Compute today's verdicts" CTA.
+               &bull; Populated (localStorage has a verdicts payload)
+                 &mdash; shows the top BUY setups across the universe
+                 with a Re-compute / Export header.
+             The entire HTML is painted by renderTodaySetups() in the
+             swing module, so this host stays empty in source &mdash;
+             first paint runs from swingInitSectors(). -->
+        <div class="sw-today" id="sw-today-setups"
+          aria-label="Today's setups (full-universe deep recommendations)"></div>
+      </div>
+
+      <!-- ─── 2. ANALYSIS RESULT (hidden until first analyze) ─── -->
+      <div class="sw-result" id="sw-result" hidden>
+
+        <!-- 2a. Big interactive price chart with timeframe switcher.
+             Sits at the TOP of the result panel because it is the
+             single most useful artefact after clicking ANALYZE — the
+             user wants to see the stock's structure first, then read
+             the bias / plan / breakdown below for context. Uses the
+             same Lightweight Charts engine + LIVE polling as Paper Trading.
+             1W / 1D / 1H buffers are pre-warm from analyze(); 1M and
+             5m fetch on first click and then sit in cache. -->
+        <div class="sw-chart-section">
+          <!-- Toolbar — above chart -->
+          <div class="sw-chart-toolbar">
+            <div class="sw-chart-title">
+              <span class="sw-chart-title-sym" id="sw-chart-title-sym">&mdash;</span>
+              <span class="sw-chart-title-name" id="sw-chart-title-name"></span>
+              <span class="sw-chart-live" id="sw-chart-live-badge"></span>
+            </div>
+            <div class="sw-chart-tf-group" id="sw-chart-tf-group">
+              <button class="sw-chart-tf-btn" type="button" data-tf="1mo">1M</button>
+              <button class="sw-chart-tf-btn" type="button" data-tf="1w">1W</button>
+              <button class="sw-chart-tf-btn active" type="button" data-tf="1d">1D</button>
+              <button class="sw-chart-tf-btn" type="button" data-tf="4h">4H</button>
+              <button class="sw-chart-tf-btn" type="button" data-tf="1h">1H</button>
+              <button class="sw-chart-tf-btn" type="button" data-tf="30m">30m</button>
+              <button class="sw-chart-tf-btn" type="button" data-tf="15m">15m</button>
+              <button class="sw-chart-tf-btn" type="button" data-tf="5m">5m</button>
+            </div>
+          </div>
+          <div class="sw-chart-legend" id="sw-chart-legend">
+            <span class="sw-chart-legend-it sw-ind-toggle sw-ind-fib" data-ind="fib" id="sw-fib-toggle" onclick="window.swToggleInd('fib',this)" title="Toggle Fibonacci retracement levels (golden pocket)"><span class="sw-chart-dot" style="background:#eab308"></span>FIB</span>
+            <span class="sw-chart-legend-sep"></span>
+            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="ema20" onclick="window.swToggleInd('ema20',this)" title="Toggle EMA 20"><span class="sw-chart-dot" style="background:#3b82f6"></span>EMA 20</span>
+            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="ema50" onclick="window.swToggleInd('ema50',this)" title="Toggle EMA 50"><span class="sw-chart-dot" style="background:#f97316"></span>EMA 50</span>
+            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="ema200" onclick="window.swToggleInd('ema200',this)" title="Toggle EMA 200"><span class="sw-chart-dot" style="background:#9333ea"></span>EMA 200</span>
+            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="sma44" onclick="window.swToggleInd('sma44',this)" title="Toggle SMA 44"><span class="sw-chart-dot" style="background:#d97706"></span>SMA 44</span>
+            <span class="sw-chart-legend-sep"></span>
+            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="zoi" onclick="window.swToggleInd('zoi',this)" title="Toggle Supply/Demand Zones"><span class="sw-chart-dot" style="background:#8b5cf6"></span>ZOI</span>
+            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="fvg" onclick="window.swToggleInd('fvg',this)" title="Fair Value Gaps — precise entry zones inside demand/supply"><span class="sw-chart-dot" style="background:#3b82f6"></span>FVG</span>
+            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="ob" onclick="window.swToggleInd('ob',this)" title="Order Blocks — last opposite candle before a structure-breaking move (institutional entry zone)"><span class="sw-chart-dot" style="background:#14b8a6"></span>OB</span>
+            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="bos" onclick="window.swToggleInd('bos',this)" title="Break of Structure / Change of Character — trend direction"><span class="sw-chart-dot" style="background:#eab308"></span>BOS</span>
+            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="liq" onclick="window.swToggleInd('liq',this)" title="Liquidity Sweeps — institutional order confirmation"><span class="sw-chart-dot" style="background:#f59e0b"></span>LIQ</span>
+            <span class="sw-chart-legend-sep"></span>
+            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="chartpatterns" onclick="window.swToggleInd('chartpatterns',this)" title="Chart patterns — Head &amp; Shoulders, Double Top/Bottom, Cup &amp; Handle (neckline + measured-move target/invalidation)"><span class="sw-chart-dot" style="background:#e879f9"></span>CP</span>
+          </div>
+          <div class="sw-chart-levels-row" id="sw-chart-legend-levels" hidden></div>
+          <!-- Chart canvas -->
+          <div class="sw-chart" id="sw-chart"></div>
+          <div class="sw-chart-nav" id="sw-chart-nav">
+            <button type="button" class="sw-chart-nav-btn" onclick="window.swChartNav('out')" title="Zoom out (show more candles)">−</button>
+            <button type="button" class="sw-chart-nav-btn" onclick="window.swChartNav('in')" title="Zoom in (show fewer candles)">+</button>
+            <button type="button" class="sw-chart-nav-btn" onclick="window.swChartNav('left')" title="Scroll left (older)">‹</button>
+            <button type="button" class="sw-chart-nav-btn" onclick="window.swChartNav('right')" title="Scroll right (newer)">›</button>
+            <button type="button" class="sw-chart-nav-btn" onclick="window.swChartNav('reset')" title="Reset view (fit all data)">↺</button>
+          </div>
+          <div class="sw-chart-status" id="sw-chart-status">&mdash;</div>
+          <!-- Trade plan banner — Buy zone / T1 / T2 / SL / R:R, shown only for fib view -->
+          <div class="sw-trade-plan" id="sw-trade-plan" hidden></div>
+        </div>
+
+        <!-- Recommendation-basis banner — its OWN block below the chart,
+             INDEPENDENT of the scan. Picks how the verdict/signal below is
+             computed for the open chart (Fib only / ZOI only / Fib+ZOI).
+             window.swSetRecoMode(); active button + description synced on
+             every repaint. Does NOT change chart overlays (legend chips). -->
+        <div class="sw-reco-banner" id="sw-reco-banner">
+          <div class="sw-reco-banner-main">
+            <span class="sw-reco-banner-icon" aria-hidden="true">&#9678;</span>
+            <span class="sw-reco-banner-text">
+              <span class="sw-reco-banner-title">Recommendation</span>
+              <span class="sw-reco-banner-desc" id="sw-reco-mode-desc">Signals only when price is inside the 61.8&ndash;80% Fib golden pocket (the OTE discount zone).</span>
+            </span>
+          </div>
+          <div class="sw-reco-controls">
+            <!-- Recommendation TIMEFRAME — drives the verdict + analysis
+                 cards. LOCKED to the chart's TF buttons (2026-06): changing
+                 this also re-renders the chart on the same TF, and changing a
+                 chart TF moves this control too, so the overlay + cards always
+                 share one timeframe. window.swSetRecoTf().
+                 1M/1W/1D/4H/1H emit a BUY/WAIT signal; 30m/15m/5m are
+                 CARDS-ONLY (Fib + ZOI structure, NO buy/sell signal — too
+                 fast to frame a reliable swing leg). -->
+            <div class="sw-reco-ctrl-row">
+              <span class="sw-reco-ctrl-label">Timeframe</span>
+              <div class="sw-reco-mode sw-reco-tf" role="radiogroup" aria-label="Recommendation timeframe">
+                <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn" data-recotf="1mo" role="radio" aria-checked="false" onclick="window.swSetRecoTf('1mo')">1M</button>
+                <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn" data-recotf="1w" role="radio" aria-checked="false" onclick="window.swSetRecoTf('1w')">1W</button>
+                <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn active" data-recotf="1d" role="radio" aria-checked="true" onclick="window.swSetRecoTf('1d')">1D</button>
+                <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn" data-recotf="4h" role="radio" aria-checked="false" onclick="window.swSetRecoTf('4h')">4H</button>
+                <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn" data-recotf="1h" role="radio" aria-checked="false" onclick="window.swSetRecoTf('1h')">1H</button>
+                <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn sw-reco-tf-nosignal" data-recotf="30m" role="radio" aria-checked="false" title="Cards only — no buy/sell signal on this timeframe" onclick="window.swSetRecoTf('30m')">30m</button>
+                <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn sw-reco-tf-nosignal" data-recotf="15m" role="radio" aria-checked="false" title="Cards only — no buy/sell signal on this timeframe" onclick="window.swSetRecoTf('15m')">15m</button>
+                <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn sw-reco-tf-nosignal" data-recotf="5m" role="radio" aria-checked="false" title="Cards only — no buy/sell signal on this timeframe" onclick="window.swSetRecoTf('5m')">5m</button>
+              </div>
+            </div>
+            <!-- Recommendation BASIS (Fib / ZOI / Fib+ZOI). -->
+            <div class="sw-reco-ctrl-row">
+              <span class="sw-reco-ctrl-label">Basis</span>
+              <div class="sw-reco-mode" id="sw-reco-mode" role="radiogroup" aria-label="Recommendation basis">
+                <button type="button" class="sw-reco-mode-btn active" data-reco="FIB" role="radio" aria-checked="true" onclick="window.swSetRecoMode('FIB')">Fib only</button>
+                <button type="button" class="sw-reco-mode-btn" data-reco="ZOI" role="radio" aria-checked="false" onclick="window.swSetRecoMode('ZOI')">ZOI only</button>
+                <button type="button" class="sw-reco-mode-btn" data-reco="FIB_ZOI" role="radio" aria-checked="false" onclick="window.swSetRecoMode('FIB_ZOI')">Fib + ZOI</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zone & Signal Analysis Cards — visually separate from chart -->
+        <div class="sw-analysis-cards-section">
+          <div class="sw-analysis-cards-header">
+            <span class="sw-analysis-cards-icon">&#9670;</span>
+            Zone &amp; Signal Analysis
+          </div>
+
+          <!-- Risk Context — informational risk factors (Trend / Regime /
+               Structure / R:R / higher-TF bias) for the verdict on the
+               currently selected chart timeframe. Moved here so all the
+               signal context lives together in this panel. Recomputed live on
+               chart-TF change (swing TFs: 1M / 1W / 1D); NEVER vetoes the
+               signal. Populated by swPaintVerdict(); hidden until analyzed. -->
+          <div class="sw-risk-ctx" id="sw-risk-ctx" hidden></div>
+
+          <!-- Expected Move — probability cone (±range at 68% / 95%) for the
+               selected swing TF's horizons, centered on the live LTP. A
+               statistical RANGE from historical volatility (σ of bar returns
+               scaled √time) — it sizes stops/targets to reality and never
+               predicts direction. Populated by _swPaintExpectedMove(); hidden
+               until analyzed / when σ can't be computed. -->
+          <div class="sw-expected-move" id="sw-expected-move" hidden></div>
+
+          <!-- (Full Signal Detail banner removed 2026-06-06 — it duplicated the
+               FIB/ZOI cards below + the scan-table hover tooltip. The zone cards
+               below each render in their own horizontal flex-wrap row.) -->
+
+          <!-- Candlestick pattern cards — the most-recent Tier-1 patterns
+               plotted on the chart, with their zone/location verdict and a
+               plain-English read. Driven by the SAME detection as the chart
+               arrows (drawPatternMarkers → _swPaintPatternCards), so cards
+               and arrows always agree. Tap a card to centre the chart on
+               that bar. Hidden until a pattern is detected. -->
+          <div class="sw-pattern-cards" id="sw-pattern-cards" hidden></div>
+
+          <!-- Geometric chart-pattern cards — Head & Shoulders, Double
+               Top/Bottom, Cup & Handle. Driven by scripts/chart-patterns.js
+               (same detection as the chart neckline/target overlay). Each
+               card shows the pattern, its state (WATCH until the neckline
+               breaks → CONFIRMED), the measured-move target + invalidation,
+               and a zone/location verdict. Follows the recommendation TF.
+               Tap a card to centre the chart on it. Hidden until detected. -->
+          <div class="sw-cp-cards" id="sw-chart-pattern-cards" hidden></div>
+
+          <div class="sw-fib-grouphead-outer" id="sw-fib-grouphead" hidden></div>
+          <div class="sw-fib-signal-row">
+            <div class="sw-fib-cards" id="sw-fib-cards" hidden></div>
+            <div class="sw-fib-signal-col" id="sw-fib-signal-col" hidden></div>
+          </div>
+          <div class="sw-zoi-cards" id="sw-zoi-cards" hidden></div>
+          <div class="sw-fvg-cards" id="sw-fvg-cards" hidden></div>
+          <div class="sw-ob-cards" id="sw-ob-cards" hidden></div>
+          <div class="sw-bos-cards" id="sw-bos-cards" hidden></div>
+          <div class="sw-liq-cards" id="sw-liq-cards" hidden></div>
+        </div>
+
+        <!-- Chart interpretation guide — collapsible reference, own container -->
+        <div class="sw-smc-guide" id="sw-smc-guide">
+            <div class="sw-smc-guide-toggle" onclick="this.parentElement.classList.toggle('open')">
+              <span class="sw-smc-guide-icon">&#9432;</span>
+              <span>How to Read the Chart &mdash; Colour Key &amp; Step-by-Step Workflow</span>
+              <span class="sw-smc-guide-arrow">&#9662;</span>
+            </div>
+            <div class="sw-smc-guide-body">
+              <p class="sw-smc-guide-intro">Think of this as a checklist, not &ldquo;show everything at once&rdquo;. Start with the colour key below, then toggle each layer on/off as you work through the steps.</p>
+
+              <!-- Colour / label key — what every card colour & tag means.
+                   Merged here (May 2026) so there's a single reference banner
+                   instead of a separate "How to read these cards" strip. -->
+              <div class="sw-guide-col-title">Colour &amp; Label Key</div>
+              <div class="sw-guide-keys">
+                <div class="sw-guide-key-group">
+                  <div class="sw-legend-group">Supply &amp; Demand Zones</div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--zone-dem">DEMAND</span><span class="sw-legend-txt">Green zone &mdash; buyers previously overwhelmed sellers; price tends to bounce up from here (support).</span></div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--zone-sup">SUPPLY</span><span class="sw-legend-txt">Red zone &mdash; sellers previously overwhelmed buyers; price tends to drop from here (resistance).</span></div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--neutral">NONE</span><span class="sw-legend-txt">Dashed card &mdash; no qualifying zone on that side; the reason it was skipped is shown inside the card.</span></div>
+                </div>
+
+                <div class="sw-guide-key-group">
+                  <div class="sw-legend-group">Fair Value Gaps</div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--fvg-bull">FVG</span><span class="sw-legend-txt">Bullish FVG (blue) &mdash; gap left by a fast up-move; price often dips back to fill it, then continues up (support).</span></div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--fvg-bear">FVG</span><span class="sw-legend-txt">Bearish FVG (orange) &mdash; gap left by a fast down-move; price often pops back to fill it, then continues down (resistance).</span></div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--neutral">Fill %</span><span class="sw-legend-txt">How far a later <b>wick</b> has reached into the gap. 0% = fresh / untouched (strongest); reaching the <b>50% midpoint</b> counts as fully filled; 90%+ = mitigated, so the box is dropped. A wick to the middle retires the gap &mdash; no full fill or candle close needed.</span></div>
+                </div>
+
+                <div class="sw-guide-key-group">
+                  <div class="sw-legend-group">Order Blocks</div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--ob-bull">BULL OB</span><span class="sw-legend-txt">Teal zone &mdash; the last down candle before a strong move up that broke structure. Big buyers loaded here; price often bounces when it returns (a buy zone, stop just below).</span></div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--ob-bear">BEAR OB</span><span class="sw-legend-txt">Magenta zone &mdash; the last up candle before a strong move down that broke structure. Big sellers loaded here; price often gets rejected when it returns (a sell / take-profit zone, stop just above).</span></div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--neutral">FRESH / USED</span><span class="sw-legend-txt">FRESH = price hasn&rsquo;t come back to the zone yet (strongest). USED (Nx) = price already tapped it N time(s), so it&rsquo;s weaker. If price ever <b>closes</b> through the zone it&rsquo;s broken and dropped from view.</span></div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--neutral">with trend / trend flip</span><span class="sw-legend-txt">&ldquo;with trend&rdquo; = the move out of the zone continued the trend (more reliable). &ldquo;trend flip&rdquo; = it reversed the trend (earlier, higher risk). &ldquo;+ price gap&rdquo; = a Fair Value Gap inside the move adds confirmation.</span></div>
+                </div>
+
+                <div class="sw-guide-key-group">
+                  <div class="sw-legend-group">Market Structure</div>
+                  <div class="sw-legend-row"><span class="sw-bos-tag sw-bos-tag--bull-bos">&#9650; BOS</span><span class="sw-legend-txt">Bullish Break of Structure &mdash; uptrend continues (closed above a swing high).</span></div>
+                  <div class="sw-legend-row"><span class="sw-bos-tag sw-bos-tag--bear-bos">&#9660; BOS</span><span class="sw-legend-txt">Bearish Break of Structure &mdash; downtrend continues (closed below a swing low).</span></div>
+                  <div class="sw-legend-row"><span class="sw-bos-tag sw-bos-tag--bull-choch">&#9650; CHoCH</span><span class="sw-legend-txt">Bullish Change of Character &mdash; possible turn UP (first higher break against a downtrend).</span></div>
+                  <div class="sw-legend-row"><span class="sw-bos-tag sw-bos-tag--bear-choch">&#9660; CHoCH</span><span class="sw-legend-txt">Bearish Change of Character &mdash; possible turn DOWN (first lower break against an uptrend).</span></div>
+                  <div class="sw-legend-row"><span class="sw-bos-swing-tag sw-bos-swing--up">HH / HL</span><span class="sw-legend-txt">Higher High / Higher Low &mdash; building bullish structure.</span></div>
+                  <div class="sw-legend-row"><span class="sw-bos-swing-tag sw-bos-swing--down">LH / LL</span><span class="sw-legend-txt">Lower High / Lower Low &mdash; building bearish structure.</span></div>
+                </div>
+
+                <div class="sw-guide-key-group">
+                  <div class="sw-legend-group">Liquidity Sweeps</div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--liq-high">&#10006;</span><span class="sw-legend-txt">Sweep High (red &#10006;) &mdash; price wicked above equal highs, grabbed buy-stops, then reversed DOWN (bearish bias).</span></div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--liq-low">&#10006;</span><span class="sw-legend-txt">Sweep Low (green &#10006;) &mdash; price wicked below equal lows, grabbed sell-stops, then reversed UP (bullish bias).</span></div>
+                  <div class="sw-legend-row"><span class="sw-legend-sw sw-legend-sw--liq-lvl">$$$</span><span class="sw-legend-txt">Liquidity level (amber dotted line) &mdash; a cluster of equal highs/lows where stop-loss orders pool.</span></div>
+                </div>
+              </div>
+
+              <div class="sw-guide-section-divider"></div>
+
+              <div class="sw-guide-grid">
+                <!-- LEFT column: Steps + In short -->
+                <div class="sw-guide-col">
+                  <div class="sw-guide-col-title">Step-by-Step Workflow</div>
+
+                  <div class="sw-smc-step">
+                    <div class="sw-smc-step-num">1</div>
+                    <div class="sw-smc-step-content">
+                      <div class="sw-smc-step-title">Identify the Zone <span class="sw-smc-step-tools">ZOI + Fib &mdash; always on</span></div>
+                      <div class="sw-smc-step-desc">
+                        Look at where the <strong>demand/supply zones</strong> sit relative to <strong>Fibonacci levels</strong>.<br>
+                        &bull; A demand zone that lines up with the <strong>61.8%&ndash;80% Fib golden pocket</strong> = high-probability buy zone.<br>
+                        &bull; A supply zone near the <strong>0%&ndash;23.6% Fib level</strong> = high-probability sell zone.<br>
+                        This answers: <em>&ldquo;Where should I look?&rdquo;</em>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="sw-smc-step">
+                    <div class="sw-smc-step-num">2</div>
+                    <div class="sw-smc-step-content">
+                      <div class="sw-smc-step-title">Check the Trend <span class="sw-smc-step-tools">Toggle BOS on</span></div>
+                      <div class="sw-smc-step-desc">
+                        Turn on <strong>BOS</strong> to see if the current market structure supports your trade direction.<br>
+                        &bull; Demand zone below price + trend badge says <strong>BULLISH</strong> (HH + HL pattern) = the zone is trustworthy.<br>
+                        &bull; Trend is <strong>BEARISH</strong> (LH + LL pattern) + you see a demand zone = be cautious, it might break.<br>
+                        &bull; A <strong>CHoCH</strong> label means the trend just flipped &mdash; this is the earliest reversal signal.<br>
+                        After checking, you can toggle BOS off again.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="sw-smc-step">
+                    <div class="sw-smc-step-num">3</div>
+                    <div class="sw-smc-step-content">
+                      <div class="sw-smc-step-title">Refine the Entry <span class="sw-smc-step-tools">Toggle FVG on</span></div>
+                      <div class="sw-smc-step-desc">
+                        ZOI gives you a zone (e.g. &#8377;950&ndash;990), but that&rsquo;s a 40-point range.<br>
+                        Toggle <strong>FVG</strong> on to find a <strong>precise entry</strong> &mdash; a Fair Value Gap inside the demand zone narrows it to e.g. &#8377;965&ndash;972.<br>
+                        This is your limit order level.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="sw-smc-step">
+                    <div class="sw-smc-step-num">4</div>
+                    <div class="sw-smc-step-content">
+                      <div class="sw-smc-step-title">Confirm Smart Money Participation <span class="sw-smc-step-tools">Toggle LIQ on</span></div>
+                      <div class="sw-smc-step-desc">
+                        Before entering, check if there&rsquo;s been a <strong>liquidity sweep</strong> near your zone.<br>
+                        &bull; Price swept below equal lows (grabbed stops) and reversed back into the demand zone = <strong>smart money loaded their position</strong> &mdash; highest conviction signal.<br>
+                        The <strong>$$$</strong> markers show you where this happened.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="sw-smc-confluence">
+                    <div class="sw-smc-confluence-title">In short</div>
+                    <div class="sw-smc-confluence-row"><span class="sw-smc-check">&#10003;</span> <strong>ZOI</strong> = <em>&ldquo;Where to look&rdquo;</em></div>
+                    <div class="sw-smc-confluence-row"><span class="sw-smc-check">&#10003;</span> <strong>BOS</strong> = <em>&ldquo;Which direction&rdquo;</em></div>
+                    <div class="sw-smc-confluence-row"><span class="sw-smc-check">&#10003;</span> <strong>FVG</strong> = <em>&ldquo;Exact entry price&rdquo;</em></div>
+                    <div class="sw-smc-confluence-row"><span class="sw-smc-check">&#10003;</span> <strong>OB</strong> = <em>&ldquo;Where big money entered&rdquo;</em></div>
+                    <div class="sw-smc-confluence-row"><span class="sw-smc-check">&#10003;</span> <strong>LIQ</strong> = <em>&ldquo;Confirmation&rdquo;</em></div>
+                    <div class="sw-smc-confluence-hint">You don&rsquo;t need all four visible at once. Toggle them on/off as you work through the checklist. More checkmarks = higher probability trade.</div>
+                  </div>
+                </div>
+
+                <!-- RIGHT column: Confidence + Timeframes -->
+                <div class="sw-guide-col">
+                  <div class="sw-guide-col-title">Buy Signal Confidence &mdash; Fib + ZOI</div>
+
+                  <div class="sw-guide-levels">
+                    <div class="sw-guide-level sw-guide-level--high">
+                      <div class="sw-guide-level-badge">HIGH</div>
+                      <div class="sw-guide-level-body">
+                        <div class="sw-guide-level-items">
+                          <span>Demand zone <strong>inside</strong> the 61.8%&ndash;80% Fib golden pocket</span>
+                          <span>Zone score <strong>70+</strong></span>
+                          <span>Zone is <strong>FRESH</strong> &mdash; never tested, all unfilled orders waiting</span>
+                          <span>Pattern is <strong>DBR</strong> (Drop&rarr;Base&rarr;Rally) &mdash; strongest reversal type</span>
+                          <span>Price approaching zone from above (pullback into demand)</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="sw-guide-level sw-guide-level--mid">
+                      <div class="sw-guide-level-badge">MEDIUM</div>
+                      <div class="sw-guide-level-body">
+                        <div class="sw-guide-level-items">
+                          <span>Demand zone <strong>near</strong> a Fib level (38.2% or 50%) but not perfectly overlapping</span>
+                          <span>Zone is <strong>TESTED 1x</strong> &mdash; still valid, slightly weaker</span>
+                          <span>Pattern is <strong>RBR</strong> (Rally&rarr;Base&rarr;Rally) &mdash; continuation, not reversal</span>
+                          <span>Zone score 50&ndash;70</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="sw-guide-level sw-guide-level--low">
+                      <div class="sw-guide-level-badge">LOW</div>
+                      <div class="sw-guide-level-body">
+                        <div class="sw-guide-level-items">
+                          <span>Demand zone doesn&rsquo;t align with any Fib level</span>
+                          <span>Zone is <strong>TESTED 2x+</strong> &mdash; most orders already absorbed</span>
+                          <span>Zone score below 50</span>
+                          <span>Price is far from the zone (no pullback yet)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="sw-guide-section-divider"></div>
+                  <div class="sw-guide-col-title">Best Timeframes for Fib + ZOI</div>
+
+                  <div class="sw-guide-tf-stack">
+                    <div class="sw-guide-tf">
+                      <div class="sw-guide-tf-label">1W <span class="sw-guide-tf-tag sw-guide-tf-tag--best">Best</span></div>
+                      <div class="sw-guide-tf-desc">Primary timeframe for swing trades (hold 2&ndash;6 weeks). Weekly demand zones are the strongest &mdash; they represent institutional accumulation over full weeks.</div>
+                    </div>
+                    <div class="sw-guide-tf">
+                      <div class="sw-guide-tf-label">1D</div>
+                      <div class="sw-guide-tf-desc">Good for shorter swings (hold 3&ndash;10 days). More zones detected, more frequent signals, slightly less reliable than weekly.</div>
+                    </div>
+                    <div class="sw-guide-tf">
+                      <div class="sw-guide-tf-label">4H</div>
+                      <div class="sw-guide-tf-desc">For tighter entries. Zoom into a weekly/daily demand zone, then check 4H for a smaller zone within it &mdash; this is your precision entry.</div>
+                    </div>
+                  </div>
+                  <div class="sw-guide-tf-tip">
+                    <strong>Pro tip:</strong> When weekly + daily + 4H zones all overlap at the same Fib pocket &mdash; that&rsquo;s the highest conviction setup you&rsquo;ll find.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        <!-- 2b. Selected stock header strip — its own banner above the
+             Setup Plan card block. -->
+        <div class="sw-stock-strip">
+          <div class="sw-stock-id">
+            <span class="sw-stock-sym" id="sw-stock-sym">&mdash;</span>
+            <span class="sw-stock-name" id="sw-stock-name">&mdash;</span>
+          </div>
+          <div class="sw-stock-ltp">
+            <span class="sw-stock-ltp-val" id="sw-stock-ltp">&mdash;</span>
+            <span class="sw-stock-ltp-ch" id="sw-stock-ltp-ch">&mdash;</span>
+          </div>
+          <div class="sw-stock-meta" id="sw-stock-meta">
+            <span class="sw-stock-meta-k">Analyzed</span>
+            <span class="sw-stock-meta-v" id="sw-stock-when">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- 2c. Setup Plan card block — the multi-timeframe trend reads +
+             the final recommendation, in a titled-card frame (reuses the
+             shared .sw-struct-row / .sw-struct-title classes). -->
+        <div class="sw-struct-row sw-setup-row" id="sw-setup-row">
+          <div class="sw-struct-title">SETUP PLAN</div>
+          <div class="sw-bias-bar" id="sw-bias-bar">
+          <div class="sw-bias-cell" data-tf="1mo">
+            <span class="sw-bias-k">MONTHLY</span>
+            <span class="sw-bias-v" id="sw-bias-1mo">&mdash;</span>
+            <span class="sw-bias-sub" id="sw-bias-1mo-sub">&mdash;</span>
+          </div>
+          <div class="sw-bias-cell" data-tf="1w">
+            <span class="sw-bias-k">WEEKLY</span>
+            <span class="sw-bias-v" id="sw-bias-1w">&mdash;</span>
+            <span class="sw-bias-sub" id="sw-bias-1w-sub">&mdash;</span>
+          </div>
+          <div class="sw-bias-cell" data-tf="1d">
+            <span class="sw-bias-k">DAILY</span>
+            <span class="sw-bias-v" id="sw-bias-1d">&mdash;</span>
+            <span class="sw-bias-sub" id="sw-bias-1d-sub">&mdash;</span>
+          </div>
+          <div class="sw-bias-cell sw-bias-cell-final" id="sw-final-cell">
+            <span class="sw-bias-k">RECOMMENDATION</span>
+            <span class="sw-bias-v" id="sw-final-bias">&mdash;</span>
+            <span class="sw-bias-sub" id="sw-final-conf">&mdash; confidence</span>
+          </div>
+          </div>
+        </div>
+
+        <!-- 2c-B. SETUP TRADE PLAN — wired to the Setup (B) engine
+             (swBuildSetupPlan: Fib pocket / demand-zone geometry). Rendered by
+             swRenderPlanCard('sw-bplan', …). The card is the levels ticket: the
+             verdict shows in the SETUP PLAN → RECOMMENDATION cell, the Fib/ZONE
+             basis on the BUY ZONE cell's mode chip, and the left-edge accent
+             colours the card. (The old hidden header strip — SETUP chip / mode
+             badge / Holding — and the gate-warning strip were removed 2026-06-05;
+             they were permanently display:none.) -->
+        <div class="sw-tradeplan-title">SETUP TRADE PLAN<span class="sw-tradeplan-note" id="sw-bplan-tfnote"></span></div>
+        <div class="sw-plan" id="sw-bplan">
+          <div class="sw-plan-grid" id="sw-bplan-grid">
+            <div class="sw-plan-cell sw-plan-cell-entry">
+              <span class="sw-plan-cell-k">BUY ZONE<span class="sw-plan-cell-mode" id="sw-bplan-entry-mode" hidden></span></span>
+              <span class="sw-plan-cell-v" id="sw-bplan-entry">&mdash;</span>
+              <span class="sw-plan-cell-sub" id="sw-bplan-entry-sub">at market</span>
+            </div>
+            <div class="sw-plan-cell sw-plan-cell-sl">
+              <span class="sw-plan-cell-k">STOP LOSS</span>
+              <span class="sw-plan-cell-v" id="sw-bplan-sl">&mdash;</span>
+              <span class="sw-plan-cell-sub" id="sw-bplan-sl-sub">&mdash;</span>
+            </div>
+            <div class="sw-plan-cell sw-plan-cell-t1">
+              <span class="sw-plan-cell-k">TARGET 1</span>
+              <span class="sw-plan-cell-v" id="sw-bplan-t1">&mdash;</span>
+              <span class="sw-plan-cell-sub" id="sw-bplan-t1-sub">&mdash;</span>
+            </div>
+            <div class="sw-plan-cell sw-plan-cell-t2">
+              <span class="sw-plan-cell-k">TARGET 2</span>
+              <span class="sw-plan-cell-v" id="sw-bplan-t2">&mdash;</span>
+              <span class="sw-plan-cell-sub" id="sw-bplan-t2-sub">&mdash;</span>
+            </div>
+          </div>
+
+          <div class="sw-plan-why" id="sw-bplan-why-wrap">
+            <div class="sw-plan-why-block">
+              <h4 id="sw-bplan-why-h">WHY THIS TRADE</h4>
+              <p id="sw-bplan-why">&mdash;</p>
+            </div>
+            <div class="sw-plan-why-block sw-plan-why-block-skip">
+              <h4 id="sw-bplan-skip-h">SKIP IF</h4>
+              <ul id="sw-bplan-skip"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scanner context banner — shown when current verdict is WAIT
+             but a prior scan had a BUY for this stock. Explains the
+             discrepancy: "scanner captured setup at yesterday's close,
+             price has since moved away from the entry zone." Hidden by
+             default; JS populates and shows when needed. -->
+        <div class="sw-scanner-ctx" id="sw-scanner-ctx" hidden>
+          <span class="sw-scanner-ctx-icon">&#128269;</span>
+          <div class="sw-scanner-ctx-body">
+            <span class="sw-scanner-ctx-title" id="sw-scanner-ctx-title"></span>
+            <span class="sw-scanner-ctx-sub" id="sw-scanner-ctx-sub"></span>
+          </div>
+        </div>
+
+        <!-- 2d. TRADE PLAN: a single SETUP TRADE PLAN card (#sw-bplan, built by
+             swSetupPlanForRender, rendered via swRenderPlanCard). The SETUP card
+             AND the on-chart Entry/SL/T1/T2 levels read the SAME producer
+             (swSetupPlanForRender), so chart == card == trade plan. The old A/B
+             engine toggle and the STRUCTURE TRADE PLAN card were removed. -->
+
+        <!-- 2e. Per-timeframe analysis breakdown — full indicator
+             disclosure for each TF, grouped into TREND / MOMENTUM /
+             VOLATILITY / VOLUME / STRUCTURE / PATTERN, with each TF's
+             net contribution to the verdict score shown at the top of
+             its card so the math is fully auditable. -->
+        <div class="sw-tfs" hidden>
+          <div class="sw-tfs-head">
+            <h3>PER-TIMEFRAME BREAKDOWN</h3>
+            <span class="sw-tfs-sub">Every indicator on every timeframe &mdash; trend, momentum, volatility, volume,
+              structure, patterns &mdash; with a signed contribution score for context. The verdict above is driven
+              by the four-trigger screener, not this score; this panel is here so you can audit <em>why</em> a setup fired.</span>
+          </div>
+
+          <!-- HOW TO READ THIS · WHEN TO BUY (collapsible educational guide).
+               Default-open so first-time users see the interpretation rules
+               on every analysis; can be folded for repeat users. -->
+          <!-- Default-CLOSED. Repeat users don't need this every analysis;
+               first-time users discover the disclosure by clicking the
+               summary. Keeps the verdict + plan front-and-centre. -->
+          <details class="sw-howto">
+            <summary>
+              <span class="sw-howto-pulse">i</span>
+              HOW TO READ THIS &middot; WHEN TO BUY
+            </summary>
+            <div class="sw-howto-body">
+
+              <h5>1. What each block means</h5>
+              <div class="sw-howto-grid">
+                <!-- TREND -->
+                <div class="sw-howto-block sw-howto-trend">
+                  <div class="sw-howto-block-h">
+                    <span class="sw-howto-block-icon" style="background:rgba(59,130,246,0.14);color:#3b82f6">&#8599;</span>
+                    TREND
+                  </div>
+                  <ul>
+                    <li><b>Price above 20 &gt; 50 &gt; 200 EMA:</b> textbook uptrend &mdash; safe to buy on dips.</li>
+                    <li><b>Below 50 EMA:</b> caution &mdash; trend is weakening.</li>
+                    <li><b>Below 200 EMA:</b> structurally broken &mdash; <b>do not buy</b>.</li>
+                    <li><b>ADX &gt; 25:</b> trend is real, not chop &mdash; breakouts likely follow through.</li>
+                    <li><b>ADX &lt; 20:</b> ranging market &mdash; breakouts often fail; wait.</li>
+                  </ul>
+                </div>
+                <!-- MOMENTUM -->
+                <div class="sw-howto-block sw-howto-momentum">
+                  <div class="sw-howto-block-h">
+                    <span class="sw-howto-block-icon" style="background:rgba(147,51,234,0.14);color:#9333ea">~</span>
+                    MOMENTUM (RSI &amp; MACD)
+                  </div>
+                  <ul>
+                    <li><b>RSI 50&ndash;70:</b> sweet spot &mdash; strong but not stretched.</li>
+                    <li><b>RSI &gt; 75:</b> overbought &mdash; let it cool, do <b>not</b> chase.</li>
+                    <li><b>RSI &lt; 40:</b> weak / oversold &mdash; wait for a turn.</li>
+                    <li><b>MACD above signal + positive histogram:</b> bull bias confirmed.</li>
+                    <li><b>Bullish MACD cross in last 5 bars:</b> early entry trigger.</li>
+                  </ul>
+                </div>
+                <!-- VOLATILITY -->
+                <div class="sw-howto-block sw-howto-volatility">
+                  <div class="sw-howto-block-h">
+                    <span class="sw-howto-block-icon" style="background:rgba(249,115,22,0.14);color:#f97316">&#10897;</span>
+                    VOLATILITY (ATR)
+                  </div>
+                  <ul>
+                    <li><b>ATR % &lt; 1.5%:</b> calm stock &mdash; tighter stops OK, normal size.</li>
+                    <li><b>ATR % 1.5&ndash;3%:</b> normal &mdash; default stop = <b>1.5&times; ATR</b> below entry.</li>
+                    <li><b>ATR % &gt; 4%:</b> high volatility &mdash; widen stop, halve size.</li>
+                    <li>Use ATR (not a fixed %) to set the stop &mdash; it scales with the stock's own behaviour.</li>
+                  </ul>
+                </div>
+                <!-- VOLUME -->
+                <div class="sw-howto-block sw-howto-volume">
+                  <div class="sw-howto-block-h">
+                    <span class="sw-howto-block-icon" style="background:rgba(234,179,8,0.16);color:#a16207">|||</span>
+                    VOLUME
+                  </div>
+                  <ul>
+                    <li><b>Volume &ge; 1.5&times; 20-bar average on an up day:</b> institutions buying &mdash; "CONFIRMING".</li>
+                    <li><b>Volume &lt; 1&times; average:</b> retail-only move &mdash; "LIGHT", weaker signal.</li>
+                    <li><b>Rising 5-bar volume trend:</b> interest building &mdash; bullish backdrop.</li>
+                    <li>Breakouts without volume rarely hold &mdash; demand confirmation.</li>
+                  </ul>
+                </div>
+                <!-- STRUCTURE -->
+                <div class="sw-howto-block sw-howto-structure">
+                  <div class="sw-howto-block-h">
+                    <span class="sw-howto-block-icon" style="background:rgba(20,184,166,0.14);color:#14b8a6">#</span>
+                    STRUCTURE (levels)
+                  </div>
+                  <ul>
+                    <li><b>Swing low:</b> anchor your stop just <b>below</b> this level.</li>
+                    <li><b>Swing high:</b> first target (T1) &mdash; expect supply here.</li>
+                    <li><b>20-bar high/low:</b> short-term breakout / breakdown lines.</li>
+                    <li><b>52-wk range &lt; 25%:</b> near support &mdash; better risk-reward to buy.</li>
+                    <li><b>52-wk range &gt; 75%:</b> stretched &mdash; smaller size, tighter trail.</li>
+                  </ul>
+                </div>
+                <!-- PATTERN -->
+                <div class="sw-howto-block sw-howto-pattern">
+                  <div class="sw-howto-block-h">
+                    <span class="sw-howto-block-icon" style="background:rgba(236,72,153,0.14);color:#ec4899">&#9671;</span>
+                    PATTERN (last bar)
+                  </div>
+                  <ul>
+                    <li><b>Bullish hammer / engulfing / morning star:</b> entry trigger on the next bar.</li>
+                    <li><b>Bearish or none:</b> wait &mdash; no candle confirmation yet.</li>
+                    <li>Patterns only count at <b>support</b> or after a <b>shallow pullback</b> &mdash; never at the top of a vertical run.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <h5>2. The four entry triggers</h5>
+              <p class="sw-howto-note">
+                On every bar the engine asks four independent questions. A stock that answers
+                <b>YES</b> to any of them becomes a BUY candidate; one that lights up <b>two or more</b>
+                is an A-grade confluence setup.
+              </p>
+              <div class="sw-howto-grid">
+                <div class="sw-howto-block sw-howto-trend">
+                  <div class="sw-howto-block-h">
+                    <span class="sw-howto-block-icon" style="background:rgba(59,130,246,0.14);color:#3b82f6">&#8625;</span>
+                    PULLBACK TO 20 EMA
+                  </div>
+                  <ul>
+                    <li>Stock in confirmed uptrend (20 &gt; 50 EMA, rising 50)</li>
+                    <li>Close inside the &minus;1.5% &hellip; +2.5% band of 20 EMA</li>
+                    <li>Bullish candle or close above 5-bar average</li>
+                  </ul>
+                </div>
+                <div class="sw-howto-block sw-howto-volume">
+                  <div class="sw-howto-block-h">
+                    <span class="sw-howto-block-icon" style="background:rgba(234,179,8,0.16);color:#a16207">&#8607;</span>
+                    20-DAY BREAKOUT + VOLUME
+                  </div>
+                  <ul>
+                    <li>Close above prior 20-day high (Donchian)</li>
+                    <li>Volume &ge; 1.3&times; 20-day average</li>
+                    <li>Not extended (&lt; 10% above 50 EMA)</li>
+                  </ul>
+                </div>
+                <div class="sw-howto-block sw-howto-pattern">
+                  <div class="sw-howto-block-h">
+                    <span class="sw-howto-block-icon" style="background:rgba(236,72,153,0.14);color:#ec4899">&#9671;</span>
+                    REVERSAL AT SUPPORT
+                  </div>
+                  <ul>
+                    <li>Hammer / Bullish Engulfing / Morning Star / Piercing</li>
+                    <li>Within 3% of 50 / 200 EMA or 2% of swing low</li>
+                    <li>Weekly not in confirmed downtrend</li>
+                  </ul>
+                </div>
+                <div class="sw-howto-block sw-howto-structure">
+                  <div class="sw-howto-block-h">
+                    <span class="sw-howto-block-icon" style="background:rgba(20,184,166,0.14);color:#14b8a6">&#8631;</span>
+                    AT SUPPORT (TREND PULLBACK)
+                  </div>
+                  <ul>
+                    <li>Daily 50 EMA &middot; Weekly 20 EMA &middot; daily swing low</li>
+                    <li>Each support must be <b>rising</b> (no falling knives)</li>
+                    <li>Multi-support confluence = strongest signal</li>
+                  </ul>
+                </div>
+              </div>
+
+              <h5>3. Universal gates (applied to every trigger)</h5>
+              <div class="sw-howto-checklist">
+                <div class="sw-howto-rule sw-howto-rule-buy">
+                  <h6>BUY released only when</h6>
+                  <ul>
+                    <li>At least <b>one trigger</b> fires</li>
+                    <li>Market regime = <b>BULL or NEUTRAL</b> (Nifty above rising 50 DMA, or above flat)</li>
+                    <li>Daily <b>ADX &ge; 18</b> (trending, not chop)</li>
+                    <li>Relative Strength vs Nifty <b>not weak</b> (within &minus;3 pp on the last 20 sessions)
+                      &mdash; weak-RS only blocks the continuation triggers, not the reversal ones</li>
+                  </ul>
+                </div>
+                <div class="sw-howto-rule sw-howto-rule-wait">
+                  <h6>WAIT when</h6>
+                  <ul>
+                    <li><b>No trigger fired</b> &mdash; stock may be in a trend but no actionable entry today</li>
+                    <li><b>Regime BEAR</b> &mdash; all longs blocked until Nifty regime flips</li>
+                    <li><b>ADX &lt; 18</b> &mdash; choppy / ranging; even good setups fail their targets</li>
+                    <li><b>Weak RS</b> &mdash; stock dragging vs Nifty; continuation triggers dropped</li>
+                  </ul>
+                </div>
+                <div class="sw-howto-rule sw-howto-rule-avoid">
+                  <h6>AVOID when</h6>
+                  <ul>
+                    <li>Daily AND Weekly both bearish &mdash; confirmed downtrend, cash equity = no trade</li>
+                    <li>Daily DOWN with ADX &gt; 25 &mdash; strong downtrend, falling knife</li>
+                  </ul>
+                </div>
+              </div>
+              <p class="sw-howto-note" style="margin-top:8px">
+                Confidence bands inside BUY: <b>LOW</b> (one trigger, weak score), <b>MEDIUM</b>
+                (one strong trigger or two stacked), <b>HIGH</b> (multi-trigger confluence or single
+                trigger with strong RS tailwind).
+              </p>
+
+              <h5>4. How to actually place the trade (cash delivery only)</h5>
+              <ol class="sw-howto-steps">
+                <li>Open your broker (Zerodha / Upstox / Groww / etc).</li>
+                <li>Search the stock &mdash; product type = <b>CNC</b> (delivery, NOT MIS / intraday).</li>
+                <li>Place a <b>LIMIT</b> buy at the <b>ENTRY</b> price shown above (or slightly below if you want a better fill on a pullback).</li>
+                <li>Once filled, immediately place a <b>GTT Stop-Loss</b> sell at the <b>SL</b> level shown.</li>
+                <li>For T1: place another GTT sell at <b>Target 1</b> for half the quantity, then <b>trail SL to entry</b> on the remaining half and let it run to T2.</li>
+                <li>Risk only <b>1% of capital</b> per trade. Position size = <span style="font-family:'IBM Plex Mono',monospace">(1% &times; capital) &divide; (Entry &minus; SL)</span>.</li>
+                <li><b>Skip the trade</b> if any condition in the <b>SKIP IF</b> list above turns true before your buy fills.</li>
+              </ol>
+            </div>
+          </details>
+
+          <!-- Per-TF detail cards.
+               Order is macro → micro: Monthly (strategic context) →
+               Weekly (intermediate trend) → Daily (setup + trigger).
+               1 Hour was demoted from a verdict-driver to an
+               OPTIONAL tactical indicator since hourly signals decay
+               in hours and a 5-15 day swing trader rarely uses them
+               for the BUY/WAIT decision. Kept in a separate, lighter
+               card below for users who want intraday entry timing. -->
+          <div class="sw-tfs-grid">
+            <div class="sw-tf-card" data-tf="1mo">
+              <h4>MONTHLY <span class="sw-tf-h-sub">strategic context</span></h4>
+              <div class="sw-tf-rows" id="sw-tf-1mo-rows"></div>
+            </div>
+            <div class="sw-tf-card" data-tf="1w">
+              <h4>WEEKLY <span class="sw-tf-h-sub">dominant trend</span></h4>
+              <div class="sw-tf-rows" id="sw-tf-1w-rows"></div>
+            </div>
+            <div class="sw-tf-card" data-tf="1d">
+              <h4>DAILY <span class="sw-tf-h-sub">setup + trigger</span></h4>
+              <div class="sw-tf-rows" id="sw-tf-1d-rows"></div>
+            </div>
+          </div>
+          <details class="sw-tf-optional">
+            <summary>1 Hour <span class="sw-tf-optional-tag">OPTIONAL &middot; intraday entry timing</span></summary>
+            <div class="sw-tf-card" data-tf="1h">
+              <div class="sw-tf-rows" id="sw-tf-1h-rows"></div>
+            </div>
+          </details>
+        </div>
+
+        <!-- 2e. Footer disclaimer -->
+        <div class="sw-disc">
+          <b>EDUCATIONAL ONLY.</b> This is not financial advice. Multi-timeframe analysis is a probability
+          tool, not a guarantee &mdash; ~40% of clean setups still fail. <b>Cash-equity rules:</b> use
+          your broker's <b>CNC</b> (delivery) product, never MIS. Indian cash market doesn't allow
+          overnight short selling &mdash; that's why bearish stocks are marked <b style="color:var(--bear)">AVOID</b>
+          (no trade) instead of being shown as a short setup. Always size positions so a single loss is
+          &le;1% of capital, and skip the trade if any condition under <b>SKIP IF</b> turns true before
+          your entry fills.
+        </div>
+      </div>
+
+      <!-- ─── 3. EMPTY STATE (shown before first analyze) ─── -->
+      <div class="sw-empty" id="sw-empty">
+        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3,17 9,11 13,15 21,7" />
+          <polyline points="14,7 21,7 21,14" />
+        </svg>
+        <h3>Pick a stock to begin</h3>
+        <p>The analyzer combines <b>Weekly trend context</b> + <b>Daily setup</b> + <b>1-Hour entry
+            timing</b> and tells you to <b style="color:var(--bull)">BUY</b>,
+          <b style="color:var(--muted)">WAIT</b>, or <b style="color:var(--bear)">AVOID</b>. Cash equity
+          only &mdash; bought as delivery, held 1&ndash;2 weeks.</p>
+      </div>
+
+      <!-- ─── 4. LOADING STATE ─── -->
+      <div class="sw-loading" id="sw-loading" hidden>
+        <div class="sw-spinner"></div>
+        <div id="sw-loading-text">Fetching weekly, daily and hourly candles&hellip;</div>
+      </div>
+
+      <!-- ─── 5. ERROR STATE ─── -->
+      <div class="sw-error" id="sw-error" hidden>
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="13" />
+          <circle cx="12" cy="16.5" r="0.6" fill="currentColor" />
+        </svg>
+        <div>
+          <b id="sw-error-title">Analysis failed</b>
+          <p id="sw-error-msg">&mdash;</p>
+        </div>
+      </div>
+
+      <!-- ─── 6. SIGNAL-GUIDE MODAL ───
+           Triggered by the "?" button next to the per-sector search.
+           Static markup (faster to open + easier to keep accurate)
+           rather than JS-injected, since the legend doesn't change.
+           Lives INSIDE the swing section so it disappears when the
+           user switches tabs (the help is only useful in this context).
+           swingOpenSignalHelp() / swingCloseSignalHelp() toggle .open. -->
+      <div class="sw-help-modal" id="sw-signal-help-modal" aria-hidden="true"
+        role="dialog" aria-labelledby="sw-signal-help-title" aria-modal="true">
+        <div class="sw-help-modal-backdrop" onclick="swingCloseSignalHelp()"></div>
+        <div class="sw-help-modal-card" role="document">
+          <button class="sw-help-modal-close" type="button"
+            onclick="swingCloseSignalHelp()" aria-label="Close (Esc)">&times;</button>
+          <div class="sw-help-modal-head">
+            <h3 id="sw-signal-help-title">
+              Signal guide
+              <span class="sw-help-tag">QUICK SCAN</span>
+            </h3>
+            <p class="sw-help-modal-sub">
+              How to read the <b>PULLBACK</b>, <b>WATCH</b>, <b>AT HIGH</b>, <b>TREND</b>
+              &amp; other signal pills in the sector table.
+            </p>
+          </div>
+
+          <div class="sw-help-modal-body">
+
+            <!-- ── Two layers callout ── -->
+            <!-- Front-and-centre so users immediately understand the
+                 chip is a screener, not a trade decision. Anchors the
+                 mental model before the legend / label table below. -->
+            <section class="sw-help-section sw-help-callout">
+              <h4>Two different layers &mdash; don&rsquo;t mix them up</h4>
+              <div class="sw-help-twolayer">
+                <div class="sw-help-twolayer-card sw-help-twolayer-screen">
+                  <div class="sw-help-twolayer-tag">SCREEN</div>
+                  <div class="sw-help-twolayer-name">Signal pill in the table</div>
+                  <div class="sw-help-twolayer-asks"><i>Does this look like a pullback / breakout / weak setup?</i></div>
+                  <ul>
+                    <li>Computed from <b>one quote snapshot</b></li>
+                    <li>Inputs: 52-week range position + today&rsquo;s %</li>
+                    <li>Fires for <b>every row</b> in the table</li>
+                    <li>Role: <b>triage</b> &mdash; worth looking at?</li>
+                  </ul>
+                </div>
+                <div class="sw-help-twolayer-arrow" aria-hidden="true">&rarr;</div>
+                <div class="sw-help-twolayer-card sw-help-twolayer-verdict">
+                  <div class="sw-help-twolayer-tag">RECOMMENDATION</div>
+                  <div class="sw-help-twolayer-name">BUY / WAIT below the chart</div>
+                  <div class="sw-help-twolayer-asks"><i>Should I actually take this trade right now?</i></div>
+                  <ul>
+                    <li>Runs <b>only when you click a row</b></li>
+                    <li>Inputs: 250+ daily candles, Monthly + Weekly + Daily</li>
+                    <li>Gates: market regime, ADX, SMA44, RR &ge; 1.5</li>
+                    <li>Role: <b>trade qualifier</b> &mdash; act on it?</li>
+                  </ul>
+                </div>
+              </div>
+              <p class="sw-help-aside">
+                <b>Example:</b> A stock can show <span class="sw-signal sw-signal-strong-buy"><span class="sw-signal-label">PULLBACK 72%</span></span>
+                in the screen but the recommendation says <b>WAIT</b>. That&rsquo;s the
+                system working &mdash; the <i>shape</i> is a pullback, but the
+                multi-TF gates didn&rsquo;t fire a clean trigger (e.g. no daily
+                20-EMA touch, or Nifty regime is NEUTRAL). The screen says
+                &ldquo;worth a look&rdquo;; the recommendation says &ldquo;not yet&rdquo;. Both can be right.
+              </p>
+            </section>
+
+            <!-- ── What the pill is ── -->
+            <section class="sw-help-section">
+              <h4>The pill is a triage tool, not a buy/sell call</h4>
+              <p>
+                It scans every row in the sector table using just <b>two inputs</b>
+                and classifies the <i>shape</i> of the price action, so you know
+                whether it's worth clicking in for the full multi-timeframe analysis.
+              </p>
+              <ul class="sw-help-inputs">
+                <li><b>Position in 52-week range</b> &mdash; 0% = year low, 100% = year high.</li>
+                <li><b>Today's % change</b> &mdash; red day vs green day.</li>
+              </ul>
+              <p class="sw-help-aside">
+                No SMAs, MACD, volume, or indicators &mdash; those come in only when you
+                click a row and the deep <code>analyze()</code> runs.
+              </p>
+            </section>
+
+            <!-- ── Color legend ── -->
+            <section class="sw-help-section">
+              <h4>Color = the action stance</h4>
+              <div class="sw-help-colors">
+                <div class="sw-help-color"><span class="sw-help-sw sw-help-sw-buy"></span>
+                  <b>Green</b> &mdash; analyze now, possibly enter</div>
+                <div class="sw-help-color"><span class="sw-help-sw sw-help-sw-watch"></span>
+                  <b>Blue</b> &mdash; interesting but unproven, monitor only</div>
+                <div class="sw-help-color"><span class="sw-help-sw sw-help-sw-hold"></span>
+                  <b>Grey</b> &mdash; no setup, sit tight</div>
+                <div class="sw-help-color"><span class="sw-help-sw sw-help-sw-weak"></span>
+                  <b>Orange</b> &mdash; trend breaking, avoid longs</div>
+                <div class="sw-help-color"><span class="sw-help-sw sw-help-sw-avoid"></span>
+                  <b>Red</b> &mdash; falling-knife risk, hands off</div>
+              </div>
+            </section>
+
+            <!-- ── Label table ── -->
+            <section class="sw-help-section">
+              <h4>Every label, what it's saying, what to do</h4>
+              <div class="sw-help-table-wrap">
+                <table class="sw-help-table">
+                  <thead>
+                    <tr>
+                      <th>Label</th>
+                      <th>52w pos</th>
+                      <th>Today</th>
+                      <th>What it's saying</th>
+                      <th>What to do</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-strong-buy"><span class="sw-signal-label">PULLBACK</span></span></td>
+                      <td>70&ndash;92%</td>
+                      <td>red &le; &minus;1%</td>
+                      <td>Strong stock dipping inside an uptrend &mdash; textbook swing entry</td>
+                      <td><b>Click in.</b> Highest-quality fast signal.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-buy"><span class="sw-signal-label">PULLBACK</span></span></td>
+                      <td>&ge; 92%</td>
+                      <td>red &le; &minus;1%</td>
+                      <td>Pullback from 52w high &mdash; possible entry forming</td>
+                      <td>Click in, but verify with full analysis.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-watch"><span class="sw-signal-label">BREAKOUT</span></span></td>
+                      <td>&ge; 92%</td>
+                      <td>green &ge; +2%</td>
+                      <td>New 52w high break &mdash; could be valid, could be a local top</td>
+                      <td>Don't chase. Verify volume + base.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-hold"><span class="sw-signal-label">AT HIGH</span></span></td>
+                      <td>&ge; 92%</td>
+                      <td>flattish</td>
+                      <td>At year's top with no setup</td>
+                      <td>Wait for pullback. Paying retail at resistance.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-hold"><span class="sw-signal-label">TREND</span></span></td>
+                      <td>70&ndash;92%</td>
+                      <td>green &ge; +1.5%</td>
+                      <td>In uptrend but today is already extended</td>
+                      <td>Wait for a red bar &mdash; today's window passed.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-watch"><span class="sw-signal-label">WATCH</span></span></td>
+                      <td>50&ndash;92%</td>
+                      <td>flattish / mid-bounce</td>
+                      <td>Strong trend or mid-range bounce, no clean setup right now</td>
+                      <td>Park on watchlist.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-hold"><span class="sw-signal-label">BASING</span></span></td>
+                      <td>50&ndash;70%</td>
+                      <td>flattish</td>
+                      <td>Mid-range consolidation, no direction yet</td>
+                      <td>Wait for direction to resolve.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-hold"><span class="sw-signal-label">WAIT</span></span></td>
+                      <td>30&ndash;50%</td>
+                      <td>flattish</td>
+                      <td>Below year midpoint &mdash; no edge for longs</td>
+                      <td>Skip.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-weak"><span class="sw-signal-label">WEAK</span></span></td>
+                      <td>30&ndash;70%</td>
+                      <td>sharp red &le; &minus;2%</td>
+                      <td>Trend may be breaking</td>
+                      <td>Don't enter long.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-watch"><span class="sw-signal-label">REBOUND?</span></span></td>
+                      <td>&lt; 50%</td>
+                      <td>sharp green &ge; +3%</td>
+                      <td>Speculative reversal attempt from lows</td>
+                      <td>Needs confirmation &mdash; never enter blind.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-weak"><span class="sw-signal-label">WEAK</span></span></td>
+                      <td>10&ndash;30%</td>
+                      <td>flat / down</td>
+                      <td>Lower third of range, downtrend bias</td>
+                      <td>Avoid long entries.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-avoid"><span class="sw-signal-label">AVOID</span></span></td>
+                      <td>&lt; 10%</td>
+                      <td>flat / down</td>
+                      <td>At 52w low &mdash; falling-knife territory</td>
+                      <td>Hands off.</td>
+                    </tr>
+                    <tr>
+                      <td><span class="sw-signal sw-signal-na"><span class="sw-signal-label">N/A</span></span></td>
+                      <td>&mdash;</td>
+                      <td>&mdash;</td>
+                      <td>52w data still loading</td>
+                      <td>Wait a moment and recheck.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- ── Confidence % ── -->
+            <section class="sw-help-section">
+              <h4>What the % after the label means</h4>
+              <p>
+                It's the pill's confidence in its <b>own classification</b>, capped at
+                <b>78%</b> because no single quote snapshot can ever be definitive.
+                A <code>PULLBACK 72%</code> does <b>not</b> mean "72% chance the trade works"
+                &mdash; it means "72% sure this is structurally a pullback setup."
+              </p>
+              <p class="sw-help-aside">
+                The real trade-confidence number only appears after you click a row and
+                the deep <code>analyze()</code> runs the monthly Weinstein stage, weekly
+                trend, SMA&nbsp;44 hard gate, ADX, ATR, S/R, etc.
+              </p>
+            </section>
+
+            <!-- ── Practical workflow ── -->
+            <section class="sw-help-section">
+              <h4>Practical workflow when you open a sector</h4>
+              <ol class="sw-help-workflow">
+                <li>
+                  <b>Eyes on green pills first</b> &mdash; especially
+                  <span class="sw-signal sw-signal-strong-buy"><span class="sw-signal-label">PULLBACK</span></span>
+                  at 70%+. That's a strong stock retracing into its rising MAs &mdash;
+                  the cleanest swing entry there is.
+                </li>
+                <li>
+                  <b>Grey / Blue &rarr; watchlist</b>, don't trade yet. They're saying
+                  "no edge right now."
+                </li>
+                <li>
+                  <b>Orange / Red &rarr; move on.</b> Don't fight the trend; there are
+                  600+ other stocks.
+                </li>
+                <li>
+                  <b>Hover any pill</b> in the table to see the per-stock reasoning
+                  in a tooltip.
+                </li>
+              </ol>
+            </section>
+
+            <!-- ── The two principles ── -->
+            <section class="sw-help-section sw-help-principles">
+              <h4>The two principles baked into the logic</h4>
+              <div class="sw-help-principle">
+                <div class="sw-help-principle-num">1</div>
+                <div>
+                  <b>Never chase a stock at its 52-week high.</b><br>
+                  Best case it's a real breakout (high risk, needs confirmation);
+                  worst case it's the exact local top. The reward/risk is bad either
+                  way &mdash; so anything at <code>pos &ge; 92%</code> with momentum is
+                  capped at <span class="sw-signal sw-signal-watch"><span class="sw-signal-label">BREAKOUT</span></span>,
+                  not <span class="sw-signal sw-signal-strong-buy"><span class="sw-signal-label">STRONG BUY</span></span>.
+                </div>
+              </div>
+              <div class="sw-help-principle">
+                <div class="sw-help-principle-num">2</div>
+                <div>
+                  <b>The textbook swing entry is a pullback inside an uptrend</b> &mdash;
+                  a strong stock (70%+ of its 52w range, above its rising MAs)
+                  dipping 1%+ today. Only this combination earns the bright-green
+                  <span class="sw-signal sw-signal-strong-buy"><span class="sw-signal-label">PULLBACK</span></span>
+                  pill.
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+          <div class="sw-help-modal-foot">
+            <span class="sw-help-foot-note">Press <kbd>Esc</kbd> or click outside to close.</span>
+            <button type="button" class="sw-help-modal-done"
+              onclick="swingCloseSignalHelp()">GOT IT</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── 6b. CONFIRM MODAL ───
+           Themed replacement for window.confirm() so prompts match
+           the rest of the app (dark/light aware, accessible focus
+           management, Esc-to-cancel, click-outside-to-cancel).
+           Generic — opened via swingConfirm({title, message, ...})
+           and resolves a Promise<boolean>. Reuses the .sw-help-modal*
+           scaffolding for backdrop, card, and animations. -->
+      <div class="sw-help-modal" id="sw-confirm-modal" aria-hidden="true"
+        role="alertdialog" aria-labelledby="sw-confirm-modal-title"
+        aria-describedby="sw-confirm-modal-message" aria-modal="true">
+        <div class="sw-help-modal-backdrop"
+          onclick="swingConfirmDismiss(false)"></div>
+        <div class="sw-help-modal-card sw-confirm-card" role="document">
+          <button class="sw-help-modal-close" type="button"
+            onclick="swingConfirmDismiss(false)" aria-label="Cancel (Esc)">&times;</button>
+          <div class="sw-help-modal-head sw-confirm-head">
+            <h3 id="sw-confirm-modal-title">Confirm</h3>
+          </div>
+          <div class="sw-help-modal-body sw-confirm-body">
+            <p id="sw-confirm-modal-message" class="sw-confirm-message"></p>
+          </div>
+          <div class="sw-help-modal-foot sw-confirm-foot">
+            <span class="sw-help-foot-note">
+              <kbd>Esc</kbd> to cancel
+            </span>
+            <div class="sw-confirm-actions">
+              <button type="button" class="sw-confirm-btn-cancel"
+                id="sw-confirm-cancel" onclick="swingConfirmDismiss(false)">
+                Cancel
+              </button>
+              <button type="button" class="sw-help-modal-done sw-confirm-btn-ok"
+                id="sw-confirm-ok" onclick="swingConfirmDismiss(true)">
+                Proceed
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── 7. ADD-CUSTOM-STOCK MODAL ───
+           Triggered by:
+             \u2022 the "+ Add custom stock" CTA in the My Stocks panel
+             \u2022 the "Add ABCXYZ manually" CTA in the global-search
+               empty state (when no matches are found in our curated lists)
+           Type a symbol \u2014 we look it up in data/instruments-index.json
+           (~2.5K NSE_EQ stocks) and auto-fill ISIN + name. Stocks save to
+           localStorage under sw_custom_stocks_v1 and show up in a virtual
+           "\u2605 My Stocks" sector pinned at the top of the sector grid. -->
+      <div class="sw-help-modal" id="sw-add-stock-modal" aria-hidden="true"
+        role="dialog" aria-labelledby="sw-add-stock-title" aria-modal="true">
+        <div class="sw-help-modal-backdrop" onclick="swingCloseAddStock()"></div>
+        <div class="sw-help-modal-card sw-add-stock-card" role="document">
+          <button class="sw-help-modal-close" type="button"
+            onclick="swingCloseAddStock()" aria-label="Close (Esc)">&times;</button>
+          <div class="sw-help-modal-head">
+            <h3 id="sw-add-stock-title">
+              Add custom stock
+              <span class="sw-help-tag">MY STOCKS</span>
+            </h3>
+            <p class="sw-help-modal-sub">
+              Save any NSE-listed stock to your local watchlist. Type the
+              <b>trading symbol</b> (as shown in your broker terminal)
+              and we'll auto-fill the ISIN + company name. Saved stocks live
+              in <code>localStorage</code> &mdash; they never leave your browser.
+            </p>
+          </div>
+
+          <div class="sw-help-modal-body">
+            <form id="sw-add-stock-form" autocomplete="off"
+              onsubmit="event.preventDefault();swingSubmitAddStock();">
+
+              <!-- Symbol / company / ISIN field with live autocomplete.
+                   Accepts any of three inputs:
+                     \u2022 symbol prefix  (e.g. WAAREE   \u2192 WAAREEENER, WAAREERTL)
+                     \u2022 company name   (e.g. waaree   \u2192 same)
+                     \u2022 ISIN exact     (e.g. INE377N01017 \u2192 WAAREEENER \u00b7 ISIN match)
+                   The third path is the reason this field is labelled
+                   "symbol, name, or ISIN" rather than just "symbol". -->
+              <div class="sw-add-field">
+                <label for="sw-add-sym">Symbol, name, or ISIN *</label>
+                <div class="sw-add-sym-wrap">
+                  <input
+                    type="text"
+                    id="sw-add-sym"
+                    class="sw-add-input"
+                    placeholder="WAAREE&hellip; or paste INE377N01017"
+                    autocomplete="off"
+                    spellcheck="false"
+                    oninput="swingAddSymInput(this.value)"
+                    onkeydown="swingAddSymKey(event)"
+                    required
+                  />
+                  <div
+                    class="sw-add-sym-dd"
+                    id="sw-add-sym-dd"
+                    role="listbox"
+                    hidden
+                  ></div>
+                </div>
+                <div class="sw-add-hint" id="sw-add-sym-hint">
+                  Type a symbol (RELIANCE, TCS, LT), part of a company name (waaree, larsen), or paste an ISIN (12 chars, starts with INE).
+                </div>
+              </div>
+
+              <!-- Auto-filled, read-only preview -->
+              <div class="sw-add-preview" id="sw-add-preview" hidden>
+                <div class="sw-add-preview-row">
+                  <span class="sw-add-preview-key">Company</span>
+                  <span class="sw-add-preview-val" id="sw-add-prev-name">&mdash;</span>
+                </div>
+                <div class="sw-add-preview-row">
+                  <span class="sw-add-preview-key">ISIN</span>
+                  <code class="sw-add-preview-val" id="sw-add-prev-isin">&mdash;</code>
+                </div>
+                <div class="sw-add-preview-row sw-add-preview-status"
+                  id="sw-add-preview-status">
+                  Ready to save.
+                </div>
+              </div>
+
+              <!-- Generic error / info banner -->
+              <div class="sw-add-error" id="sw-add-error" hidden></div>
+
+              <!-- Fallback: manual ISIN entry when symbol not in index -->
+              <details class="sw-add-manual" id="sw-add-manual">
+                <summary>
+                  Can't find your symbol? Enter ISIN manually
+                </summary>
+                <div class="sw-add-manual-body">
+                  <div class="sw-add-field">
+                    <label for="sw-add-manual-name">Company name</label>
+                    <input type="text" id="sw-add-manual-name"
+                      class="sw-add-input"
+                      placeholder="e.g. Reliance Industries" />
+                  </div>
+                  <div class="sw-add-field">
+                    <label for="sw-add-manual-isin">ISIN (12 chars, starts with INE)</label>
+                    <input type="text" id="sw-add-manual-isin"
+                      class="sw-add-input"
+                      placeholder="INE002A01018" maxlength="12"
+                      style="text-transform:uppercase" />
+                  </div>
+                  <div class="sw-add-hint">
+                    Find ISIN in your broker app: <b>Zerodha Kite</b> &rarr; stock &rarr;
+                    info; <b>Upstox Pro</b> &rarr; instrument details; or
+                    <b>NSE India</b> &rarr; search stock &rarr; "ISIN"
+                    column. Format: <code>INE</code> + 9 alphanumeric chars.
+                  </div>
+                </div>
+              </details>
+            </form>
+          </div>
+
+          <div class="sw-help-modal-foot">
+            <span class="sw-help-foot-note">Press <kbd>Esc</kbd> to cancel.</span>
+            <div class="sw-add-foot-btns">
+              <button type="button" class="sw-add-cancel"
+                onclick="swingCloseAddStock()">CANCEL</button>
+              <button type="button" class="sw-help-modal-done"
+                id="sw-add-save-btn"
+                onclick="swingSubmitAddStock()">SAVE TO MY STOCKS</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

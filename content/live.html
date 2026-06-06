@@ -1,8 +1,16 @@
     <div class="wrap">
       <div class="shead">
-        <h2>PAPER TRADING <span class="count-badge">NIFTY 50</span></h2>
-        <p>Live chart, option chain &amp; simulated trades for Nifty 50.</p>
+        <h2>OPTIONS TRADING <span class="count-badge">NIFTY 50 &middot; SIMULATED</span></h2>
       </div>
+
+      <!-- Options API pause banner — master kill-switch for ALL Upstox
+           calls (chart LTP polling, historical candles, option-price
+           polling, chain auto-refresh, manual chain fetch, trade
+           placement). Sits at the very top so it's the first thing
+           the user sees. EOD square-off still fires using cached prices.
+           Rendered by renderPtApiPauseBanner() on init + every toggle. -->
+      <div class="pt-api-pause-banner" id="pt-api-pause-banner"
+        data-state="active" aria-label="Options API access toggle"></div>
 
       <!-- ─── BROKER-GRADE LIVE CANDLESTICK CHART ─── -->
       <div class="tv-shell" style="margin-top:18px">
@@ -46,52 +54,1706 @@
                 onclick="apiOpenModal();return false;" style="color:var(--info);font-weight:600">&#9881; gear icon</a>
               in the chart toolbar to connect your token.</div>
           </div>
+          <!-- Bar-close countdown chip, pinned directly under the highlighted
+               last-price tag on the right axis (TradingView / Upstox style).
+               JS computes the Y position from current LTP via Lightweight Charts'
+               convertToPixel so the chip tracks the price tag as it moves.
+               For intraday timeframes the chip shows MM:SS until the current
+               bucket closes (NSE 09:15-aligned grid, matching the chart's
+               actual bar boundaries); for 1D it shows time remaining until
+               market close at 15:30 IST. Hidden when the market is closed
+               (no live bar in progress). -->
+          <div class="tv-countdown" id="tv-countdown" style="display:none"
+            title="Time remaining until the current candle closes">
+            <span id="tv-countdown-val">--:--</span>
+          </div>
         </div>
+        <!-- Footer is a runtime-status surface (the live chart module
+             overwrites #tv-foot-info on every load / poll / market-state
+             change with messages like "Loaded 240 candles · polling every
+             1s" or "Market closed · next open Mon 09:15 IST"). The
+             initial static marketing line that used to sit here
+             ("Powered by Upstox API · Klinecharts engine") was dropped
+             in the May 2026 noise audit (Batch 2); the .tv-foot:has()
+             rule in CSS hides the strip while #tv-foot-info is empty,
+             so the chart frame stays clean until the engine has
+             something useful to report. -->
         <div class="tv-foot">
-          <span id="tv-foot-info">Powered by Upstox API &middot; live ticks every 1 sec &middot; Klinecharts
-            engine</span>
+          <span id="tv-foot-info"></span>
         </div>
       </div>
 
-      <!-- ─── 3. PAPER TRADING ─── -->
+      <!-- ─── EVENT ALERTS top-level banner (expiry phase + overnight gap) ───
+           Moved out of the .sw-plan card head (May 2026) so it now sits
+           directly beneath the chart as a full-width banner instead of a
+           half-width chip wedged inside the plan card. Same data source
+           (renderEventAlerts(plan)) — only the location + width changed.
+           Hidden via the [hidden] attribute when neither expiry nor gap
+           is in effect (the common Mon-Wed/no-gap case).
+           Uses the same #ia-event-alerts id so the existing JS is untouched. -->
+      <div class="ia-event-alerts" id="ia-event-alerts" hidden></div>
+
+      <!-- ─── ENGINE DEBUG PANEL (May 2026 — stabilisation pass) ────
+           A read-only diagnostic panel that surfaces every value the
+           new gates / locks / cooldowns compute, so we can walk an
+           active signal end-to-end and verify each piece is doing
+           what we expect on LIVE data.
+
+           Native <details> so the disclosure is accessible + tiny.
+           Default collapsed; "open" state persisted to localStorage
+           by the renderEngineDebug() function. Updates on every
+           renderDecisionHud cycle.
+
+           NOT for end-users — this is a developer/power-user tool
+           for the stabilisation phase. Once verified, the panel
+           stays in place as the ground truth for any future
+           regression report ("show me your debug panel"). -->
+      <details class="engine-debug-panel" id="engine-debug-panel">
+        <summary class="engine-debug-summary">
+          <span class="engine-debug-summary-title">ENGINE STATE</span>
+          <span class="engine-debug-summary-hint">click to expand &middot; live engine internals (per-TF + plan + bridge + journal)</span>
+        </summary>
+        <div class="engine-debug-body" id="engine-debug-body">
+          <section class="engine-debug-section">
+            <h4 class="engine-debug-h">PER-TIMEFRAME</h4>
+            <div class="engine-debug-grid" id="engine-debug-tf">&mdash;</div>
+          </section>
+          <section class="engine-debug-section">
+            <h4 class="engine-debug-h">PLAN &middot; SPOT-LEVELS &middot; R:R</h4>
+            <pre class="engine-debug-pre" id="engine-debug-plan">&mdash;</pre>
+          </section>
+          <section class="engine-debug-section">
+            <h4 class="engine-debug-h">PAPER BRIDGE &middot; AUTO-TRADE</h4>
+            <pre class="engine-debug-pre" id="engine-debug-bridge">&mdash;</pre>
+          </section>
+          <section class="engine-debug-section">
+            <h4 class="engine-debug-h">JOURNAL &middot; COOLDOWNS</h4>
+            <pre class="engine-debug-pre" id="engine-debug-journal">&mdash;</pre>
+          </section>
+        </div>
+      </details>
+
+      <!-- ─── TREND BACKTEST — Phase 4 validation tool ─── -->
+      <!-- Reads STATE.rawCandles (stored after every analyze() cycle) and
+           runs classifyStructure() on a rolling window so the trader can
+           visually compare the UP/DOWN/SIDEWAYS labels against the chart.
+           No network calls — pure computation from cached candle data.    -->
+      <details class="engine-debug-panel" id="trend-backtest-panel" style="margin-top:12px">
+        <summary class="engine-debug-summary">
+          <span class="engine-debug-summary-title">TREND BACKTEST</span>
+          <span class="engine-debug-summary-hint">rolling structural classifier · validate UP / DOWN / SIDEWAYS labels against the chart</span>
+        </summary>
+        <div class="engine-debug-body">
+          <!-- Controls -->
+          <div class="bt-controls">
+            <div class="bt-ctrl-row">
+              <span class="bt-ctrl-label">Timeframe</span>
+              <div class="bt-tf-group" role="group" aria-label="Select timeframe">
+                <button class="bt-tf-btn" id="bt-tf-1h"  onclick="btSelectTf('1h')">1H</button>
+                <button class="bt-tf-btn" id="bt-tf-30m" onclick="btSelectTf('30m')">30m</button>
+                <button class="bt-tf-btn bt-tf-active" id="bt-tf-15m" onclick="btSelectTf('15m')">15m</button>
+                <button class="bt-tf-btn" id="bt-tf-5m"  onclick="btSelectTf('5m')">5m</button>
+              </div>
+              <input type="hidden" id="bt-tf" value="15m">
+            </div>
+            <div class="bt-ctrl-row">
+              <span class="bt-ctrl-label">Lookback</span>
+              <div class="bt-tf-group" id="bt-lb-group" role="group" aria-label="Select lookback">
+                <button class="bt-tf-btn" data-lb="20"  onclick="btSelectLb(20)">20 bars</button>
+                <button class="bt-tf-btn bt-tf-active" data-lb="40" onclick="btSelectLb(40)">40 bars</button>
+                <button class="bt-tf-btn" data-lb="60"  onclick="btSelectLb(60)">60 bars</button>
+                <button class="bt-tf-btn" data-lb="100" onclick="btSelectLb(100)">100 bars</button>
+              </div>
+              <input type="hidden" id="bt-lb" value="40">
+            </div>
+            <div class="bt-ctrl-row bt-tuning-row">
+              <span class="bt-ctrl-label">Tuning</span>
+              <label class="bt-knob-lbl">zigzag
+                <input class="bt-knob" type="range" id="bt-zzatr" min="0.20" max="1.50" step="0.05" value="0.50" oninput="btKnobChange('bt-zzatr','bt-zzatr-lbl',this.value)">
+                <span class="bt-knob-val" id="bt-zzatr-lbl">0.50</span>
+              </label>
+              <label class="bt-knob-lbl">tolATR
+                <input class="bt-knob" type="range" id="bt-tol" min="0.01" max="0.20" step="0.01" value="0.05" oninput="btKnobChange('bt-tol','bt-tol-lbl',this.value)">
+                <span class="bt-knob-val" id="bt-tol-lbl">0.05</span>
+              </label>
+              <button class="bt-tf-btn" onclick="resetBtParams()" style="margin-left:8px">Reset</button>
+            </div>
+            <div class="bt-ctrl-row">
+              <button class="bt-run-btn" onclick="runTrendBacktest()">&#9654; Run Backtest</button>
+              <span class="bt-ctrl-hint">Hover each bar for detail &middot; rightmost = most recent bar</span>
+            </div>
+          </div>
+          <!-- Output: stats + label strip + canvas -->
+          <div id="bt-output" class="bt-output">
+            <p class="bt-msg">Run the live analyzer first, then click &#9654; Run Backtest to validate the structural labels.</p>
+          </div>
+        </div>
+      </details>
+
+      <!-- ─── INTRADAY MULTI-TIMEFRAME RECOMMENDATION ─── -->
+      <!-- Sits between the live chart and the paper-trade ticket so the
+           user can: see the chart  →  read the recommendation  →  click
+           BUY CE / BUY PE / WAIT. Refreshes only when a 3-minute candle
+           closes (least-noisy mode) so the verdict doesn't flicker on
+           every tick. Hidden until the chart module installs the Upstox
+           token; the analyzer needs the same V3 historical-candle API. -->
+      <div class="ia-shell" id="ia-shell" style="margin-top:18px">
+        <!-- Empty state — two variants toggled by JS via data-reason:
+             "no-token"  = localStorage is empty (default)
+             "rejected"  = token present but Upstox returned 401/403 -->
+        <div class="ia-empty" id="ia-empty" data-reason="no-token">
+          <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor"
+            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3,17 9,11 13,15 21,7" />
+            <polyline points="14,7 21,7 21,14" />
+          </svg>
+          <!-- no-token message -->
+          <div id="ia-empty-no-token">
+            <b>Click the <a href="#" onclick="apiOpenModal();return false;" style="color:var(--info);font-weight:600">&#9881; gear icon</a>
+              in the chart toolbar above and paste your Upstox token to start.</b>
+          </div>
+          <!-- rejected / expired token message (hidden until needed) -->
+          <div id="ia-empty-rejected" hidden>
+            <b style="color:var(--bear)">&#9888; Your Upstox token was rejected (expired or invalid).</b><br>
+            <span style="font-size:0.92em">Upstox tokens expire daily at ~3:30&nbsp;AM IST. Re-paste a fresh one via the
+              <a href="#" onclick="apiOpenModal();return false;" style="color:var(--info);font-weight:600">&#9881; gear icon</a>
+              in the chart toolbar above.</span>
+          </div>
+        </div>
+
+        <!-- Loading state -->
+        <div class="ia-loading" id="ia-loading" hidden>
+          <div class="sw-spinner"></div>
+          <div>Fetching 5-minute, 15-minute, 30-minute and 1-hour candles for Nifty 50&hellip;</div>
+        </div>
+
+        <!-- Error state -->
+        <div class="ia-error" id="ia-error" hidden>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="13" />
+            <circle cx="12" cy="16.5" r="0.6" fill="currentColor" />
+          </svg>
+          <div>
+            <b>Analyzer failed</b>
+            <p id="ia-error-msg">&mdash;</p>
+          </div>
+        </div>
+
+        <!-- Result panel (hidden until first analyze) -->
+        <div class="ia-result" id="ia-result" hidden>
+
+          <!-- TRADING MODE TOGGLE removed (May 2026 SCALP-only refactor).
+               The engine used to support two modes (SCALP for 2-15 min
+               holds / SWING for 30 min - 2 hr holds), but in practice
+               this tool is built for a single trader doing 2-30 min
+               scalping with 15k capital — SWING was dead weight that
+               added cognitive overhead, a toggle UI surface, ~100 LOC
+               of `isScalp ? A : B` branches across the verdict + risk
+               plan engine, and a real bug (mode toggle on weekends
+               re-fired analyze and overwrote the cached verdict with
+               a contradictory WAIT 12/12 TIED). Engine is now SCALP-
+               only: tighter targets at intraday dynamic levels (VWAP /
+               5m swings / EMAs), hard veto only in the last 5 min
+               (15:25 IST), three full-HIGH-confidence windows (PRIME
+               09:30-11:30, LATE_MORN 11:30-12:30, LATE_PUSH 14:30-15:00).
+               See AGENTS.md §10 for the full refactor rationale. -->
+
+          <!-- ══════════════ TRADE DECISION HUD (May 2026) ══════════════
+               The single most important UI element. Sits at the top of the
+               result block above every pill / breakdown / SKIP IF so a
+               trader can read "should I trade RIGHT NOW?" in under 3
+               seconds without parsing prose.
+
+               Three rows, top-to-bottom:
+                 1. VERDICT   — large directional label (BUY CE / BUY PE /
+                                WAIT) + confidence chip + score margin
+                 2. NUMBERS   — strike / entry / SL / T1 / R:R (hidden on WAIT)
+                 3. RED FLAGS — auto-populated from current plan state
+                                (expiry phase, gap day, OI flow against,
+                                AT major wall, BN opposing, VIX extreme,
+                                session HARD VETO, dead CPR). Hidden when
+                                no flags fire.
+
+               Populated by renderDecisionHud() on every analyze cycle +
+               every live spot tick (so the price-dependent numbers stay
+               fresh between bar closes). Self-hides cleanly when there's
+               no actionable plan yet. -->
+
+          <!-- ═════════ TRADE ROW (May 2026) ═════════════════════════
+               Side-by-side wrapper for the decision HUD (verdict +
+               reasons + CONFIRM TRADE button) and the Quick Paper
+               Strip (BUY CE / BUY PE / REVIEW FIRST). On wide
+               desktops the two sit at 1fr 1fr so the user can scan
+               "what" (HUD) and act on "how" (strip) without scrolling
+               or moving the eye vertically. On narrower viewports
+               (<1100 px tablet / phone) the row collapses back to a
+               stacked column so neither side gets unreadably narrow.
+               Both children handle their own hidden / loading /
+               idle states; the flex wrapper just controls layout. -->
+          <div class="ia-trade-row">
+          <div class="ia-decision-hud" id="ia-decision-hud" hidden>
+            <!-- ROW 1 — verdict + confidence + margin -->
+            <div class="ia-hud-row ia-hud-row-verdict">
+              <div class="ia-hud-verdict-block">
+                <span class="ia-hud-icon" id="ia-hud-icon">&hellip;</span>
+              <div class="ia-hud-verdict-body">
+                <span class="ia-hud-k">SIGNAL</span>
+                <span class="ia-hud-verdict" id="ia-hud-verdict">&mdash;</span>
+              </div>
+              </div>
+              <div class="ia-hud-conf-block">
+                <span class="ia-hud-chip ia-hud-conf-chip" id="ia-hud-conf">&mdash;</span>
+                <span class="ia-hud-chip ia-hud-margin-chip" id="ia-hud-margin">&mdash;</span>
+                <!-- SIGNAL FRESHNESS CHIP (P0-3, May 2026) — paints
+                     the age of the active BUY signal (m:ss) plus a
+                     health band (FRESH/ACTIVE/AGEING/STALE) and an
+                     execution verdict (GO/CAUTION/SKIP). Updates on
+                     every live LTP tick (2s) so the age counter ticks
+                     visibly. Self-hides when no active signal. Drift
+                     details (premium %, spot pts vs thesis) live in
+                     the chip's title= tooltip. Populated by
+                     renderSignalFreshness(). -->
+                <span class="ia-hud-chip ia-fresh-chip" id="ia-hud-freshness" hidden></span>
+                <!-- DISCIPLINE LOCK PILL (P0-5, May 2026) — paints
+                     when daily auto-lock triggers (1W soft, 2L hard,
+                     3T hard). Hovering shows the full reason. The
+                     CONFIRM modal also surfaces this state as a top
+                     banner with override controls (for soft locks). -->
+                <span class="ia-hud-chip ia-discipline-chip" id="ia-hud-discipline" hidden></span>
+                <!-- PULLBACK ENTRY CHIP — shown when 1H+30m aligned but
+                     15m is counter-trend; 5m already recovered. Lower
+                     risk: buy the dip in an established trend. -->
+                <span class="ia-hud-chip ia-pullback-chip" id="ia-hud-pullback" hidden
+                      title="1H+30m trend aligned but 15m is in a pullback. 5m has recovered — entering the dip in an established trend. Use tighter SL (below the 5m swing low).">PULLBACK ENTRY</span>
+              </div>
+            </div>
+            <!-- ROW 2 — strike / entry / SL / T1 / R:R. The Quick Paper
+                 Strip to the right duplicates these for one-click paper
+                 trade, but the HUD keeps the full row so you can read
+                 the complete plan at a glance without scanning two cards. -->
+            <!-- ROW 2 — strike / entry / SL / T1 / R:R.
+                 PRIMARY value is the SPOT (Nifty index) level — that's
+                 what the indicators (RSI, EMA, VWAP, S/R) live on and
+                 what you can actually watch on the chart. The premium
+                 estimate appears as a small muted sub line below each
+                 spot value so you still get a feel for capital outlay.
+                 (May 2026 inversion — old design showed premium as
+                 primary, spot as a sub line; that meant the "BUY at
+                 ₹102 / SL ₹85" headline numbers had nothing to do with
+                 the chart you were looking at.) -->
+            <div class="ia-hud-row ia-hud-row-numbers" id="ia-hud-row-numbers" hidden>
+              <div class="ia-hud-num ia-hud-num-strike">
+                <span class="ia-hud-num-k">STRIKE</span>
+                <span class="ia-hud-num-v" id="ia-hud-strike">&mdash;</span>
+                <span class="ia-hud-num-sub" id="ia-hud-strike-sub"></span>
+              </div>
+              <div class="ia-hud-num ia-hud-num-entry">
+                <span class="ia-hud-num-k">ENTRY (spot)</span>
+                <span class="ia-hud-num-v" id="ia-hud-entry">&mdash;</span>
+                <span class="ia-hud-num-sub" id="ia-hud-entry-sub"></span>
+              </div>
+              <div class="ia-hud-num ia-hud-num-sl">
+                <span class="ia-hud-num-k">SL (spot)</span>
+                <span class="ia-hud-num-v" id="ia-hud-sl">&mdash;</span>
+                <span class="ia-hud-num-sub" id="ia-hud-sl-sub"></span>
+              </div>
+              <div class="ia-hud-num ia-hud-num-t1">
+                <span class="ia-hud-num-k">T1 (spot)</span>
+                <span class="ia-hud-num-v" id="ia-hud-t1">&mdash;</span>
+                <span class="ia-hud-num-sub" id="ia-hud-t1-sub"></span>
+              </div>
+              <div class="ia-hud-num ia-hud-num-rr">
+                <span class="ia-hud-num-k">RISK:REWARD</span>
+                <span class="ia-hud-num-v" id="ia-hud-rr">&mdash;</span>
+                <span class="ia-hud-num-sub" id="ia-hud-rr-sub"></span>
+              </div>
+            </div>
+            <!-- ROW 3 — REASONS BULLET LIST. A single rounded box
+                 with one <li> per reason (blocks + flags merged +
+                 deduped). Pure plain text — no card stack, no titles,
+                 no tap-to-expand. Sorted danger → warn → info.
+                 Populated by renderDecisionHud(). Hidden when empty. -->
+            <ul class="ia-hud-warnings" id="ia-hud-warnings" hidden></ul>
+            <!-- The HUD's own "CONFIRM TRADE" button was removed in the
+                 May 2026 noise audit (Batch 1). Acting on the signal
+                 now lives entirely in the Quick Paper Strip on the
+                 right (BUY CE / BUY PE / REVIEW FIRST) so there's
+                 exactly one place to click and zero ambiguity about
+                 which button does what. The HUD stays purely
+                 informational: "here's what's true right now."
+                 The CONFIRM modal itself (#ia-confirm-modal) is
+                 unchanged — it's still opened by the strip's
+                 REVIEW FIRST button via window.iaOpenConfirmModal. -->
+          </div>
+
+          <!-- ═════════ QUICK PAPER STRIP (P2-A, May 2026) ════════════
+               Zero-scroll one-click paper-trade for the active signal.
+               Bridges the live HUD (top of section) to paperTradeModule
+               (bottom of section) so the user never scrolls during a
+               scalp. Driven by paperBridgeModule which:
+                 1. fires window.ptSelectStrike + ptSetOrderType +
+                    ptSetQty + ptBuyCE/PE on click (using `plan.premium`
+                    and the strip's local lot stepper),
+                 2. polls paperTradeModule's open/history lists every
+                    5 s and writes the outcome (SL/TGT/EOD/MANUAL) back
+                    to the signal journal automatically — no more
+                    forgotten outcomes corrupting the test data.
+               Shown only when the engine has an active BUY_CE / BUY_PE
+               and the option chain is loaded; hidden otherwise. The
+               existing CONFIRM modal path is preserved as REVIEW for
+               trades where the user wants a deliberate sanity check. -->
+          <div class="ia-quick-strip" id="ia-quick-strip" hidden role="region"
+               aria-label="Quick paper-trade action for the active signal">
+            <div class="ia-quick-head">
+              <span class="ia-quick-side-tag" id="ia-quick-side-tag" data-side="ce">CE</span>
+              <span class="ia-quick-label">PAPER TRADE THIS SIGNAL</span>
+              <button type="button" class="ia-quick-auto-btn" id="ia-quick-auto-btn"
+                      data-on="false"
+                      onclick="window.iaSetAutoTrade && window.iaSetAutoTrade(this.getAttribute('data-on') !== 'true')"
+                      title="Turn on to paper-trade signals automatically">AUTO OFF</button>
+              <span class="ia-quick-status" id="ia-quick-status" aria-live="polite"></span>
+            </div>
+            <!-- Loading/idle placeholder — shown instead of the numbers
+                 row when data hasn't arrived yet. The preview grid is
+                 hidden in those states (CSS) so the user never sees a
+                 screen full of em-dashes. -->
+            <div class="ia-quick-loading-placeholder" id="ia-quick-placeholder">
+              Pricing strike&hellip;
+            </div>
+            <!-- DISCIPLINE ADVISORY BANNER — appears whenever the
+                 discipline module reports a HARD_LOCK. In paper trading
+                 the lock is informational only (paper trades always
+                 execute so signal edge can be measured on a clean
+                 sample). The banner reminds the user what would be
+                 blocked when they place the same trade on real money
+                 via Upstox. Hidden by default; renderQuickStrip
+                 toggles visibility + populates copy. -->
+            <div class="ia-quick-lock-banner" id="ia-quick-lock-banner" hidden>
+              <div class="ia-quick-lock-icon" aria-hidden="true">!</div>
+              <div class="ia-quick-lock-text">
+                <div class="ia-quick-lock-title" id="ia-quick-lock-title">REAL-TRADE LOCK</div>
+                <div class="ia-quick-lock-body"  id="ia-quick-lock-body">Discipline rule would block this on real money. Paper trade still placed.</div>
+                <div class="ia-quick-lock-hint"  id="ia-quick-lock-hint"></div>
+              </div>
+            </div>
+            <div class="ia-quick-preview">
+              <div class="ia-quick-cell">
+                <div class="ia-quick-cell-k">STRIKE</div>
+                <div class="ia-quick-cell-v" id="ia-quick-strike">&mdash;</div>
+                <div class="ia-quick-cell-sub" id="ia-quick-strike-sub"></div>
+              </div>
+              <!-- ENTRY = spot at fire (the Nifty level where the engine
+                   said BUY). Sub = premium estimate at that strike.
+                   Old design showed premium primary — confusing because
+                   "BUY at ₹102" doesn't tell you what to watch on the
+                   chart. -->
+              <div class="ia-quick-cell">
+                <div class="ia-quick-cell-k">ENTRY (spot)</div>
+                <div class="ia-quick-cell-v" id="ia-quick-entry">&mdash;</div>
+                <div class="ia-quick-cell-sub" id="ia-quick-entry-sub"></div>
+              </div>
+              <!-- LIVE LTP — only shown when paper-tracking is active.
+                   Updates every 2s from paperTradeGetOptionPrice (same
+                   source as the Open Positions table). Lets the user see
+                   how the premium is moving against ENTRY without
+                   bouncing to the paper-trade section. -->
+              <div class="ia-quick-cell ia-quick-cell-live" id="ia-quick-cell-ltp" hidden>
+                <div class="ia-quick-cell-k">LTP</div>
+                <div class="ia-quick-cell-v" id="ia-quick-ltp">&mdash;</div>
+                <div class="ia-quick-cell-sub" id="ia-quick-ltp-sub"></div>
+              </div>
+              <!-- LIVE P&L — same gate as LTP. Color flips bull/bear by
+                   sign. Always 1 lot × lotSize (matches the LOTS cell). -->
+              <div class="ia-quick-cell ia-quick-cell-live" id="ia-quick-cell-pnl" hidden>
+                <div class="ia-quick-cell-k">P&amp;L</div>
+                <div class="ia-quick-cell-v" id="ia-quick-pnl">&mdash;</div>
+                <div class="ia-quick-cell-sub" id="ia-quick-pnl-sub"></div>
+              </div>
+              <div class="ia-quick-cell">
+                <div class="ia-quick-cell-k">SL (spot)</div>
+                <div class="ia-quick-cell-v ia-quick-cell-sl" id="ia-quick-sl">&mdash;</div>
+                <div class="ia-quick-cell-sub" id="ia-quick-sl-sub"></div>
+              </div>
+              <div class="ia-quick-cell">
+                <div class="ia-quick-cell-k">T1 (spot)</div>
+                <div class="ia-quick-cell-v ia-quick-cell-t1" id="ia-quick-t1">&mdash;</div>
+                <div class="ia-quick-cell-sub" id="ia-quick-t1-sub"></div>
+              </div>
+              <div class="ia-quick-cell">
+                <div class="ia-quick-cell-k">LOTS</div>
+                <div class="ia-quick-lots">
+                  <button type="button" class="ia-quick-lot-btn"
+                          onclick="window.iaQuickIncLots && window.iaQuickIncLots(-1)"
+                          aria-label="Decrease lots">&minus;</button>
+                  <span class="ia-quick-lots-v" id="ia-quick-lots">1</span>
+                  <button type="button" class="ia-quick-lot-btn"
+                          onclick="window.iaQuickIncLots && window.iaQuickIncLots(1)"
+                          aria-label="Increase lots">+</button>
+                </div>
+              </div>
+              <div class="ia-quick-cell">
+                <div class="ia-quick-cell-k">DEPLOY</div>
+                <div class="ia-quick-cell-v" id="ia-quick-deploy">&mdash;</div>
+              </div>
+              <div class="ia-quick-cell">
+                <div class="ia-quick-cell-k">MAX LOSS</div>
+                <div class="ia-quick-cell-v ia-quick-cell-loss" id="ia-quick-loss">&mdash;</div>
+              </div>
+            </div>
+            <!-- BUY CE + BUY PE always visible (mirrors the paper-
+                 trade section pattern), both disabled until the
+                 engine fires a matching signal. Only the side the
+                 engine recommends will enable; the other stays
+                 muted. REVIEW occupies a full-width third row so
+                 it never competes for attention with the primary
+                 BUY decisions. -->
+            <div class="ia-quick-actions">
+              <button type="button" class="ia-quick-btn ia-quick-btn-ce" id="ia-quick-btn-ce" disabled
+                      onclick="window.iaQuickPaperTakeCE && window.iaQuickPaperTakeCE()">
+                <span class="ia-quick-btn-icon">&#9650;</span>
+                <span class="ia-quick-btn-stack">
+                  <span class="ia-quick-btn-label">BUY CE</span>
+                  <span class="ia-quick-btn-sub" id="ia-quick-btn-ce-sub"></span>
+                </span>
+              </button>
+              <button type="button" class="ia-quick-btn ia-quick-btn-pe" id="ia-quick-btn-pe" disabled
+                      onclick="window.iaQuickPaperTakePE && window.iaQuickPaperTakePE()">
+                <span class="ia-quick-btn-icon">&#9660;</span>
+                <span class="ia-quick-btn-stack">
+                  <span class="ia-quick-btn-label">BUY PE</span>
+                  <span class="ia-quick-btn-sub" id="ia-quick-btn-pe-sub"></span>
+                </span>
+              </button>
+              <button type="button" class="ia-quick-btn ia-quick-btn-review" id="ia-quick-btn-review" disabled
+                      onclick="window.iaOpenConfirmModal && window.iaOpenConfirmModal()"
+                      aria-haspopup="dialog" aria-controls="ia-confirm-modal">
+                <span class="ia-quick-btn-icon">&#9776;</span>
+                <span class="ia-quick-btn-stack">
+                  <span class="ia-quick-btn-label">REVIEW FIRST</span>
+                  <span class="ia-quick-btn-sub" id="ia-quick-btn-review-sub"></span>
+                </span>
+              </button>
+            </div>
+            <!-- Quick Strip auto-outcome footer removed (May 2026 noise
+                 audit, Batch 2). The behaviour it described (journal
+                 auto-updates when paperBridgeModule sees the paper
+                 position close on SL / T1 / EOD) is unchanged — the
+                 line was just chrome that read as noise after the
+                 first paper trade. Height alignment with the HUD
+                 (which used `margin-top: auto` on this footer to
+                 push it to the bottom of the stretched card) is now
+                 absorbed by `margin-top: auto` on .ia-quick-actions
+                 instead — the buttons row drifts to the bottom so
+                 the strip still fills the HUD's stretched height
+                 without dead space at the bottom. -->
+          </div>
+          </div>
+          <!-- /.ia-trade-row -->
+
+          <!-- ═════════ EVENT CALENDAR MODAL (P1-3 polish, May 2026)
+               Replaces the native prompt()/alert() pair from the
+               initial P1-3 ship with a proper modal: native datetime
+               picker (calendar UI on every modern browser), list of
+               currently-scheduled events (built-in macros marked
+               read-only, user-added customs with delete), inline
+               validation, ESC + backdrop close. Pattern matches the
+               sj-outcome-modal so behaviour is consistent. -->
+          <div class="ia-event-modal" id="ia-event-modal" aria-hidden="true" role="dialog" aria-labelledby="ia-event-title">
+            <div class="ia-event-backdrop" onclick="window.iaCloseEventModal && window.iaCloseEventModal()"></div>
+            <div class="ia-event-card" role="document">
+              <button type="button" class="ia-event-close"
+                      onclick="window.iaCloseEventModal && window.iaCloseEventModal()"
+                      aria-label="Close event calendar dialog">&times;</button>
+              <h3 class="ia-event-title" id="ia-event-title">Event Calendar &middot; Veto Windows</h3>
+              <p class="ia-event-blurb">
+                The tool blocks new trades inside a &plusmn;15 min window around any event below.
+                Built-in macros (RBI / Fed / Budget) are pre-loaded for 2026 &mdash; add your own
+                one-offs (sector results, surprise statements) here.
+              </p>
+
+              <!-- Currently scheduled events — built-in + user-added.
+                   Renders via window.iaRenderEventList() on modal open. -->
+              <div class="ia-event-section">
+                <h4 class="ia-event-section-k">Upcoming events</h4>
+                <div class="ia-event-list" id="ia-event-list">
+                  <div class="ia-event-empty">Loading&hellip;</div>
+                </div>
+              </div>
+
+              <!-- Add custom event form. The datetime-local input
+                   gives the browser's native calendar + time picker.
+                   `min` attr is set to "now" on open so past events
+                   can't be added accidentally. -->
+              <div class="ia-event-section">
+                <h4 class="ia-event-section-k">Add a custom event</h4>
+                <div class="ia-event-form">
+                  <label class="ia-event-field">
+                    <span class="ia-event-field-k">EVENT NAME</span>
+                    <input type="text" id="ia-event-name" class="ia-event-input"
+                           maxlength="60" placeholder="e.g. Reliance Q3 results"
+                           aria-label="Event name">
+                  </label>
+                  <label class="ia-event-field">
+                    <span class="ia-event-field-k">WHEN (IST)</span>
+                    <input type="datetime-local" id="ia-event-when" class="ia-event-input"
+                           aria-label="Event date and time in Indian Standard Time">
+                  </label>
+                  <div class="ia-event-err" id="ia-event-err" hidden></div>
+                  <div class="ia-event-actions">
+                    <button type="button" class="ia-event-btn ia-event-btn-cancel"
+                            onclick="window.iaCloseEventModal && window.iaCloseEventModal()">Close</button>
+                    <button type="button" class="ia-event-btn ia-event-btn-add"
+                            onclick="window.iaSubmitEvent && window.iaSubmitEvent()">+ Add event</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═════════ CONFIRM TRADE MODAL (P0-4, May 2026) ════════
+               Three sections (signal check / plan snapshot / verdict)
+               + two actions (TAKE IT / SKIP). Populated entirely by
+               confirmModalModule.paint() on open + every 1s while
+               open (so age, drift, premium all tick in real time).
+               ESC + click-backdrop close. Pattern mirrors the
+               sj-outcome-modal so users find the UX familiar. -->
+          <div class="ia-confirm-modal" id="ia-confirm-modal" aria-hidden="true" role="dialog" aria-labelledby="ia-confirm-title">
+            <div class="ia-confirm-backdrop" onclick="window.iaCloseConfirmModal && window.iaCloseConfirmModal()"></div>
+            <div class="ia-confirm-card" role="document">
+              <button type="button" class="ia-confirm-close" id="ia-confirm-close-btn"
+                      onclick="window.iaCloseConfirmModal && window.iaCloseConfirmModal()"
+                      aria-label="Close confirm dialog">&times;</button>
+              <h3 class="ia-confirm-title" id="ia-confirm-title">Confirm trade</h3>
+              <div class="ia-confirm-body" id="ia-confirm-body"></div>
+              <div class="ia-confirm-actions" id="ia-confirm-actions">
+                <button type="button" class="ia-confirm-btn ia-confirm-btn-skip"
+                        onclick="window.iaConfirmSkip && window.iaConfirmSkip()"
+                        aria-label="Skip this signal">
+                  &#8854; Skip this
+                </button>
+                <button type="button" class="ia-confirm-btn ia-confirm-btn-take" id="ia-confirm-take-btn"
+                        onclick="window.iaConfirmTake && window.iaConfirmTake()"
+                        aria-label="Take this trade and log as taken">
+                  &#10003; I'm taking it
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── MARKET CONTEXT PILL GRID ─────────────────────────
+               7 pills (SESSION, 1H, IV, VOLATILITY, BN, CPR, STRUCTURE)
+               in a 2-column grid. Order is intentional — SESSION first
+               because "should I be trading at all right now?" is the
+               most fundamental filter (a world-class setup at 15:25 IST
+               is still a no-trade). Then 1H (top-down filter); then
+               option-flow + volatility + correlation; CPR + STRUCTURE
+               close. Grid auto-balances odd counts via the
+               .ia-pill-fill class set by layoutContextGrid(). -->
+          <div class="ia-context-grid">
+
+          <!-- SESSION PILL — answers "can I trade right now?"
+               Always visible — even when market is closed — because
+               pre/post-market is
+               exactly when traders plan the NEXT session and need to
+               see the countdown. Four verdict states drive the colour
+               and the impact line:
+                 TRADE NOW         (green)  — PRIME hours
+                 CAUTION           (amber)  — chop / late session / lunch
+                 DO NOT TRADE      (red)    — first 10 min / last 5 min
+                 MARKET CLOSED     (muted)  — pre-open / post-close / weekend
+               Re-rendered every 30s by tickWatcher so the IST clock
+               + countdown stay accurate without a re-analyze. -->
+          <div class="ia-session-pill" id="ia-session-pill" hidden>
+            <span class="ia-session-icon">&#9201;</span>
+            <span class="ia-session-label">SESSION</span>
+            <span class="ia-session-verdict" id="ia-session-verdict">&mdash;</span>
+            <span class="ia-session-sep">|</span>
+            <span class="ia-session-detail" id="ia-session-detail">&mdash;</span>
+            <span class="ia-session-sep">|</span>
+            <span class="ia-session-impact" id="ia-session-impact">&mdash;</span>
+          </div>
+
+          <!-- 1-HOUR CONTEXT PILL — sits ABOVE the 3-card bias bar.
+               Not a voting card (we don't want 1H to dominate the verdict
+               since hourly bars take 60 min to confirm). Instead it acts
+               as a TOP-DOWN FILTER:
+                 - shows the bigger-picture trend so you can see if the
+                   intraday setup is "with" or "against" the multi-session
+                   tape;
+                 - feeds the VETO rules — if 15m direction opposes 1H
+                   trend, the verdict requires extra confidence (or is
+                   downgraded to WAIT for thin scores);
+                 - contributes its swing high/low as PRIORITY 3 S/R
+                   levels to the EMERGENCY EXIT picker (heavier than
+                   5m/15m pivots since more participants traded them). -->
+          <div class="ia-h1-pill" id="ia-h1-pill" hidden>
+            <span class="ia-h1-icon">&#8645;</span>
+            <span class="ia-h1-label">1-HOUR CONTEXT</span>
+            <span class="ia-h1-trend" id="ia-h1-trend">&mdash;</span>
+            <span class="ia-h1-sep">|</span>
+            <span class="ia-h1-detail" id="ia-h1-detail">&mdash;</span>
+            <span class="ia-h1-sep">|</span>
+            <span class="ia-h1-impact" id="ia-h1-impact">&mdash;</span>
+          </div>
+
+          <!-- IV & POSITIONING PILL — surfaces India VIX + Option-chain
+               PCR/OI walls. These are option-buyer-specific factors that
+               pure price-action analysis can't see:
+                 - India VIX (IV regime) — dead vs sluggish vs hot, plus
+                   intraday change (IV crush vs IV expansion).
+                 - PCR (Put-Call Ratio) — institutional positioning bias.
+                 - CE wall (max CALL OI) — institutional resistance line.
+                 - PE wall (max PUT OI)  — institutional support line.
+               Three colour states (like the 1H / Structure pills):
+                 GREEN  = supports the trade (IV expanding + walls clear)
+                 AMBER  = mixed (caution; trade still on but reduce size)
+                 RED    = active headwind (dead IV, IV crush, or trade
+                          pushing directly into a major OI wall) -->
+          <div class="ia-iv-pill" id="ia-iv-pill" hidden>
+            <span class="ia-iv-icon">&#9874;</span>
+            <span class="ia-iv-label">IV &amp; POSITIONING</span>
+            <span class="ia-iv-vix" id="ia-iv-vix">VIX &mdash;</span>
+            <span class="ia-iv-sep">|</span>
+            <span class="ia-iv-pcr" id="ia-iv-pcr">PCR &mdash;</span>
+            <span class="ia-iv-sep">|</span>
+            <span class="ia-iv-walls" id="ia-iv-walls">walls &mdash;</span>
+            <span class="ia-iv-sep">|</span>
+            <span class="ia-iv-impact" id="ia-iv-impact">&mdash;</span>
+          </div>
+
+          <!-- VOLATILITY (ATR-%) PILL — the "is today tradeable" gate.
+               Most retail losses on flat days come from forcing trades
+               onto markets that aren't moving. The 5m ATR as % of
+               price tells us instantly whether there's enough range
+               for any directional option-buy setup to pay. Four
+               regimes:
+                 RED      = DEAD   (ATR% < 0.04) — HARD VETO
+                 AMBER    = QUIET  (ATR% 0.04-0.06) — demote confidence
+                 NEUTRAL  = NORMAL (ATR% 0.06-0.10) — normal trading
+                 GREEN    = ACTIVE (ATR% > 0.10)   — full ladder OK -->
+          <div class="ia-vol-pill" id="ia-vol-pill" hidden>
+            <span class="ia-vol-icon">&#9888;</span>
+            <span class="ia-vol-label">VOLATILITY</span>
+            <span class="ia-vol-regime" id="ia-vol-regime">&mdash;</span>
+            <span class="ia-vol-sep">|</span>
+            <span class="ia-vol-atr" id="ia-vol-atr">&mdash;</span>
+            <span class="ia-vol-sep">|</span>
+            <span class="ia-vol-impact" id="ia-vol-impact">&mdash;</span>
+          </div>
+
+          <!-- BANK NIFTY CORRELATION PILL — sits between IV/Positioning
+               and CPR. Bank Nifty leads Nifty ~60% intraday, so its
+               direction confirms or fades Nifty's setup. Three states:
+                 GREEN  = ALIGNED (BN trending same direction, or leading)
+                 AMBER  = FLAT BN (not confirming the Nifty move)
+                 RED    = OPPOSING (BN going the other way — strong fade signal) -->
+          <div class="ia-bn-pill" id="ia-bn-pill" hidden>
+            <span class="ia-bn-icon">&#9863;</span>
+            <span class="ia-bn-label">BANK NIFTY</span>
+            <span class="ia-bn-trend" id="ia-bn-trend">&mdash;</span>
+            <span class="ia-bn-sep">|</span>
+            <span class="ia-bn-chg" id="ia-bn-chg">&mdash;</span>
+            <span class="ia-bn-sep">|</span>
+            <span class="ia-bn-impact" id="ia-bn-impact">&mdash;</span>
+          </div>
+
+          <!-- CPR PILL (Central Pivot Range — Indian-intraday standard).
+               Last pill in the cascade — CPR is a DAY-TYPE filter (sets
+               the whole regime for the session). Three colour states:
+                 GREEN  = NARROW CPR (width <= 25% of prev range) — trending-day
+                          signal; institutional flow has to pick a side
+                 AMBER  = NORMAL CPR (25-60% of prev range) — average day
+                 RED    = WIDE CPR (> 60%) — range-day; option buyers struggle
+               Always-on once a verdict exists; hides only when prev-day
+               data hasn't loaded (very first session / no history). -->
+          <div class="ia-cpr-pill" id="ia-cpr-pill" hidden>
+            <span class="ia-cpr-icon">&#9678;</span>
+            <span class="ia-cpr-label">CPR DAY-TYPE</span>
+            <span class="ia-cpr-class" id="ia-cpr-class">&mdash;</span>
+            <span class="ia-cpr-sep">|</span>
+            <span class="ia-cpr-band" id="ia-cpr-band">&mdash;</span>
+            <span class="ia-cpr-sep">|</span>
+            <span class="ia-cpr-loc" id="ia-cpr-loc">&mdash;</span>
+            <span class="ia-cpr-sep">|</span>
+            <span class="ia-cpr-impact" id="ia-cpr-impact">&mdash;</span>
+          </div>
+
+          <!-- STRUCTURE ROOM pill removed (May 2026 SCALP-only refactor)
+               — it measured R:R against the day's BIG walls (PDH /
+               ORH / CPR / 1H Swing), the SWING-mode yardstick. The
+               matching renderStructurePill JS, pill tooltip handler,
+               red-flag chips, and ~40 lines of CSS came out with it.
+               Per-TF cards still show wide-structure R:R as a SCORE
+               contribution (+/- 1-2 pts), which works for both modes. -->
+
+          </div><!-- /.ia-context-grid -->
+
+          <!-- PILL DETAIL PANEL — one shared expansion below the 7-pill
+               grid. Opens when the user taps any pill, with a clear
+               "what this measures / what the current value means / what
+               you should do" body. Closes via the × or by tapping the
+               same pill again. Severity-tinted (data-sev set by the
+               click handler) so red/amber/green/blue chrome matches
+               the pill's own colour state. Replaces the cryptic
+               "impact" text crammed at the right side of each pill. -->
+          <div class="ia-pill-detail" id="ia-pill-detail" hidden>
+            <div class="ia-pill-detail-icon" id="ia-pill-detail-icon" aria-hidden="true">&#9432;</div>
+            <div class="ia-pill-detail-body">
+              <div class="ia-pill-detail-title" id="ia-pill-detail-title">&mdash;</div>
+              <div class="ia-pill-detail-why" id="ia-pill-detail-why">&mdash;</div>
+              <div class="ia-pill-detail-action" id="ia-pill-detail-action" hidden>
+                <span class="ia-pill-detail-action-k">What to do:</span>
+                <span class="ia-pill-detail-action-v" id="ia-pill-detail-action-v">&mdash;</span>
+              </div>
+            </div>
+            <button type="button" class="ia-pill-detail-close" id="ia-pill-detail-close"
+                    aria-label="Close pill detail">&times;</button>
+          </div>
+
+          <!-- Multi-timeframe bias bar — 4 cells: 1H BIG TREND / 30m CONFIRM /
+               15m CONTEXT / 5m SETUP. Reuses the swing analyzer's base
+               .sw-bias-bar styles; the .sw-bias-bar-tf modifier scopes
+               the intraday visual treatment (rounded card, direction-
+               tinted cells, larger value text) — see intraday-analyzer.css.
+               Why 4 cells: the verdict engine reads 1-hour bars as a
+               TOP-DOWN FILTER (sets the macro tape direction; vetoes
+               counter-trend setups), so the trader should SEE the 1H
+               bias next to the 30m / 15m / 5m bias — same visual
+               language across all four timeframes the engine actually
+               consults. 3 MIN was dropped on 2026-05-25 (Trend
+               Identifier v1 lineup is 1h/30m/15m/5m).
+               (A 5th "VERDICT" cell used to live here but was
+               removed in the May 2026 noise audit (Batch 1): the
+               TRADE DECISION HUD at the top of this result block
+               already shows the verdict in 32-pt type, so the cell
+               was pure duplication.) The legacy IDs `ia-final-cell` /
+               `ia-final-bias` / `ia-final-conf` are gone; the
+               `renderFinalCell()` and `applyInvalidation()` JS
+               branches that wrote to them are null-safe and now
+               no-op — kept in case a future visual variant
+               re-introduces a summary cell. -->
+          <div class="sw-bias-bar sw-bias-bar-tf">
+            <div class="sw-bias-cell" data-tf="1h">
+              <span class="sw-bias-k">1 HOUR <span class="ia-tf-tag">BIG TREND</span></span>
+              <span class="sw-bias-v" id="ia-bias-1h">&mdash;</span>
+              <span class="sw-bias-sub" id="ia-bias-1h-sub">&mdash;</span>
+            </div>
+            <div class="sw-bias-cell" data-tf="30m">
+              <span class="sw-bias-k">30 MIN <span class="ia-tf-tag">CONFIRM</span></span>
+              <span class="sw-bias-v" id="ia-bias-30m">&mdash;</span>
+              <span class="sw-bias-sub" id="ia-bias-30m-sub">&mdash;</span>
+            </div>
+            <div class="sw-bias-cell" data-tf="15m">
+              <span class="sw-bias-k">15 MIN <span class="ia-tf-tag">CONTEXT</span></span>
+              <span class="sw-bias-v" id="ia-bias-15m">&mdash;</span>
+              <span class="sw-bias-sub" id="ia-bias-15m-sub">&mdash;</span>
+            </div>
+            <div class="sw-bias-cell" data-tf="5m">
+              <span class="sw-bias-k">5 MIN <span class="ia-tf-tag">SETUP</span></span>
+              <span class="sw-bias-v" id="ia-bias-5m">&mdash;</span>
+              <span class="sw-bias-sub" id="ia-bias-5m-sub">&mdash;</span>
+            </div>
+          </div>
+
+          <!-- SAFETY BANNER — appears the instant Nifty crosses the
+               spot-invalidation level for the active verdict (e.g. for
+               BUY CE: Nifty < swingLow/VWAP/orLow). Trumps everything
+               else on screen because acting on the original recommendation
+               at this point loses money. Hidden by default; toggled by
+               intradayAnalyzerModule.liveTick() on every spot LTP tick. -->
+          <div class="ia-invalid-banner" id="ia-invalid-banner" hidden>
+            <div class="ia-invalid-icon">&#9940;</div>
+            <div class="ia-invalid-body">
+              <div class="ia-invalid-title">VERDICT INVALIDATED &mdash; DO NOT ENTER</div>
+              <div class="ia-invalid-msg" id="ia-invalid-msg">&mdash;</div>
+              <div class="ia-invalid-detail" id="ia-invalid-detail">&mdash;</div>
+            </div>
+          </div>
+
+          <!-- ANALYSIS COVERAGE — compact summary card.
+               Previously this was a 3-column 70-row inline grid that
+               ate up substantial vertical space on every analyze
+               cycle, even though most users only need to see the
+               BOTTOM LINE (counts + final verdict) most of the time.
+               Now it's a single-row strip with a "View details"
+               button that opens a modal containing the full chip
+               breakdown. All four populated IDs (ia-cov-count,
+               ia-cov-ce, ia-cov-pe, ia-cov-verdict) remain intact
+               so the existing renderCoverage() code path is
+               untouched. -->
+          <div class="ia-coverage" id="ia-coverage">
+            <div class="ia-cov-summary-left">
+              <span class="ia-coverage-icon">&#10003;</span>
+              <div class="ia-cov-summary-text">
+                <span class="ia-cov-summary-title">ANALYSIS COVERAGE</span>
+                <!-- Static reassurance meta line ("4 timeframes · 28 indicators
+                     · 20 S/R levels") dropped in May 2026 noise audit (Batch
+                     3) — it never changed between cycles and read as bragging
+                     chrome. The dynamic check counter survives because it
+                     does change every analyze cycle and the existing
+                     renderCoverage() code path writes to #ia-cov-count. The
+                     full breakdown is one click away via "View details". -->
+                <span class="ia-cov-summary-meta">
+                  <span id="ia-cov-count">&mdash; checks</span>
+                </span>
+              </div>
+            </div>
+            <div class="ia-cov-summary-right">
+              <span class="ia-cov-summary-result">
+                Bullish <b id="ia-cov-ce">&mdash;</b>
+                vs <b id="ia-cov-pe">&mdash;</b>
+                &rarr; <b id="ia-cov-verdict">&mdash;</b>
+              </span>
+              <button type="button" class="ia-cov-open-btn"
+                      onclick="iaCoverageOpen()"
+                      aria-label="Show full analysis coverage breakdown">
+                View details
+                <span class="ia-cov-open-arrow" aria-hidden="true">&rarr;</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ANALYSIS COVERAGE MODAL — the full chip grid, hidden by
+               default. Reuses the same .ia-cov-chip styling so the
+               markup is unchanged from before; only the wrapper +
+               layout differ. ESC + backdrop-click + X all close. -->
+          <div class="ia-cov-modal" id="ia-cov-modal" aria-hidden="true" role="dialog"
+               aria-labelledby="ia-cov-modal-title">
+            <div class="ia-cov-modal-backdrop" onclick="iaCoverageClose()"></div>
+            <div class="ia-cov-modal-card" role="document">
+              <button type="button" class="ia-cov-modal-close" onclick="iaCoverageClose()"
+                      aria-label="Close coverage details">&times;</button>
+              <div class="ia-cov-modal-head">
+                <h3 id="ia-cov-modal-title">ANALYSIS COVERAGE &mdash; full breakdown</h3>
+                <p class="ia-cov-modal-sub">Every timeframe, indicator, and S/R level the recommendation engine consulted on this cycle.</p>
+              </div>
+              <div class="ia-coverage-grid">
+                <div class="ia-coverage-block ia-cov-tf">
+                  <div class="ia-cov-label">4 TIMEFRAMES</div>
+                  <div class="ia-cov-items">
+                    <span class="ia-cov-chip">1h macro context (safety filter)</span>
+                    <span class="ia-cov-chip">15m context (heaviest weight)</span>
+                    <span class="ia-cov-chip">5m setup (trade-grade)</span>
+                    <span class="ia-cov-chip">3m trigger (entry bar)</span>
+                  </div>
+                </div>
+                <div class="ia-coverage-block ia-cov-ind">
+                  <div class="ia-cov-label">28 INDICATORS &amp; CHECKS</div>
+                  <div class="ia-cov-items">
+                    <span class="ia-cov-chip">Trend (EMA 9 / 21 / 50)</span>
+                    <span class="ia-cov-chip">Momentum (RSI 14)</span>
+                    <span class="ia-cov-chip">Momentum (MACD + signal + cross)</span>
+                    <span class="ia-cov-chip">Trend strength (ADX 14)</span>
+                    <span class="ia-cov-chip">Volatility (ATR 14)</span>
+                    <span class="ia-cov-chip">Supertrend (10, 3) &mdash; ATR-based trend flip + dynamic SL band</span>
+                    <span class="ia-cov-chip">Stochastic (14, 3, 3) &mdash; short-term overbought/oversold + K/D cross</span>
+                    <span class="ia-cov-chip">OBV (On-Balance Volume) &mdash; cumulative volume flow (accumulation / distribution)</span>
+                    <span class="ia-cov-chip">Volume vs 20-bar avg</span>
+                    <span class="ia-cov-chip">Candlestick patterns</span>
+                    <span class="ia-cov-chip">Structural room (R:R from nearest majors)</span>
+                    <span class="ia-cov-chip">Cross-TF RSI cascade &mdash; momentum exhaustion check</span>
+                    <span class="ia-cov-chip">Market structure &mdash; lower-high / higher-low warning</span>
+                    <span class="ia-cov-chip">1H ADX-strength &mdash; honest trend strength</span>
+                    <span class="ia-cov-chip">Session-phase gating &mdash; 9 windows (PRIME, AFTERNOON, NO_NEW, &hellip;)</span>
+                    <span class="ia-cov-chip">India VIX &mdash; IV regime + intraday change (option-buyer filter)</span>
+                    <span class="ia-cov-chip">PCR &mdash; put-call ratio (institutional positioning)</span>
+                    <span class="ia-cov-chip">OI walls &mdash; max CE / PE OI strikes (defence lines)</span>
+                    <span class="ia-cov-chip">Max pain &mdash; option-buyer-pain magnet</span>
+                    <span class="ia-cov-chip">Volume-confirmed breakouts &mdash; head-fake filter</span>
+                    <span class="ia-cov-chip">CPR (Central Pivot Range) &mdash; day-type filter (NARROW / NORMAL / WIDE)</span>
+                    <span class="ia-cov-chip">Bank Nifty correlation &mdash; leader/follower confirmation</span>
+                    <span class="ia-cov-chip">VWAP ±1σ / ±2σ bands &mdash; stretch detection + mean-reversion edge</span>
+                    <span class="ia-cov-chip">Per-TF RSI divergence &mdash; HH+LH or LL+HL exhaustion pattern</span>
+                    <span class="ia-cov-chip">Volatility regime (ATR-%) &mdash; DEAD-day hard veto + QUIET-day demote</span>
+                    <span class="ia-cov-chip">15-pattern candlestick library &mdash; Morning/Evening Star, Engulfing, Piercing, Harami, Doji, Marubozu, etc.</span>
+                    <span class="ia-cov-chip">Candle pattern AT S/R &mdash; location-weighted reversal signals (+1 bonus)</span>
+                    <span class="ia-cov-chip">Compression setup (Inside Bar / NR4) &mdash; wait-for-break SKIP IF</span>
+                  </div>
+                </div>
+                <div class="ia-coverage-block ia-cov-sr">
+                  <div class="ia-cov-label">20 SUPPORT / RESISTANCE LEVELS</div>
+                  <div class="ia-cov-items">
+                    <span class="ia-cov-chip">VWAP &mdash; day's volume-weighted price</span>
+                    <span class="ia-cov-chip">ORH &mdash; Opening Range High (first 15&nbsp;min)</span>
+                    <span class="ia-cov-chip">ORL &mdash; Opening Range Low</span>
+                    <span class="ia-cov-chip">FHR High &mdash; First Hour High (most reliable intraday)</span>
+                    <span class="ia-cov-chip">FHR Low &mdash; First Hour Low</span>
+                    <span class="ia-cov-chip">PDH &mdash; Previous Day High</span>
+                    <span class="ia-cov-chip">PDL &mdash; Previous Day Low</span>
+                    <span class="ia-cov-chip">Today's H/L &mdash; running session extremes</span>
+                    <span class="ia-cov-chip">5m Swing H/L &mdash; intraday pivots</span>
+                    <span class="ia-cov-chip">1H Swing H/L &mdash; macro pivots (heaviest)</span>
+                    <span class="ia-cov-chip">EMA 9/21/50 &mdash; dynamic S/R (5m + 1H)</span>
+                    <span class="ia-cov-chip">CPR Pivot (P) &mdash; daily center, single most-watched level</span>
+                    <span class="ia-cov-chip">CPR TC / BC &mdash; CPR boundaries (defended hard)</span>
+                    <span class="ia-cov-chip">R1 / R2 / R3 &mdash; CPR upside pivots (primary targets)</span>
+                    <span class="ia-cov-chip">S1 / S2 / S3 &mdash; CPR downside pivots (primary targets)</span>
+                    <span class="ia-cov-chip">VWAP +1σ / -1σ &mdash; trend-zone dynamic S/R</span>
+                    <span class="ia-cov-chip">VWAP +2σ / -2σ &mdash; stretched-move dynamic S/R</span>
+                    <span class="ia-cov-chip">Swing-cluster zones &mdash; auto-discovered (3+ touches over 5 days)</span>
+                    <span class="ia-cov-chip">Round-number magnets &mdash; ₹500 / ₹100 / ₹50 tiers (psychological levels)</span>
+                    <span class="ia-cov-chip">Anchored VWAP &mdash; from today's session high + low</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action plan card (entry / SL / target).
+               Reuses .sw-plan layout. For intraday options the cells map to:
+               STRIKE (which ATM strike) / ENTRY (premium) / STOP-LOSS (% of premium) /
+               TARGET (% of premium, 1:2 R:R). -->
+          <div class="sw-plan" id="ia-plan">
+            <div class="sw-plan-head">
+              <!-- EVENT ALERTS strip relocated (May 2026) — the
+                   #ia-event-alerts banner used to live here as a
+                   chip wedged inside the plan card head. It now
+                   sits as a full-width banner directly below the
+                   chart so it reads as a top-level "today's
+                   special context" advisory, not a fragment of
+                   the plan card. See the relocated element a few
+                   hundred lines above this one. -->
+              <!-- SETUP card removed earlier (May 2026) — it duplicated
+                   the verdict + reason text already shown in the TRADE
+                   DECISION HUD at the top of the result block. The
+                   hidden display:none stub that was kept here as a
+                   defensive landing pad for legacy `setText('ia-plan-
+                   setup-*', …)` calls was deleted in the May 2026
+                   noise audit (Batch 1). `setText()` is null-safe
+                   (silently no-ops when the element is missing — see
+                   line ~10184 in candlestick-patterns.html) so the
+                   surviving call sites in renderPlan and friends
+                   continue to work; they just write into the void
+                   now. Future cleanup can drop the call sites too. -->
+              </div>
+
+            <!-- KEY S/R LEVELS — always-visible map of where price sits
+                 in the structural map. Unlike the rich S/R ladder below
+                 (which only appears when a plan is active and annotates
+                 levels with T1/T2/SL/EXIT roles), this card shows the
+                 raw landscape: nearest 3 resistance ABOVE spot, the
+                 current SPOT itself, and nearest 3 support BELOW.
+                 Populated by renderKeySr() from collectSrLevels() —
+                 runs on every analyze pass + every live tick so the
+                 user can ALWAYS see "where am I in the structure?"
+                 before deciding to trade.
+
+                 Why always visible: the most useful pre-trade context
+                 is "what level is closest?" — knowing the nearest
+                 resistance/support tells you the realistic risk and
+                 reward window even when no automated setup exists.
+                 -->
+            <div class="ia-key-sr" id="ia-key-sr" hidden>
+              <div class="ia-key-sr-head">
+                <span class="ia-key-sr-icon">&#x25B2;&#x25BC;</span>
+                <h4>KEY S/R LEVELS &mdash; structural rejection zones (4H / 1H)</h4>
+                <span class="ia-key-sr-hint">4H &amp; 1H pivots &middot; multi-touch zones &middot; PDH/PDL &middot; &times;N = times rejected</span>
+            </div>
+              <!-- Vertical PRICE LADDER — mirrors what you'd see on a
+                   chart: highest price at top, lowest at bottom, spot
+                   as a horizontal "you are here" line right in the
+                   middle. Each rung is positioned PROPORTIONAL to its
+                   distance from spot (within minimum spacing bounds
+                   to avoid overlap) so the user can SEE the structural
+                   asymmetry — if R1 is 4 pts away and S1 is 60 pts
+                   away, the R rung sits visibly tight against spot
+                   while S1 sits much further down. JS handles the
+                   positioning math (see renderKeySr in the live module). -->
+              <div class="ia-key-sr-body">
+                <span class="ia-key-sr-section-label ia-key-sr-section-label-res">
+                  <span class="ia-key-sr-section-arrow">&#x25B2;</span>
+                  RESISTANCE &mdash; sellers above
+                </span>
+                <div class="ia-key-sr-ladder">
+                  <!-- Resistance rungs (highest price at top) -->
+                  <div class="ia-key-sr-zone ia-key-sr-zone-res" id="ia-key-sr-res"></div>
+                  <!-- SPOT line: prominent gold horizontal band -->
+                  <div class="ia-key-sr-spotline" id="ia-key-sr-spot">
+                    <div class="ia-key-sr-spotline-track"></div>
+                    <div class="ia-key-sr-spotline-card">
+                      <span class="ia-key-sr-spot-k">NIFTY 50 SPOT</span>
+                      <span class="ia-key-sr-spot-v" id="ia-key-sr-spot-val">&mdash;</span>
+                      <span class="ia-key-sr-spot-sub" id="ia-key-sr-spot-sub">you are here</span>
+                    </div>
+                  </div>
+                  <!-- Support rungs (closest to spot at top, lowest at bottom) -->
+                  <div class="ia-key-sr-zone ia-key-sr-zone-sup" id="ia-key-sr-sup"></div>
+                </div>
+                <span class="ia-key-sr-section-label ia-key-sr-section-label-sup">
+                  <span class="ia-key-sr-section-arrow">&#x25BC;</span>
+                  SUPPORT &mdash; buyers below
+                </span>
+              </div>
+
+              <!-- ─── Today's Fibonacci retracement strip ─────────────────
+                   Sits BELOW the main S/R ladder. Always shows all 4 Fib
+                   levels (38.2 / 50 / 61.8 / 78.6 %) when computable —
+                   independent of the top-3 ladder slots above. Hidden
+                   when an5.fib is null (weekend, pre-open, narrow range).
+                   The golden zone (50 / 61.8 %) chips are highlighted so
+                   the eye lands on the high-value retracement targets
+                   first. -->
+              <div class="ia-key-sr-fib" id="ia-key-sr-fib" hidden>
+                <div class="ia-key-sr-fib-head">
+                  <span class="ia-key-sr-fib-title" id="ia-key-sr-fib-title">TODAY'S FIB RETRACEMENT</span>
+                  <span class="ia-key-sr-fib-meta" id="ia-key-sr-fib-meta">&mdash;</span>
+                </div>
+                <div class="ia-key-sr-fib-chips" id="ia-key-sr-fib-chips"></div>
+              </div>
+            </div>
+
+            <!-- 6 numbered cells, structure-aware risk plan:
+                 1-2 = the trade (which strike, at what price)
+                 3   = STOP-LOSS (premium price) — anchored to nearest support
+                 4-5 = TWO CANDIDATE TARGETS — T1 (nearest, high-probability
+                       book) and T2 (main target, where most setups stall).
+                       T3 (runner) was dropped in May 2026 — runner targets
+                       added clutter without improving outcomes; in practice
+                       the scalper books at T2 or the trade reverses first.
+                       The user picks T1 or T2 based on conviction (per-
+                       target R:R footer makes the trade-off explicit);
+                       no prescribed scale-out.
+                 6   = EMERGENCY EXIT (spot trip-line) — strongest opposing
+                       level; if Nifty breaks it, thesis dead, sell at MARKET
+                 Each cell shows VALUE (premium ₹), SUB (level descriptor +
+                 % move from entry), and META (S/R level the price is
+                 anchored to). -->
+
+            <div class="sw-plan-grid ia-plan-grid-6" id="ia-plan-grid">
+              <div class="sw-plan-cell sw-plan-cell-entry">
+                <span class="sw-plan-cell-k">1. BUY THIS STRIKE</span>
+                <span class="sw-plan-cell-v" id="ia-plan-strike">&mdash;</span>
+                <span class="sw-plan-cell-sub" id="ia-plan-strike-sub">the ATM strike &mdash; tightest spread, biggest premium swing</span>
+                <!-- Empty META row so subgrid row count matches the
+                     other 5 cells (which have an S/R anchor on row 4). -->
+                <span class="sw-plan-cell-meta sw-plan-cell-meta-empty">&nbsp;</span>
+              </div>
+              <div class="sw-plan-cell sw-plan-cell-entry">
+                <span class="sw-plan-cell-k">2. BUY WHEN NIFTY IS AT</span>
+                <span class="sw-plan-cell-v" id="ia-plan-entry">&mdash;</span>
+                <span class="sw-plan-cell-sub" id="ia-plan-entry-sub">spot trigger &mdash; click BUY in the trade ticket below to fill at MARKET</span>
+                <span class="sw-plan-cell-meta" id="ia-plan-entry-spot">&mdash;</span>
+              </div>
+              <div class="sw-plan-cell sw-plan-cell-sl">
+                <span class="sw-plan-cell-k">3. STOP-LOSS (NIFTY SPOT)</span>
+                <span class="sw-plan-cell-v" id="ia-plan-sl">&mdash;</span>
+                <span class="sw-plan-cell-sub" id="ia-plan-sl-sub">exit when Nifty crosses this level &mdash; auto-fires from spot ticks, fills at live premium</span>
+                <span class="sw-plan-cell-meta" id="ia-plan-sl-spot">&mdash;</span>
+              </div>
+              <div class="sw-plan-cell sw-plan-cell-t1">
+                <span class="sw-plan-cell-k">4. TARGET T1 (NIFTY SPOT)</span>
+                <span class="sw-plan-cell-v" id="ia-plan-target-1">&mdash;</span>
+                <span class="sw-plan-cell-sub" id="ia-plan-target-1-sub">nearest resistance &mdash; first realistic exit, highest hit-probability</span>
+                <span class="sw-plan-cell-meta" id="ia-plan-target-1-spot">&mdash;</span>
+              </div>
+              <div class="sw-plan-cell sw-plan-cell-t1">
+                <span class="sw-plan-cell-k">5. TARGET T2 (NIFTY SPOT)</span>
+                <span class="sw-plan-cell-v" id="ia-plan-target-2">&mdash;</span>
+                <span class="sw-plan-cell-sub" id="ia-plan-target-2-sub">next resistance &mdash; main target, where most setups stall out</span>
+                <span class="sw-plan-cell-meta" id="ia-plan-target-2-spot">&mdash;</span>
+              </div>
+              <div class="sw-plan-cell sw-plan-cell-rr">
+                <span class="sw-plan-cell-k">6. EMERGENCY EXIT</span>
+                <span class="sw-plan-cell-v" id="ia-plan-invalid">&mdash;</span>
+                <span class="sw-plan-cell-sub">SPOT trip-line &mdash; if Nifty breaks this, sell at MARKET regardless of premium SL</span>
+                <span class="sw-plan-cell-meta" id="ia-plan-invalid-spot">&mdash;</span>
+              </div>
+            </div>
+
+            <!-- WAITING placeholder — shown instead of the 7-cell grid
+                 whenever plan.action === 'WAIT'. Seven empty cells of
+                 "n/a — no target while WAIT" was visual junk; a single
+                 well-designed card with an adaptive icon + headline +
+                 reason reads better, takes less vertical space, and
+                 carries genuinely actionable copy ("waiting for setup"
+                 vs "market closed" vs "BUY CE blocked, see SETUP above").
+                 Populated by renderPlan() — data-state drives the icon
+                 colour ("wait" muted / "blocked" amber / "closed" grey). -->
+            <div class="ia-plan-waiting" id="ia-plan-waiting" data-state="wait" hidden>
+              <div class="ia-plan-waiting-icon" id="ia-plan-waiting-icon">&#8987;</div>
+              <div class="ia-plan-waiting-body">
+                <span class="ia-plan-waiting-title" id="ia-plan-waiting-title">Waiting for setup</span>
+                <span class="ia-plan-waiting-sub" id="ia-plan-waiting-sub">No confluence yet across the 5m / 3m frames.</span>
+                <!-- META CHIPS (May 2026) — instead of a generic
+                     "no active plan" placeholder that always says the
+                     same thing, surface live diagnostic data so the
+                     user knows EXACTLY why the engine is waiting:
+                       • current CE / PE scores + tie-break gap
+                       • session-phase context (PRIME / LUNCH_CHOP / etc.)
+                       • countdown to the next 3-min analyze cycle
+                     Populated by renderPlan() in the WAIT branch. -->
+                <div class="ia-plan-waiting-meta" id="ia-plan-waiting-meta">
+                  <span class="ia-plan-waiting-chip" id="ia-plan-waiting-scores" hidden></span>
+                  <span class="ia-plan-waiting-chip" id="ia-plan-waiting-phase" hidden></span>
+                  <span class="ia-plan-waiting-chip" id="ia-plan-waiting-next" hidden></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- POSITION MATH STRIP (P0-2, May 2026) — six metric
+                 pills below the 6-cell premium grid, telling the trader
+                 in real ₹ + % of capital what the current plan implies
+                 for execution: lots, capital deployed, max loss (with
+                 risk-budget pill colour-coded green/amber/red),
+                 R:R to T1 + T2, time-stop. SL-quality + R:R warnings
+                 surface inline when applicable. Populated by
+                 renderPositionMath() — single source of truth via
+                 plan.premium. Hidden until premium loads. -->
+            <div class="ia-position-math" id="ia-position-math" hidden></div>
+
+            <!-- S/R LADDER — visual map of WHERE every plan level sits
+                 relative to current spot. Lets the user "see" the trade
+                 structure at a glance instead of reading 7 ₹ values and
+                 mentally building the ladder. Targets are coloured green,
+                 SL/Emergency red, spot a neutral yellow line. Each rung
+                 is labelled with its source (VWAP, PDH, ORH, etc.) so the
+                 user understands WHY that level matters. -->
+            <div class="ia-sr-ladder" id="ia-sr-ladder" hidden>
+              <div class="ia-sr-head">
+                <span class="ia-sr-icon">&#9776;</span>
+                <h4>S/R LEVELS LADDER &mdash; where your targets &amp; stops actually sit</h4>
+                <span class="ia-sr-hint">prices = Nifty spot &middot; green = profit-take &middot; red = exit</span>
+              </div>
+              <div class="ia-sr-rail" id="ia-sr-rail"></div>
+              <div class="ia-sr-legend">
+                <span class="ia-sr-leg ia-sr-leg-t3">T3</span>
+                <span class="ia-sr-leg ia-sr-leg-t2">T2</span>
+                <span class="ia-sr-leg ia-sr-leg-t1">T1</span>
+                <span class="ia-sr-leg ia-sr-leg-spot">SPOT</span>
+                <span class="ia-sr-leg ia-sr-leg-sl">SL</span>
+                <span class="ia-sr-leg ia-sr-leg-em">EXIT</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ══════════ SIGNAL JOURNAL ══════════════════════════════════
+               Every BUY CE / BUY PE signal the engine fires is auto-logged
+               here (rising-edge detection via fingerprint dedupe so the
+               same signal isn't logged twice on consecutive analyze
+               cycles). The trader marks the outcome (WIN T1 / WIN T2 /
+               LOSS SL / EXIT TIME / SKIPPED) after each trade. Stats roll
+               up to win-rate, average R, total R, and current streak —
+               filterable by date range, confidence, and direction.
+
+               This is the single most important addition for going live:
+               you don't trade an unmeasured edge. Once 30-50 signals are
+               logged, the dashboard tells you which signal classes are
+               actually profitable for YOU vs. which to skip.
+
+               Capital + risk % live here too — they drive the position-
+               math display in the plan card (P0-2) and the discipline
+               auto-lock (P0-5). All persisted in localStorage under
+               'signal_journal_v1'. Paper-trade module is NOT touched —
+               this is a parallel system tracking SIGNALS, not positions.
+          -->
+          <section class="ia-journal" id="ia-journal-section">
+            <header class="ia-journal-head">
+              <div class="ia-journal-title-block">
+                <h3 class="ia-journal-title">SIGNAL JOURNAL &middot; TRACK YOUR EDGE</h3>
+                <p class="ia-journal-sub">
+                  Every BUY CE / BUY PE signal the engine fires is auto-logged below.
+                  Mark each outcome after the trade closes &mdash; the tool builds your
+                  measured win-rate, expectancy and streak so you trade your numbers,
+                  not your gut.
+                </p>
+              </div>
+              <div class="ia-journal-settings">
+                <label class="ia-journal-setting">
+                  <span class="ia-journal-setting-k">CAPITAL &#8377;</span>
+                  <input type="number" id="sj-cap-input" class="ia-journal-setting-input"
+                         min="1000" step="1000" inputmode="numeric"
+                         aria-label="Account capital in rupees"
+                         oninput="window.sjOnCapitalInput && window.sjOnCapitalInput(this.value)">
+                </label>
+                <label class="ia-journal-setting">
+                  <span class="ia-journal-setting-k">RISK % / TRADE</span>
+                  <input type="number" id="sj-risk-input" class="ia-journal-setting-input"
+                         min="0.5" max="20" step="0.5" inputmode="decimal"
+                         aria-label="Maximum risk per trade as percent of capital"
+                         oninput="window.sjOnRiskInput && window.sjOnRiskInput(this.value)">
+                </label>
+                <!-- ALERT SOUND TOGGLE (P1-1, May 2026) — when on,
+                     the tool plays an audio beep + flashes the tab
+                     title whenever a fresh BUY signal fires or the
+                     engine flips sides. Web Audio API generates the
+                     tones (no external assets). State persists in
+                     localStorage. The first toggle ON also satisfies
+                     the browser's "user gesture required" rule for
+                     audio. -->
+                <label class="ia-journal-setting ia-journal-setting-toggle" for="sj-sound-input">
+                  <span class="ia-journal-setting-k">ALERT SOUND</span>
+                  <span class="ia-journal-toggle-wrap">
+                    <input type="checkbox" id="sj-sound-input" class="ia-journal-toggle-input"
+                           aria-label="Toggle audio alerts for new signals"
+                           onchange="window.iaSetSoundEnabled && window.iaSetSoundEnabled(this.checked)">
+                    <span class="ia-journal-toggle-slider" aria-hidden="true"></span>
+                  </span>
+                </label>
+                <!-- AUTO-TRADE TOGGLE (mirror of the one inside the live
+                     quick strip). Mirrored here so the user can see /
+                     change the state even when the strip is hidden
+                     (between active signals, before chain loads, etc.).
+                     When ON, every fresh BUY_CE / BUY_PE signal that
+                     reaches READY state automatically opens a paper
+                     trade. Default is OFF so manual control is the
+                     starting point. -->
+                <label class="ia-journal-setting ia-journal-setting-toggle ia-journal-auto-label" for="sj-auto-input">
+                  <span class="ia-journal-setting-k">AUTO&#8209;TRADE</span>
+                  <span class="ia-journal-toggle-wrap">
+                    <input type="checkbox" id="sj-auto-input" class="ia-journal-toggle-input"
+                           aria-label="Toggle automatic paper-trade execution on fresh signals"
+                           onchange="window.iaSetAutoTrade && window.iaSetAutoTrade(this.checked)">
+                    <span class="ia-journal-toggle-slider" aria-hidden="true"></span>
+                  </span>
+                </label>
+                <!-- EVENT CALENDAR (P1-3, May 2026) — add an ad-hoc
+                     event with a ±15 min veto window. RBI / Fed /
+                     Budget for 2026 are baked in (hardcoded); this
+                     button is for one-offs the user wants to block
+                     (e.g. surprise rate cut, sectoral result day).
+                     Discipline lock auto-vetoes inside the window. -->
+                <button type="button" class="ia-journal-event-btn"
+                        onclick="window.iaEventAdd && window.iaEventAdd()"
+                        aria-label="Add a custom event veto window">
+                  &#9873; Add Event
+                </button>
+              </div>
+            </header>
+
+            <!-- STAT TILES — five tiles showing the rolled-up edge
+                 (signals fired, % taken won, avg R per taken trade,
+                 total R cumulative, current streak). Filter buttons
+                 below scope the tiles + table to the selected slice.
+                 Recommended professional minimums for "I have edge":
+                   win rate ≥ 55%, avg R ≥ +0.3, total R trending up,
+                   no streak < −3. Below those, paper-trade longer
+                   before live. -->
+            <div class="ia-journal-stats" id="ia-journal-stats">
+              <div class="sj-stat-tile">
+                <span class="sj-stat-k">SIGNALS</span>
+                <span class="sj-stat-v" id="sj-stat-total">0</span>
+                <span class="sj-stat-sub" id="sj-stat-total-sub">fired</span>
+              </div>
+              <div class="sj-stat-tile">
+                <span class="sj-stat-k">WIN RATE</span>
+                <span class="sj-stat-v" id="sj-stat-winrate">&mdash;</span>
+                <span class="sj-stat-sub" id="sj-stat-winrate-sub">of taken</span>
+              </div>
+              <div class="sj-stat-tile">
+                <span class="sj-stat-k">AVG R</span>
+                <span class="sj-stat-v" id="sj-stat-avgr">&mdash;</span>
+                <span class="sj-stat-sub">per taken trade</span>
+              </div>
+              <div class="sj-stat-tile">
+                <span class="sj-stat-k">TOTAL R</span>
+                <span class="sj-stat-v" id="sj-stat-totalr">&mdash;</span>
+                <span class="sj-stat-sub">cumulative</span>
+              </div>
+              <div class="sj-stat-tile">
+                <span class="sj-stat-k">STREAK</span>
+                <span class="sj-stat-v" id="sj-stat-streak">&mdash;</span>
+                <span class="sj-stat-sub" id="sj-stat-streak-sub">current</span>
+              </div>
+            </div>
+
+            <!-- FILTERS — three independent button groups (range,
+                 confidence, direction). Click toggles; active button
+                 wears .is-active. JS reads .is-active per group and
+                 re-renders the stats + table. -->
+            <div class="ia-journal-filters">
+              <div class="ia-journal-filter-group" data-group="range" role="group" aria-label="Filter by date range">
+                <button type="button" class="ia-journal-filter is-active" data-value="all"  onclick="window.sjFilter && window.sjFilter('range','all', this)">All</button>
+                <button type="button" class="ia-journal-filter"           data-value="week" onclick="window.sjFilter && window.sjFilter('range','week', this)">This week</button>
+                <button type="button" class="ia-journal-filter"           data-value="today" onclick="window.sjFilter && window.sjFilter('range','today', this)">Today</button>
+              </div>
+              <div class="ia-journal-filter-group" data-group="conf" role="group" aria-label="Filter by confidence level">
+                <button type="button" class="ia-journal-filter is-active" data-value="all"    onclick="window.sjFilter && window.sjFilter('conf','all', this)">Any conf</button>
+                <button type="button" class="ia-journal-filter"           data-value="HIGH"   onclick="window.sjFilter && window.sjFilter('conf','HIGH', this)">HIGH</button>
+                <button type="button" class="ia-journal-filter"           data-value="MEDIUM" onclick="window.sjFilter && window.sjFilter('conf','MEDIUM', this)">MED</button>
+                <button type="button" class="ia-journal-filter"           data-value="LOW"    onclick="window.sjFilter && window.sjFilter('conf','LOW', this)">LOW</button>
+              </div>
+              <div class="ia-journal-filter-group" data-group="dir" role="group" aria-label="Filter by direction">
+                <button type="button" class="ia-journal-filter is-active" data-value="all"    onclick="window.sjFilter && window.sjFilter('dir','all', this)">Both sides</button>
+                <button type="button" class="ia-journal-filter"           data-value="BUY_CE" onclick="window.sjFilter && window.sjFilter('dir','BUY_CE', this)">BUY CE only</button>
+                <button type="button" class="ia-journal-filter"           data-value="BUY_PE" onclick="window.sjFilter && window.sjFilter('dir','BUY_PE', this)">BUY PE only</button>
+              </div>
+              <div class="ia-journal-filter-group ia-journal-filter-actions">
+                <button type="button" class="ia-journal-filter ia-journal-filter-danger" onclick="window.sjConfirmClear && window.sjConfirmClear()" aria-label="Erase all journal entries">Clear all</button>
+              </div>
+            </div>
+
+            <!-- TABLE — one row per signal. While OPEN, the row shows
+                 the three outcome buttons (WIN T1 / WIN T2 / LOSS SL /
+                 TIME EXIT / SKIPPED). After marking, the buttons are
+                 replaced with the outcome badge + R value + a delete
+                 button. Newest first. Cap at 50 rows in DOM (state
+                 keeps up to 500). -->
+            <div class="ia-journal-tbl-wrap">
+              <table class="ia-journal-tbl" aria-label="Signal log">
+                <thead>
+                  <tr>
+                    <th class="sj-col-time">WHEN</th>
+                    <th class="sj-col-side">SIDE</th>
+                    <th class="sj-col-strike">STRIKE</th>
+                    <th class="sj-col-conf">CONF</th>
+                    <th class="sj-col-entry">ENTRY &#8377;</th>
+                    <th class="sj-col-sl">SL &#8377;</th>
+                    <th class="sj-col-t1">T1 &#8377;</th>
+                    <th class="sj-col-r">R</th>
+                    <th class="sj-col-actions">STATUS / OUTCOME</th>
+                  </tr>
+                </thead>
+                <tbody id="ia-journal-tbody"></tbody>
+              </table>
+              <div class="ia-journal-empty" id="ia-journal-empty" hidden>
+                <span class="ia-journal-empty-icon" aria-hidden="true">&#9873;</span>
+                <h4 class="ia-journal-empty-title">No signals logged yet</h4>
+                <p class="ia-journal-empty-sub">
+                  Every BUY CE / BUY PE signal the engine fires will appear here automatically.
+                  Mark each outcome after the trade closes to build your win-rate dataset.
+                  Recommended: paper-trade <b>at least 30&ndash;50 signals</b> before trading
+                  live so the numbers are statistically meaningful.
+                </p>
+              </div>
+            </div>
+
+            <!-- OUTCOME MODAL — opens when user clicks a WIN / LOSS
+                 button on a row. Captures exit premium with sensible
+                 defaults (T1 / T2 / SL premium pre-filled). Notes
+                 field is optional. Modal pattern matches the other
+                 IA modals so behavior is consistent. -->
+            <div class="sj-outcome-modal" id="sj-outcome-modal" aria-hidden="true" role="dialog" aria-labelledby="sj-outcome-title">
+              <div class="sj-outcome-backdrop" onclick="window.sjOutcomeClose && window.sjOutcomeClose()"></div>
+              <div class="sj-outcome-card" role="document">
+                <button type="button" class="sj-outcome-close" onclick="window.sjOutcomeClose && window.sjOutcomeClose()" aria-label="Close">&times;</button>
+                <h3 class="sj-outcome-title" id="sj-outcome-title">Mark outcome</h3>
+                <div class="sj-outcome-meta" id="sj-outcome-meta">&mdash;</div>
+                <label class="sj-outcome-field">
+                  <span class="sj-outcome-field-k">Exit premium &#8377;</span>
+                  <input type="number" id="sj-outcome-exit" class="sj-outcome-input"
+                         step="0.05" min="0" inputmode="decimal"
+                         aria-label="Exit premium in rupees per share">
+                  <span class="sj-outcome-field-sub" id="sj-outcome-r">R: &mdash;</span>
+                </label>
+                <label class="sj-outcome-field">
+                  <span class="sj-outcome-field-k">Notes (optional)</span>
+                  <textarea id="sj-outcome-notes" class="sj-outcome-textarea"
+                            rows="2" maxlength="200"
+                            placeholder="e.g. RBI surprise, BN flipped, perfect T1 fill"></textarea>
+                </label>
+                <div class="sj-outcome-actions">
+                  <button type="button" class="sj-outcome-btn sj-outcome-btn-cancel" onclick="window.sjOutcomeClose && window.sjOutcomeClose()">Cancel</button>
+                  <button type="button" class="sj-outcome-btn sj-outcome-btn-save" id="sj-outcome-save-btn" onclick="window.sjOutcomeSave && window.sjOutcomeSave()">Save outcome</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- THEMED CONFIRM MODAL — replaces native window.confirm()
+                 dialogs (browser-chrome alerts that ignored our theme
+                 and showed an ugly "localhost:8000 says" header).
+                 Reuses .sj-outcome-modal shell + tokens so the visual
+                 language matches every other modal in the section.
+                 Title + body are populated by appConfirm() at call
+                 time; the Confirm button can be tinted danger/info via
+                 a class flip. ESC + backdrop click + cancel all reject
+                 the promise; only the confirm button resolves true. -->
+            <div class="sj-outcome-modal app-confirm-modal" id="app-confirm-modal"
+                 aria-hidden="true" role="dialog" aria-labelledby="app-confirm-title"
+                 aria-describedby="app-confirm-body">
+              <div class="sj-outcome-backdrop" onclick="window.appConfirmCancel && window.appConfirmCancel()"></div>
+              <div class="sj-outcome-card" role="document" style="max-width: 420px;">
+                <button type="button" class="sj-outcome-close"
+                        onclick="window.appConfirmCancel && window.appConfirmCancel()"
+                        aria-label="Cancel">&times;</button>
+                <h3 class="sj-outcome-title" id="app-confirm-title">Confirm</h3>
+                <p class="app-confirm-body" id="app-confirm-body">Are you sure?</p>
+                <div class="sj-outcome-actions">
+                  <button type="button" class="sj-outcome-btn sj-outcome-btn-cancel"
+                          id="app-confirm-cancel-btn"
+                          onclick="window.appConfirmCancel && window.appConfirmCancel()">Cancel</button>
+                  <button type="button" class="sj-outcome-btn app-confirm-ok-btn"
+                          id="app-confirm-ok-btn"
+                          onclick="window.appConfirmOk && window.appConfirmOk()">Delete</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Per-timeframe breakdown — reuses .sw-tfs* CSS (subgrid-aligned
+               cards, themed section blocks, gauges) from the swing analyzer.
+               Three TFs: 15m (context), 5m (setup), 3m (entry trigger). -->
+          <div class="sw-tfs">
+            <!-- HOW TO READ THIS — compact strip + modal pattern.
+                 Placed FIRST inside the per-TF section so the help
+                 affordance is visible immediately. The
+                 PER-TIMEFRAME BREAKDOWN section heading sits below
+                 it as the actual content title for the four TF
+                 cards that follow. Earlier order (heading-then-
+                 howto) wasted vertical space and read backwards —
+                 you saw the heading + sub-text, then the help bar,
+                 then finally the cards. -->
+            <div class="ia-howto-strip" id="ia-howto-strip">
+              <div class="ia-howto-strip-left">
+                <span class="ia-howto-strip-icon">i</span>
+                <span class="ia-howto-strip-title">HOW TO READ THIS &middot; WHEN TO BUY CE / PE / WAIT</span>
+              </div>
+              <button type="button" class="ia-howto-open-btn"
+                      onclick="iaHelpOpen()"
+                      aria-label="Open the analyzer's quick-reference guide">
+                View guide
+                <span class="ia-howto-open-arrow" aria-hidden="true">&rarr;</span>
+              </button>
+            </div>
+
+            <div class="sw-tfs-head">
+              <h3>PER-TIMEFRAME BREAKDOWN</h3>
+              <span class="sw-tfs-sub">Every indicator the intraday recommendation was built from &mdash;
+                trend, momentum, volatility, volume, structure and patterns at each timeframe,
+                with that timeframe's signed contribution to the final score.</span>
+            </div>
+
+            <!-- HOW TO READ THIS MODAL — concise reference, hidden by
+                 default. ESC + backdrop-click + X all close. Reuses
+                 the same focus-trap / scroll-lock / overlay styling as
+                 the Coverage modal so the modal experience is
+                 consistent across the section. -->
+            <div class="ia-help-modal" id="ia-help-modal" aria-hidden="true" role="dialog"
+                 aria-labelledby="ia-help-modal-title">
+              <div class="ia-help-modal-backdrop" onclick="iaHelpClose()"></div>
+              <div class="ia-help-modal-card" role="document">
+                <button type="button" class="ia-help-modal-close" onclick="iaHelpClose()"
+                        aria-label="Close help">&times;</button>
+                <div class="ia-help-modal-head">
+                  <h3 id="ia-help-modal-title">How to read this analyzer</h3>
+                  <p class="ia-help-modal-sub">A quick reference for the recommendation, the per-timeframe cards, and the trade plan.</p>
+                    </div>
+                <div class="ia-help-modal-body">
+
+                  <section class="ia-help-section">
+                    <h4>1. The recommendation in one line</h4>
+                    <ul>
+                      <li><b style="color:var(--bull)">BUY CE</b> &mdash; bullish confluence across the lower timeframes with no safety veto. Buy a call option.</li>
+                      <li><b style="color:var(--bear)">BUY PE</b> &mdash; bearish confluence across the lower timeframes with no safety veto. Buy a put option.</li>
+                      <li><b style="color:var(--muted)">WAIT</b> &mdash; either no clear edge (mixed signals / chop) <i>or</i> a side scored but a safety filter blocked it. The <b>SETUP banner</b> above the plan card always names the specific reason.</li>
+                    </ul>
+                  </section>
+
+                  <section class="ia-help-section">
+                    <h4>2. What each of the 4 timeframes does</h4>
+                    <ul>
+                      <li><b>1 HOUR</b> &mdash; big-trend filter. Blocks counter-trend trades (e.g. BUY CE when the macro trend is BEAR).</li>
+                      <li><b>30 MIN</b> &mdash; confirm. Has to agree with 1H direction before any setup is allowed; rejects 1H whipsaws.</li>
+                      <li><b>15 MIN</b> &mdash; context. Confirms the intraday direction; carries the heaviest weight.</li>
+                      <li><b>5 MIN</b> &mdash; setup + trigger. The "trade-grade" frame &mdash; this is where pattern + S/R + momentum align AND where the bar that fires the trade closes.</li>
+                    </ul>
+                  </section>
+
+                  <section class="ia-help-section">
+                    <h4>3. The 3 headline numbers per TF card</h4>
+                    <ul>
+                      <li><b>TREND</b> &mdash; direction inferred from EMA stack + price location. <span style="color:var(--bull)">&#9650; BULL</span> good for CE, <span style="color:var(--bear)">&#9660; BEAR</span> good for PE, NEUTRAL = wait. <b>VWAP n/a</b> on 1H is normal &mdash; VWAP is session-anchored.</li>
+                      <li><b>RSI (14)</b> &mdash; momentum 0-100. <b>55-70</b> bullish &middot; <b>30-45</b> bearish &middot; <b>&gt; 75 or &lt; 25</b> over-extended (reversal risk &mdash; wait).</li>
+                      <li><b>ADX (14)</b> &mdash; trend strength. <b>&gt; 25</b> = strong move worth trading &middot; <b>&lt; 20</b> = chop, premiums will decay against you.</li>
+                    </ul>
+                  </section>
+
+                  <section class="ia-help-section">
+                    <h4>4. The contribution score (per-card panel)</h4>
+                    <p>
+                      Each timeframe casts a signed score from the indicators that fired on its bars.
+                      <b style="color:var(--bull)">+positive</b> = bullish, <b style="color:var(--bear)">&minus;negative</b> = bearish.
+                      The engine totals all four TFs and picks the side that clears <b>+4 minimum</b> and meaningfully beats the other side.
+                      Mixed totals or both sides low &rarr; <b>WAIT</b>.
+                    </p>
+                    <p>
+                      The <b>ANALYSIS COVERAGE</b> strip above the plan shows the two totals (<i>Bullish X pts vs Y pts</i>) and the final recommendation in one line.
+                    </p>
+                  </section>
+
+                  <section class="ia-help-section">
+                    <h4>5. The 6 plan cells</h4>
+                    <ul>
+                      <li><b>1. BUY THIS STRIKE</b> &mdash; recommended ATM strike (or your override from the strike dropdown). Tightest bid-ask spread, ~0.5 delta.</li>
+                      <li><b>2. BUY AT THIS PRICE</b> &mdash; live premium per share. Click <i>BUY</i> on the trade ticket below to fill at market.</li>
+                      <li><b>3. STOP-LOSS</b> &mdash; sell-stop on the premium, anchored to the nearest support. Broker auto-exits if it fills.</li>
+                      <li><b>4. TARGET T1</b> &mdash; first realistic exit. Nearest resistance, highest hit-probability.</li>
+                      <li><b>5. TARGET T2</b> &mdash; main target. Next resistance, where most setups stall out.</li>
+                      <li><b>6. EMERGENCY EXIT</b> &mdash; spot trip-line. If Nifty breaks this level, sell at market regardless of the premium stop.</li>
+                    </ul>
+                  </section>
+
+                  <section class="ia-help-section">
+                    <h4>6. Why a trade gets BLOCKED</h4>
+                    <p>The engine occasionally scores a clear side but vetoes it for safety. The <b>SETUP banner</b> above the plan card always names the specific reason. The most common ones:</p>
+                    <ul>
+                      <li><b>1H macro misalignment</b> &mdash; wanted BUY CE but the 1-hour trend is BEAR (or vice versa). Counter-trend intraday fails ~65% of the time.</li>
+                      <li><b>Structure room (R:R)</b> &mdash; reward to the nearest major level is &lt; risk. Math says you lose money over time even at a 60% win-rate after brokerage.</li>
+                      <li><b>Market not open</b> &mdash; pre-09:15 or post-15:30 IST, or a weekend. No live data to plan against.</li>
+                      <li><b>Session phase</b> &mdash; inside the last 5-15 min "NO_NEW" window. Time decay outpaces directional edge.</li>
+                      <li><b>Dead volatility</b> &mdash; 5m ATR &lt; ~0.05% of price. Premiums decay faster than direction pays.</li>
+                      <li><b>RSI cascade exhaustion</b> &mdash; momentum is already stretched across the lower TFs. Reversal risk too high.</li>
+                    </ul>
+                  </section>
+
+                  <section class="ia-help-section">
+                    <h4>7. Strike override &mdash; ITM vs ATM vs OTM</h4>
+                    <p>
+                      The spot levels (Nifty target &#8377;X) <b>never change</b> regardless of which strike you pick &mdash; S/R is structural.
+                      What changes is the <b>premium projection</b> for each level, because each strike has a different delta:
+                    </p>
+                    <ul>
+                      <li><b>ITM</b> (delta ~0.7-0.8) &mdash; premium moves ~75p per 100p Nifty. Tighter SL/targets in &#8377;, bigger absolute swing.</li>
+                      <li><b>ATM</b> (delta ~0.5) &mdash; balanced. The engine's default recommendation.</li>
+                      <li><b>OTM</b> (delta ~0.2-0.3) &mdash; premium moves ~25p per 100p Nifty. Cheaper to lose, less to gain per move.</li>
+                    </ul>
+                    <p>R:R stays roughly the same across strikes &mdash; setup quality is identical, you're just choosing how much skin to put in per lot.</p>
+                  </section>
+
+                  </div>
+                  </div>
+                </div>
+
+            <!-- Intraday TF cards — no separate <h4> above the body.
+                 The timeframe label (1 HOUR / 30 MIN / 15 MIN / 5 MIN)
+                 lives inside the headline strip as the first cell
+                 (rendered by renderTfCard) so the card stays compact:
+                 one row of label + TREND + RSI + ADX, then the
+                 contribution panel + deep-dive blocks underneath.
+                 3 MIN was dropped on 2026-05-25 as part of the
+                 Trend Identifier v1 lineup (1h/30m/15m/5m). -->
+            <div class="sw-tfs-grid sw-tfs-grid-4">
+              <div class="sw-tf-card" data-tf="1h">
+                <div class="sw-tf-rows" id="ia-tf-1h-rows"></div>
+              </div>
+              <div class="sw-tf-card" data-tf="30m">
+                <div class="sw-tf-rows" id="ia-tf-30m-rows"></div>
+              </div>
+              <div class="sw-tf-card" data-tf="15m">
+                <div class="sw-tf-rows" id="ia-tf-15m-rows"></div>
+              </div>
+              <div class="sw-tf-card" data-tf="5m">
+                <div class="sw-tf-rows" id="ia-tf-5m-rows"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer status / refresh -->
+          <div class="ia-status" id="ia-status">
+            <span>Last analyzed: <b id="ia-last-analyzed">&mdash;</b></span>
+            <span>Next refresh: <b id="ia-next-refresh">on candle close</b></span>
+            <button class="pt-mini" type="button" onclick="intradayRefresh()" title="Re-analyze right now">&#8635; REFRESH</button>
+          </div>
+
+          <!-- Disclaimer -->
+          <div class="sw-disc">
+            <b>EDUCATIONAL ONLY.</b> Option premiums move on <b>spot direction + time decay + India VIX</b> &mdash;
+            this analyzer only models the spot side. Even a textbook CE/PE setup fails ~35-40% of the time intraday.
+            <b>Intraday rules:</b> use your broker's <b>MIS</b> product, set a hard stop, and never average down on options.
+            Always square off by <b>15:20-15:25 IST</b> &mdash; the final 5 minutes are pure theta bleed and slippage.
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── 3. PAPER TRADING (simulated sandbox) ─── -->
       <div class="pt-shell">
         <div class="pt-head">
-          <h3>Paper Trade &mdash; Nifty 50 Options</h3>
-          <span class="pt-disc" title="Simulated trades only. No real orders.">SIMULATED &middot; NO REAL MONEY</span>
+          <h3>Paper Trading &mdash; Nifty 50</h3>
+          <span class="pt-disc" title="Simulated trades only. No real orders are placed.">SIMULATED &middot; NO REAL MONEY</span>
         </div>
 
-        <!-- Stats strip: Equity, P&L, Spot, Expiry -->
-        <div class="pt-stats-strip">
-          <div class="pt-stat-cell">
-            <span class="pt-stat-k">Equity</span>
-            <span class="pt-stat-v" id="pt-equity">&#8377;1,00,000</span>
-            <span class="pt-stat-sub" id="pt-equity-pct">+0.00%</span>
+        <!-- Hero: account summary (equity hero + P&L pair + market context).
+             Replaces the old 5-cell strip with a visually hierarchical
+             dashboard: the biggest number (equity) leads, secondary metrics
+             follow in tinted cards so each value's importance is obvious at
+             a glance. All element IDs (#pt-equity, #pt-equity-pct,
+             #pt-pnl-open, #pt-pnl-open-pct, #pt-pnl-today, #pt-pnl-today-sub,
+             #pt-spot, #pt-spot-sub, #pt-expiry) are preserved so the
+             existing renderEquity / renderTodayPnL / renderSpot updaters
+             continue to work without changes. -->
+        <div class="pt-hero">
+          <div class="pt-hero-equity">
+            <div class="pt-hero-equity-lbl">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="6" width="18" height="13" rx="2"></rect>
+                <path d="M3 10h18"></path>
+                <path d="M8 15h2"></path>
+              </svg>
+              Equity (Total Capital)
+            </div>
+            <div class="pt-hero-equity-val" id="pt-equity">&#8377;1,00,000</div>
+            <div class="pt-hero-equity-foot">
+              <span class="pt-hero-equity-pct" id="pt-equity-pct">+0.00%</span>
+              <span class="pt-hero-equity-base">from &#8377;1,00,000 starting capital</span>
+            </div>
           </div>
-          <div class="pt-stat-cell">
-            <span class="pt-stat-k">P&amp;L (Open)</span>
-            <span class="pt-stat-v" id="pt-pnl-open">&#8377;0</span>
-            <span class="pt-stat-sub" id="pt-pnl-open-pct">0.00%</span>
+          <div class="pt-hero-pnl">
+            <div class="pt-hero-pnl-card pt-hero-today"
+              title="Realized P&L from trades closed today (IST). Resets at midnight.">
+              <div class="pt-hero-pnl-lbl">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 17l6-6 4 4 8-8"></path>
+                  <polyline points="14,7 21,7 21,14"></polyline>
+                </svg>
+                P&amp;L Today
+              </div>
+              <div class="pt-hero-pnl-val" id="pt-pnl-today">&#8377;0</div>
+              <div class="pt-hero-pnl-sub" id="pt-pnl-today-sub">0 trades</div>
+            </div>
+            <div class="pt-hero-pnl-card pt-hero-open"
+              title="Floating (unrealized) P&L on currently open positions. Updates with each tick.">
+              <div class="pt-hero-pnl-lbl">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <polyline points="12,7 12,12 15,14"></polyline>
+                </svg>
+                Open P&amp;L
+              </div>
+              <div class="pt-hero-pnl-val" id="pt-pnl-open">&#8377;0</div>
+              <div class="pt-hero-pnl-sub" id="pt-pnl-open-pct">0.00%</div>
+            </div>
           </div>
-          <div class="pt-stat-cell" title="Realized P&L from trades closed today (IST). Resets at midnight.">
-            <span class="pt-stat-k">P&amp;L (Today)</span>
-            <span class="pt-stat-v" id="pt-pnl-today">&#8377;0</span>
-            <span class="pt-stat-sub" id="pt-pnl-today-sub">0 trades</span>
-          </div>
-          <div class="pt-stat-cell">
-            <span class="pt-stat-k">Spot (Nifty)</span>
-            <span class="pt-stat-v" id="pt-spot">&mdash;</span>
-            <span class="pt-stat-sub" id="pt-spot-sub">Live (1s)</span>
-          </div>
-          <div class="pt-stat-cell">
-            <span class="pt-stat-k">Expiry</span>
-            <span class="pt-stat-v" id="pt-expiry">&mdash;</span>
-            <span class="pt-stat-sub">Weekly</span>
+          <div class="pt-hero-ctx">
+            <div class="pt-hero-ctx-row">
+              <div class="pt-hero-ctx-key">
+                <span class="pt-hero-ctx-dot pt-hero-ctx-dot-spot"></span>
+                Nifty 50
+              </div>
+              <div class="pt-hero-ctx-val" id="pt-spot">&mdash;</div>
+              <div class="pt-hero-ctx-sub" id="pt-spot-sub">Live (1s)</div>
+            </div>
+            <div class="pt-hero-ctx-divider"></div>
+            <div class="pt-hero-ctx-row">
+              <div class="pt-hero-ctx-key">
+                <span class="pt-hero-ctx-dot pt-hero-ctx-dot-expiry"></span>
+                Expiry
+              </div>
+              <div class="pt-hero-ctx-val" id="pt-expiry">&mdash;</div>
+              <div class="pt-hero-ctx-sub">Weekly</div>
+            </div>
           </div>
         </div>
 
-        <!-- Position config: Exit All / Reset (per-side lot stepper now lives inside each BUY card below) -->
+        <!-- Position config: Exit All / Reset (per-side lot stepper now lives inside each BUY card below).
+             The combined 15:25 IST notice (auto square-off + auto-cancel) sits here, between
+             the stats strip and the trade ticket, so the rule is announced ONCE up front
+             instead of being repeated as a badge in every section header below. -->
         <div class="pt-ticket">
           <span class="pt-lot-hint">Nifty 50 &middot; 1 lot = 65 qty</span>
+          <span class="pt-eod-tag pt-eod-tag-combined"
+            title="At 15:25 IST every weekday: all open positions are auto-squared off AND all unfilled LIMIT / STOP orders are auto-cancelled — mirrors Upstox's intraday DAY-order behaviour.">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <polyline points="12,7 12,12 15,14" />
+            </svg>
+            At <b>15:25 IST</b> &middot; positions auto square-off &middot; pending orders auto-cancel
+          </span>
           <div class="pt-ticket-actions">
             <button class="pt-mini" type="button" onclick="ptExitAll()" title="Close all open positions">EXIT
               ALL</button>
@@ -146,6 +1808,23 @@
                 <span class="pt-opt-prem-lbl">CE Premium <span class="pt-money-tag" id="pt-opt-ce-money" hidden></span></span>
                 <span class="pt-opt-prem-val" id="pt-opt-ce-val">&mdash;</span>
               </div>
+              <!-- Order-type selector (Upstox-style: Market / Limit / Stop).
+                   MARKET = fill now at live LTP (original behaviour).
+                   LIMIT  = wait for premium to fall to your price (pullback entry).
+                   STOP   = wait for premium to rise to your price (breakout entry).
+                   The trigger and SL/TGT rows below are hidden until LIMIT or
+                   STOP is picked (progressive disclosure keeps the default
+                   one-click flow clean). -->
+              <div class="pt-ot-type" role="radiogroup" aria-label="CE order type">
+                <button type="button" class="pt-ot-pill active" data-side="ce" data-type="MARKET"
+                  onclick="ptSetOrderType('ce','MARKET')" title="Fill immediately at the live premium">Market</button>
+                <button type="button" class="pt-ot-pill" data-side="ce" data-type="LIMIT"
+                  onclick="ptSetOrderType('ce','LIMIT')"
+                  title="Place an order that fills only when the premium drops to your price (pullback entry)">Limit</button>
+                <button type="button" class="pt-ot-pill" data-side="ce" data-type="STOP"
+                  onclick="ptSetOrderType('ce','STOP')"
+                  title="Place an order that fills only when the premium rises to your price (breakout entry)">Stop</button>
+              </div>
               <div class="pt-qty pt-qty-mini" title="Lots for BUY CE">
                 <label for="pt-qty-ce">Lots</label>
                 <button type="button" onclick="ptIncQty(-1,'ce')" aria-label="Decrease CE lots">&minus;</button>
@@ -153,6 +1832,23 @@
                   autocomplete="off" data-1p-ignore data-lpignore="true">
                 <button type="button" onclick="ptIncQty(1,'ce')" aria-label="Increase CE lots">+</button>
               </div>
+              <input class="pt-ot-trigger" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                id="pt-ot-trigger-ce" placeholder="Trigger price (&#8377;)"
+                autocomplete="off" data-1p-ignore data-lpignore="true"
+                oninput="ptSetTriggerPrice('ce',this.value)" hidden>
+              <div class="pt-ot-risk" id="pt-ot-risk-ce" hidden>
+                <input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                  data-which="sl" id="pt-ot-sl-ce" placeholder="Attached SL (&#8377;)"
+                  autocomplete="off" data-1p-ignore data-lpignore="true"
+                  oninput="ptSetAttachedRisk('ce','sl',this.value)"
+                  title="When this order fills, an automatic stop-loss will be set at this premium price">
+                <input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                  data-which="tgt" id="pt-ot-tgt-ce" placeholder="Attached Target (&#8377;)"
+                  autocomplete="off" data-1p-ignore data-lpignore="true"
+                  oninput="ptSetAttachedRisk('ce','tgt',this.value)"
+                  title="When this order fills, an automatic target will be set at this premium price">
+              </div>
+              <div class="pt-ot-hint" id="pt-ot-hint-ce" hidden></div>
               <button class="pt-btn pt-buy pt-btn-sm" type="button" id="pt-buy-ce-btn" onclick="ptBuyCE()" disabled>BUY
                 CE</button>
             </div>
@@ -161,6 +1857,16 @@
                 <span class="pt-opt-prem-lbl">PE Premium <span class="pt-money-tag" id="pt-opt-pe-money" hidden></span></span>
                 <span class="pt-opt-prem-val" id="pt-opt-pe-val">&mdash;</span>
               </div>
+              <div class="pt-ot-type" role="radiogroup" aria-label="PE order type">
+                <button type="button" class="pt-ot-pill active" data-side="pe" data-type="MARKET"
+                  onclick="ptSetOrderType('pe','MARKET')" title="Fill immediately at the live premium">Market</button>
+                <button type="button" class="pt-ot-pill" data-side="pe" data-type="LIMIT"
+                  onclick="ptSetOrderType('pe','LIMIT')"
+                  title="Place an order that fills only when the premium drops to your price (pullback entry)">Limit</button>
+                <button type="button" class="pt-ot-pill" data-side="pe" data-type="STOP"
+                  onclick="ptSetOrderType('pe','STOP')"
+                  title="Place an order that fills only when the premium rises to your price (breakout entry)">Stop</button>
+              </div>
               <div class="pt-qty pt-qty-mini" title="Lots for BUY PE">
                 <label for="pt-qty-pe">Lots</label>
                 <button type="button" onclick="ptIncQty(-1,'pe')" aria-label="Decrease PE lots">&minus;</button>
@@ -168,12 +1874,59 @@
                   autocomplete="off" data-1p-ignore data-lpignore="true">
                 <button type="button" onclick="ptIncQty(1,'pe')" aria-label="Increase PE lots">+</button>
               </div>
+              <input class="pt-ot-trigger" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                id="pt-ot-trigger-pe" placeholder="Trigger price (&#8377;)"
+                autocomplete="off" data-1p-ignore data-lpignore="true"
+                oninput="ptSetTriggerPrice('pe',this.value)" hidden>
+              <div class="pt-ot-risk" id="pt-ot-risk-pe" hidden>
+                <input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                  data-which="sl" id="pt-ot-sl-pe" placeholder="Attached SL (&#8377;)"
+                  autocomplete="off" data-1p-ignore data-lpignore="true"
+                  oninput="ptSetAttachedRisk('pe','sl',this.value)"
+                  title="When this order fills, an automatic stop-loss will be set at this premium price">
+                <input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                  data-which="tgt" id="pt-ot-tgt-pe" placeholder="Attached Target (&#8377;)"
+                  autocomplete="off" data-1p-ignore data-lpignore="true"
+                  oninput="ptSetAttachedRisk('pe','tgt',this.value)"
+                  title="When this order fills, an automatic target will be set at this premium price">
+              </div>
+              <div class="pt-ot-hint" id="pt-ot-hint-pe" hidden></div>
               <button class="pt-btn pt-sell pt-btn-sm" type="button" id="pt-buy-pe-btn" onclick="ptBuyPE()" disabled>BUY
                 PE</button>
             </div>
           </div>
         </div>
 
+        <!-- ─── PENDING ORDERS (card layout) ─────────────────────────────
+             Old wide table replaced with a stack of cards. Each card shows
+             the instrument tag, order-type pill, lots and placed-time on a
+             header row; trigger / live LTP / distance-to-fire as a 3-up
+             metric row (so the "how close is it?" question gets a big
+             visual answer); and SL / target chips + cancel button as a
+             footer. Identifiers .pt-c-pending-ltp and .pt-c-pending-dist
+             are preserved so updatePendingRows() in-place updates still
+             work tick-by-tick. -->
+        <div class="pt-section">
+          <h4>
+            Pending Orders <span class="pt-cnt" id="pt-pending-cnt">(0)</span>
+            <span class="pt-actions"><button class="pt-mini" type="button" onclick="ptCancelAllPending()"
+              title="Cancel every unfilled LIMIT / STOP order">CANCEL ALL</button></span>
+          </h4>
+          <div class="pt-cards" id="pt-pending-cards">
+            <div class="pt-empty pt-empty-card">No pending orders. Pick <b>LIMIT</b> or <b>STOP</b> in the
+              CE/PE card above, enter your trigger price, then click <b>PLACE LIMIT / STOP BUY</b> to queue one.</div>
+          </div>
+        </div>
+
+        <!-- ─── OPEN POSITIONS (tabular) ─────────────────────────────────
+             Compact 11-column table:
+             Instrument / Side / Lots / Entry / Time / LTP / Pts / P&L /
+             Stop Loss / Target / [exit-button]. Easier to scan than the
+             card-style layout — every column lines up so you can compare
+             P&L / SL / TGT across multiple positions at a glance.
+             data-pos-id, .pt-c-ltp, .pt-c-pts, .pt-c-pnl preserved for
+             updateOpenRows() in-place updates. Wrapped in overflow-x:auto
+             so the table scrolls horizontally on narrow viewports. -->
         <div class="pt-section">
           <h4>
             Open Positions <span class="pt-cnt" id="pt-open-cnt">(0)</span>
@@ -213,6 +1966,14 @@
           </div>
         </div>
 
+        <!-- ─── TRADE HISTORY (tabular) ───────────────────────────────────
+             Closed trades shown as a compact 9-column table:
+             Result / Instrument / Side / Lots / Entry / Exit / Pts / P&L /
+             Held. Easier to scan than the card-style timeline when you
+             have many trades — every column aligns vertically so you can
+             compare entries/exits/P&Ls at a glance.
+             Wrapped in overflow-x:auto so the table scrolls horizontally
+             on narrow viewports without breaking layout. -->
         <div class="pt-section">
           <h4>
             Trade History <span class="pt-cnt" id="pt-hist-cnt">(0)</span>
@@ -232,12 +1993,11 @@
                   <th>Pts</th>
                   <th>P&amp;L</th>
                   <th>Held</th>
-                  <th>Trigger</th>
                 </tr>
               </thead>
               <tbody id="pt-hist-tbody">
                 <tr>
-                  <td colspan="10" class="pt-empty">No closed trades yet. Trade history will appear here after you EXIT a
+                  <td colspan="9" class="pt-empty">No closed trades yet. Trade history will appear here after you EXIT a
                     position.</td>
                 </tr>
               </tbody>
@@ -245,28 +2005,67 @@
           </div>
         </div>
 
+        <!-- ─── SESSION STATS (metric tiles) ─────────────────────────────
+             Visual tile per stat, each with a small icon glyph and a
+             colored top accent strip; values are color-coded (green/red)
+             via the existing renderStats() function (IDs preserved). -->
         <div class="pt-section">
           <h4>Stats</h4>
-          <div class="pt-stats-grid">
-            <div class="pt-stat">
-              <div class="pt-stat-lbl">Trades</div>
-              <div class="pt-stat-val" id="pt-stat-n">0</div>
+          <div class="pt-metric-tiles">
+            <div class="pt-metric-tile pt-mt-trades">
+              <div class="pt-metric-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                  <path d="M9 3v18M3 9h18"></path>
+                </svg>
+              </div>
+              <div class="pt-metric-label">Trades</div>
+              <div class="pt-metric-value" id="pt-stat-n">0</div>
             </div>
-            <div class="pt-stat">
-              <div class="pt-stat-lbl">Win Rate</div>
-              <div class="pt-stat-val" id="pt-stat-wr">&mdash;</div>
+            <div class="pt-metric-tile pt-mt-wr">
+              <div class="pt-metric-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"></path>
+                </svg>
+              </div>
+              <div class="pt-metric-label">Win Rate</div>
+              <div class="pt-metric-value" id="pt-stat-wr">&mdash;</div>
             </div>
-            <div class="pt-stat">
-              <div class="pt-stat-lbl">Avg P&amp;L</div>
-              <div class="pt-stat-val" id="pt-stat-avg">&mdash;</div>
+            <div class="pt-metric-tile pt-mt-avg">
+              <div class="pt-metric-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 12h18"></path>
+                  <path d="M3 6h18"></path>
+                  <path d="M3 18h18"></path>
+                </svg>
+              </div>
+              <div class="pt-metric-label">Avg P&amp;L</div>
+              <div class="pt-metric-value" id="pt-stat-avg">&mdash;</div>
             </div>
-            <div class="pt-stat">
-              <div class="pt-stat-lbl">Best Trade</div>
-              <div class="pt-stat-val" id="pt-stat-best">&mdash;</div>
+            <div class="pt-metric-tile pt-mt-best">
+              <div class="pt-metric-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 17l6-6 4 4 8-8"></path>
+                  <polyline points="14,7 21,7 21,14"></polyline>
+                </svg>
+              </div>
+              <div class="pt-metric-label">Best Trade</div>
+              <div class="pt-metric-value" id="pt-stat-best">&mdash;</div>
             </div>
-            <div class="pt-stat">
-              <div class="pt-stat-lbl">Worst Trade</div>
-              <div class="pt-stat-val" id="pt-stat-worst">&mdash;</div>
+            <div class="pt-metric-tile pt-mt-worst">
+              <div class="pt-metric-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 7l6 6 4-4 8 8"></path>
+                  <polyline points="14,17 21,17 21,10"></polyline>
+                </svg>
+              </div>
+              <div class="pt-metric-label">Worst Trade</div>
+              <div class="pt-metric-value" id="pt-stat-worst">&mdash;</div>
             </div>
           </div>
         </div>
@@ -279,15 +2078,25 @@
         <div class="up-stats" id="up-stats"></div>
 
         <details class="up-explainer" id="up-snapshot-help">
-          <summary>What do these numbers mean? (read once)</summary>
+          <summary>What do these numbers mean? (read this once)</summary>
           <div class="up-explainer-body">
             <ul>
-              <li><b>OI (Open Interest)</b> &mdash; live count of option contracts that haven&rsquo;t been squared off. The bigger the OI at a strike, the more money is parked there.</li>
-              <li><b>PCR (Put / Call Ratio)</b> &mdash; total Put OI &divide; total Call OI. Above <b>1.2</b> = bullish lean (writers are happy to sell puts because they expect support). Below <b>0.8</b> = bearish lean.</li>
-              <li><b>Max Pain</b> &mdash; the strike at which option-writers (the big players) lose the least money at expiry. Price tends to gravitate toward this level on expiry day.</li>
-              <li><b>OI Bias</b> &mdash; how the put-vs-call book is tilted. Positive = put-heavy (writers expect a floor &rarr; bullish). Negative = call-heavy (writers expect a ceiling &rarr; bearish).</li>
-              <li><b>Wall</b> &mdash; the single strike with the largest OI on its side. Acts as a magnet / barrier because writers will defend their position.</li>
-              <li><b>Growing OI</b> on a wall = new writers piling in (wall getting stronger). <b>Shrinking</b> = writers covering / running (wall is about to break).</li>
+              <li><b>Open Interest</b> &mdash; the live count of option contracts that have NOT yet
+                been squared off. The bigger the Open Interest at a strike, the more money is parked
+                at that strike.</li>
+              <li><b>Put-Call Ratio</b> &mdash; total Put Option Open Interest divided by total Call
+                Option Open Interest. Above <b>1.2</b> = a bullish lean (writers are happy to sell
+                Put Options because they expect support to hold). Below <b>0.8</b> = a bearish lean.</li>
+              <li><b>Max Pain</b> &mdash; the strike at which option-writers (the big players) lose
+                the least money at expiry. Price tends to gravitate toward this level on expiry day.</li>
+              <li><b>Open Interest Bias</b> &mdash; how the Put-vs-Call book is tilted. Positive =
+                Put-heavy (writers expect a floor → bullish). Negative = Call-heavy (writers expect
+                a ceiling → bearish).</li>
+              <li><b>Wall</b> &mdash; the single strike with the largest Open Interest on its side.
+                It acts like a magnet or a barrier because the writers will defend their position.</li>
+              <li><b>Growing Open Interest</b> on a wall = new writers piling in (the wall is
+                getting stronger). <b>Shrinking Open Interest</b> = writers covering / running away
+                (the wall is about to break).</li>
             </ul>
           </div>
         </details>
@@ -304,14 +2113,18 @@
 
         <div id="up-chart-wrap" style="background:var(--s2);border-radius:6px;padding:14px;margin-bottom:0"></div>
         <div class="up-chart-legend-tips" id="up-chart-tips">
-          <div class="tip bull"><b>Tall green bars</b> = strikes where put-writers are committed. These act as <b>support / floor</b>.</div>
-          <div class="tip bear"><b>Tall red bars</b> = strikes where call-writers are committed. These act as <b>resistance / ceiling</b>.</div>
-          <div class="tip info"><b>Dashed blue line</b> = current spot. Whichever side has the bigger OI stack is where price will struggle to go.</div>
+          <div class="tip bull"><b>Tall green bars</b> = strikes where Put Option writers are
+            committed. These act as <b>support / a floor</b> for price.</div>
+          <div class="tip bear"><b>Tall red bars</b> = strikes where Call Option writers are
+            committed. These act as <b>resistance / a ceiling</b> for price.</div>
+          <div class="tip info"><b>Dashed blue line</b> = the current spot price. Whichever side has
+            the bigger Open Interest stack is the side where price will struggle to go.</div>
         </div>
 
         <div class="up-walls-head">
           <h3>Walls Detected</h3>
-          <span class="up-walls-sub">Biggest concentration of writer money on each side &mdash; treat these like price magnets / barriers.</span>
+          <span class="up-walls-sub">The biggest concentration of writer money on each side &mdash;
+            treat these like price magnets or barriers.</span>
         </div>
         <div id="up-walls-grid" class="up-walls-grid"></div>
 
@@ -322,13 +2135,48 @@
       <div class="up-card" id="up-next" style="display:none">
         <h3>Cross-check &amp; Next Steps</h3>
         <ul style="padding-left:22px;font-size:13.5px;line-height:1.75">
-          <li>Run the <b>Quick Wall Strength Check</b> (Option Chain tab) before placing the trade &mdash; never fade
-            a wall on OI alone.</li>
-          <li>Open the <b>Bias Calculator</b> tab to confirm with today's macro view (CPR + VIX + higher-TF trend).</li>
-          <li>Re-fetch every 30 min &mdash; if a wall starts shrinking, the verdict flips automatically.</li>
-          <li>Walls only break on <b>volume + a candle close through</b>. Confirm on the chart above before clicking
-            buy.</li>
+          <li>Run the <b>Quick Wall Strength Check</b> (Option Chain tab) before placing the trade
+            &mdash; never fade a wall using Open Interest alone.</li>
+          <li>Open the <b>Bias Calculator</b> tab to confirm with today&rsquo;s macro view (Central
+            Pivot Range + India Volatility Index + higher-timeframe trend).</li>
+          <li>Re-fetch every 30 minutes &mdash; if a wall starts shrinking, the recommendation flips
+            automatically.</li>
+          <li>Walls only break on <b>volume PLUS a candle close through</b>. Confirm on the chart
+            above before clicking Buy.</li>
         </ul>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; The Paper-Trading Practice
+        Trade (use this to learn before risking real money)</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>You are a beginner and have NOT yet completed 50 paper trades with a positive
+            risk-to-reward expectancy. The chart above is showing live Nifty data and you can see a
+            clear setup forming &mdash; for example, a hammer candle at the Previous Day Low with
+            volume above average, or an Opening Range Breakout above the 9:30 AM high with a wall
+            just below.</dd>
+          <dt>Entry</dt>
+          <dd>Pick the At The Money strike from the strike picker (the strike closest to the spot
+            price). Click BUY Call Option (if bullish) or BUY Put Option (if bearish), with 1 lot
+            only. Note the entry premium, time, and your reason for the trade. This is a SIMULATED
+            trade &mdash; no real money is involved.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Mentally set a stop loss at 30 to 35 percent below the entry premium. The simulator
+            does NOT auto-stop; you must manually click EXIT when the spot price breaks the
+            opposite side of the structural level.</dd>
+          <dt>Target</dt>
+          <dd>Aim for at least a 1 to 2 risk-to-reward (so if your stop loss is 35 percent, the
+            target is at least 70 percent gain on premium). Click EXIT at the target. Open the Trade
+            History to review the win rate, the average profit and loss, and the best and worst
+            trades. Continue paper trading until you have at least 30 closed trades AND a win rate
+            above 50 percent before moving to live trading.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The chart is loading or the &quot;LIVE&quot; tag is missing (your data feed is not
+            connected), OR the India Volatility Index is above 22 (the option premium is inflated
+            and your simulated outcome will not match real conditions), OR you are within 30 minutes
+            of a major event release (the simulator latency will not reflect real fill prices).</dd>
+        </dl>
       </div>
 
     </div>

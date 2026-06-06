@@ -3,7 +3,22 @@
         <h2>TIMEFRAME STRATEGY <span class="count-badge">MULTI-TF</span></h2>
       </div>
 
-      <div class="catdiv">TIMEFRAME HIERARCHY</div>
+      <div class="infobox" style="border-left-color:var(--info)"><svg class="ico ico-info" viewBox="0 0 24 24"
+          aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg> <b>What is a &quot;timeframe&quot;?</b> A timeframe is the time each candle on
+        your chart represents. A 5-minute timeframe means each candle = 5 minutes of price
+        action. A 1-hour timeframe means each candle = 1 hour. The chart itself is the same
+        Nifty &mdash; only the &quot;zoom level&quot; changes.<br><br>
+        <b>Why this page matters:</b> Most beginners stare at ONE chart (usually the 5-minute or
+        1-minute) and lose money because they cannot SEE the bigger picture. The fix is to look
+        at THREE charts together &mdash; a big-picture chart, a signal chart, and an entry chart.
+        Pros call this &quot;multi-timeframe analysis&quot;. Sounds fancy, but the idea is
+        simple: zoom OUT to find direction, zoom IN to find entry.</div>
+
+      <div class="catdiv">THE 4 TIMEFRAMES &mdash; WHAT EACH ONE IS FOR</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px">
         <div
           style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:18px;border-top:3px solid #6c63ff">
@@ -12,8 +27,8 @@
             60 MIN (1 HOUR)</div>
           <div style="font-size:1.02rem;color:var(--text);font-weight:600;margin-bottom:6px">TREND DIRECTION</div>
           <div style="font-size:0.94rem;color:var(--text-soft);font-style:normal;line-height:1.5">This is your TREND
-            timeframe. Identify whether market is bullish, bearish, or sideways. Only trade in this direction on lower
-            TFs.</div>
+            timeframe. Identify whether the market is bullish, bearish, or sideways. Only trade in
+            this direction on lower timeframes.</div>
         </div>
         <div
           style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:18px;border-top:3px solid var(--neutral)">
@@ -22,8 +37,8 @@
             15 MIN</div>
           <div style="font-size:1.02rem;color:var(--text);font-weight:600;margin-bottom:6px">SIGNAL TIMEFRAME</div>
           <div style="font-size:0.94rem;color:var(--text-soft);font-style:normal;line-height:1.5">Look for candle
-            patterns here. This is your primary signal TF. Identify S&amp;R levels, spot patterns, confirm with volume.
-          </div>
+            patterns here. This is your primary signal timeframe. Identify Support and Resistance
+            levels, spot the patterns, confirm with volume.</div>
         </div>
         <div
           style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:18px;border-top:3px solid var(--bull)">
@@ -32,7 +47,8 @@
             5 MIN</div>
           <div style="font-size:1.02rem;color:var(--text);font-weight:600;margin-bottom:6px">ENTRY TIMEFRAME</div>
           <div style="font-size:0.94rem;color:var(--text-soft);font-style:normal;line-height:1.5">Fine-tune your entry
-            here. After 15-min gives signal, wait for 5-min confirmation candle to enter with tighter SL.</div>
+            here. After the 15-minute timeframe gives a signal, wait for the 5-minute confirmation
+            candle to enter with a tighter stop loss.</div>
         </div>
         <div
           style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:18px;border-top:3px solid var(--bear)">
@@ -40,8 +56,9 @@
             style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:0.92rem;color:var(--bear);margin-bottom:8px">
             1 MIN</div>
           <div style="font-size:1.02rem;color:var(--text);font-weight:600;margin-bottom:6px">AVOID FOR OPTIONS</div>
-          <div style="font-size:0.94rem;color:var(--text-soft);font-style:normal;line-height:1.5">Too much noise. False
-            signals everywhere. 1-min patterns are unreliable for option buying. Use only for scalping futures.</div>
+          <div style="font-size:0.94rem;color:var(--text-soft);font-style:normal;line-height:1.5">Too
+            much noise. False signals everywhere. 1-minute patterns are unreliable for option buying.
+            Use only for scalping futures.</div>
         </div>
       </div>
 
@@ -57,13 +74,15 @@
             <div style="font-size:0.92rem;color:var(--text-soft);font-style:normal;line-height:1.5">
               <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="4,12 10,18 20,6" />
-              </svg> Price above 20 EMA → Uptrend → Only buy CE<br>
+              </svg> Price above the 20-period Exponential Moving Average → Uptrend → Only buy Call
+              Options.<br>
               <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="4,12 10,18 20,6" />
-              </svg> Price below 20 EMA → Downtrend → Only buy PE<br>
+              </svg> Price below the 20-period Exponential Moving Average → Downtrend → Only buy Put
+              Options.<br>
               <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline points="4,12 10,18 20,6" />
-              </svg> Price at 20 EMA → Sideways → Avoid
+              </svg> Price at the 20-period Exponential Moving Average → Sideways → Avoid trading.
             </div>
           </div>
           <div style="background:var(--bg);border-radius:6px;padding:16px;border:1px solid rgba(212,148,26,0.3)">
@@ -117,37 +136,38 @@
         </thead>
         <tbody>
           <tr>
-            <td>9:15 – 9:30</td>
+            <td>9:15 AM to 9:30 AM</td>
             <td style="color:var(--neutral)">Opening Chaos</td>
             <td class="tw">OBSERVE ONLY</td>
-            <td>Wild swings, no patterns reliable. Mark ORB high and low.</td>
+            <td>Wild swings, no patterns reliable. Just mark the Opening Range Breakout high and low.</td>
           </tr>
           <tr>
-            <td>9:30 – 11:30</td>
+            <td>9:30 AM to 11:30 AM</td>
             <td style="color:var(--bull)">Best Session</td>
             <td class="tc">MOST ACTIVE TRADING</td>
-            <td>Highest volume, cleanest moves, best patterns. Primary window.</td>
+            <td>Highest volume, cleanest moves, best patterns. Your primary trading window.</td>
           </tr>
           <tr>
-            <td>11:30 – 1:00</td>
+            <td>11:30 AM to 1:00 PM</td>
             <td style="color:var(--neutral)">Lunch Lull</td>
             <td class="tw">REDUCE SIZE</td>
-            <td>Low volume, choppy, fakeouts common. Trade smaller or skip.</td>
+            <td>Low volume, choppy, fakeouts are common. Trade smaller positions or skip.</td>
           </tr>
           <tr>
-            <td>1:00 – 2:30</td>
+            <td>1:00 PM to 2:30 PM</td>
             <td style="color:var(--bull)">Afternoon Session</td>
             <td class="tc">SELECTIVE TRADING</td>
-            <td>Second-best window. Good breakout trades if morning trend continues.</td>
+            <td>The second-best window. Good for breakout trades if the morning trend is
+              continuing.</td>
           </tr>
           <tr>
-            <td>2:30 – 3:15</td>
+            <td>2:30 PM to 3:15 PM</td>
             <td style="color:var(--bear)">Power Hour</td>
             <td class="tp">THETA DANGER ZONE</td>
             <td>Avoid buying options. Theta destroys premium rapidly. Exit existing trades.</td>
           </tr>
           <tr>
-            <td>3:15 – 3:30</td>
+            <td>3:15 PM to 3:30 PM</td>
             <td style="color:var(--bear)">Closing</td>
             <td class="tp">EXIT ALL POSITIONS</td>
             <td>Mandatory exit. Never carry intraday positions overnight.</td>
@@ -375,16 +395,48 @@
       <div class="rbox">
         <h3><svg class="ico ico-zap" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
-          </svg> THE DEFINITIVE TIMEFRAME ANSWER FOR 90% OF READERS</h3>
+          </svg> THE DEFINITIVE TIMEFRAME ANSWER FOR 90 PERCENT OF READERS</h3>
         <ul>
-          <li><b>Use 60-min to read the trend</b> — is the market bullish, bearish, or sideways today?</li>
-          <li><b>Use 15-min to find your signal</b> — candle pattern + volume + S/R confluence + VWAP alignment.</li>
-          <li><b>Use 5-min to refine entry</b> — wait for the confirmation candle on 5-min after the 15-min signal
-            completes.</li>
-          <li><b>Hold for 30 min – 3 hours</b> — most 15-min-signal option trades resolve in this window.</li>
-          <li><b>Stop looking at 1-min</b> — it will only make you panic-exit a good trade or enter a bad one.</li>
-          <li><b>Exit by 3:00 PM</b> regardless of the trade — theta accelerates sharply in the last 30 minutes.</li>
+          <li><b>Use the 60-minute chart to read the trend</b> &mdash; is the market bullish, bearish,
+            or sideways today?</li>
+          <li><b>Use the 15-minute chart to find your signal</b> &mdash; a candle pattern + volume +
+            support/resistance confluence + Volume Weighted Average Price alignment.</li>
+          <li><b>Use the 5-minute chart to refine the entry</b> &mdash; wait for the confirmation
+            candle on the 5-minute chart after the 15-minute signal candle completes.</li>
+          <li><b>Hold for 30 minutes to 3 hours</b> &mdash; most 15-minute signal option trades
+            resolve in this window.</li>
+          <li><b>Stop looking at the 1-minute chart</b> &mdash; it will only make you panic-exit a
+            good trade, or enter a bad one.</li>
+          <li><b>Exit by 3:00 PM</b> regardless of the trade &mdash; Theta decay accelerates sharply
+            in the last 30 minutes.</li>
         </ul>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Multi-Timeframe Confluence
+        Entry (the highest-probability intraday setup)</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>The 60-minute chart shows Nifty trending up (price above the 20-period Exponential
+            Moving Average). The 15-minute chart shows a Bullish Engulfing candle at a key support
+            level (Previous Day High, the Volume Weighted Average Price, or the top of the Central
+            Pivot Range), with volume above 1.5 times the 20-period average. The 5-minute chart shows
+            a clean follow-through candle confirming the move.</dd>
+          <dt>Entry</dt>
+          <dd>Buy an At The Money Nifty Call Option of the current week or next week's expiry, on the
+            open of the next 5-minute candle. Use a limit order at the mid-price.</dd>
+          <dt>Stop Loss</dt>
+          <dd>5 points below the 15-minute Bullish Engulfing candle's low. On the option premium, set
+            a hard stop at 30 percent loss.</dd>
+          <dt>Target</dt>
+          <dd>Book 50 percent of the position at the next 15-minute swing high. Trail the rest with a
+            5-minute Volume Weighted Average Price stop. Exit the entire position by 3:00 PM &mdash;
+            no exceptions.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The 60-minute trend disagrees with your trade direction (you must NOT fight the higher
+            timeframe), OR the time is during the lunch-hour lull (11:30 AM to 1:00 PM IST), OR the
+            5-minute confirmation candle is a Doji (signals indecision, not direction).</dd>
+        </dl>
       </div>
     </div>
   

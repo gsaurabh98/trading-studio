@@ -7,86 +7,92 @@
           <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg> <b>The uncomfortable truth:</b> over 12 months, 80% of retail losses come from <i>not exiting at SL</i>.
-        It is not wrong setups. It is not wrong strikes. It is hope &mdash; "maybe it will come back". This page exists
-        to replace hope with mechanical rules.</div>
+        </svg> <b>The hard truth:</b> Over a full year, 80 percent of retail traders&rsquo; losses
+        come from ONE thing &mdash; NOT exiting when the stop loss hits. Not from picking wrong
+        setups. Not from picking wrong strikes. Just from HOPE &mdash; the little voice that says
+        &quot;maybe it will come back&quot;.<br><br>
+        <b>What is a stop loss?</b> A stop loss is the price level at which you EXIT a losing
+        trade automatically. It limits how much you can lose. Setting a stop loss is like wearing
+        a seat belt &mdash; you hope you never need it, but it saves your life when an accident
+        happens.<br><br>
+        This page replaces &quot;hope&quot; with strict mechanical rules so that no trade can ever
+        wipe out your account.</div>
 
-      <div class="catdiv">STEP 1 &middot; THE 4 TYPES OF STOP LOSS</div>
+      <div class="catdiv">STEP 1 &middot; THE 4 TYPES OF STOP LOSS (PICK ONE PER TRADE)</div>
       <div class="infobox"><svg class="ico ico-warn" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M9 18h6" />
           <path d="M10 21h4" />
           <path d="M12 3a7 7 0 0 1 4 12.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-1.3A7 7 0 0 1 12 3z" />
-        </svg> Every option trade has 4 possible stop-loss mechanisms. <b>Pick ONE per trade</b> based on the setup, and
-        stick to it. Mixing them mid-trade is the most common cause of blown stops.</div>
+        </svg> There are 4 different ways to set a stop loss in an option trade. <b>Choose ONE
+        type for each trade</b> &mdash; based on what kind of setup you are taking. Then stick to
+        it.<br><br>
+        <b>Important:</b> Switching between stop loss types DURING a trade (&quot;OK my chart
+        stop hit, but let me see if the premium recovers...&quot;) is the #1 reason traders
+        blow up their account.</div>
 
       <div class="pgrid md">
         <div class="card bear">
-          <div class="cname"><span class="cnum">1</span> PRICE SL (Chart-based)</div>
+          <div class="cname"><span class="cnum">1</span> CHART-BASED STOP LOSS (price-based)</div>
           <div class="cdesc" style="text-align:left">
-            <b style="color:var(--text)">What it is:</b> A stop-loss placed on the <b>underlying index level</b>, not
-            the option price. When Nifty touches X, you exit the option, whatever the premium.<br><br>
+            <b style="color:var(--text)">What it is in plain English:</b> Set the stop loss on
+            NIFTY itself, not on the option premium. When Nifty touches a fixed level, you exit
+            the option no matter what the premium is doing.<br><br>
             <b style="color:var(--text)">How to set it:</b><br>
-            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
-              <polyline points="9,6 15,12 9,18" />
-            </svg> <b>CE (call):</b> Just below the wick low of the breakout / signal candle<br>
-            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
-              <polyline points="9,6 15,12 9,18" />
-            </svg> <b>PE (put):</b> Just above the wick high of the breakdown / signal candle<br>
-            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
-              <polyline points="9,6 15,12 9,18" />
-            </svg> Add 2&ndash;3 points buffer so minor wicks don't trigger you<br><br>
-            <b style="color:var(--bull)">Best for:</b> Breakout trades, S/R reversals, chart-pattern trades &mdash;
-            anywhere the "structure" defines the invalidation level clearly.<br>
-            <b style="color:var(--bear)">Avoid when:</b> Setup has no clear structural invalidation (e.g., scalps), or
-            SL distance &gt; 0.5% of index (too big for options).
+            &middot; For a <b>Call Option:</b> place stop loss just BELOW the wick-low of the
+            breakout candle (the candle that triggered your entry).<br>
+            &middot; For a <b>Put Option:</b> place stop loss just ABOVE the wick-high of the
+            breakdown candle.<br>
+            &middot; Add a 2-3 point buffer so small wicks do NOT trigger the stop loss falsely.<br><br>
+            <b style="color:var(--bull)">Best for:</b> Breakout trades, support / resistance
+            bounces, chart pattern trades &mdash; anywhere the chart structure CLEARLY shows where
+            you were &quot;wrong&quot;.<br>
+            <b style="color:var(--bear)">Skip when:</b> There is no clear chart structure (like
+            quick scalps), OR the stop loss distance is more than 0.5 percent of Nifty (too big to
+            absorb in option premium).
           </div>
         </div>
 
         <div class="card bear">
-          <div class="cname"><span class="cnum">2</span> PREMIUM SL (Percentage-based)</div>
+          <div class="cname"><span class="cnum">2</span> PREMIUM STOP LOSS (percentage of premium paid)</div>
           <div class="cdesc" style="text-align:left">
-            <b style="color:var(--text)">What it is:</b> A stop-loss on the <b>option premium itself</b>. Set as a % of
-            what you paid.<br><br>
-            <b style="color:var(--text)">The 30&ndash;40% rule:</b><br>
-            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
-              <polyline points="9,6 15,12 9,18" />
-            </svg> Bought at &#8377;100 &rarr; SL at &#8377;60&ndash;&#8377;70<br>
-            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
-              <polyline points="9,6 15,12 9,18" />
-            </svg> Bought at &#8377;80 &rarr; SL at &#8377;48&ndash;&#8377;56<br>
-            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
-              <polyline points="9,6 15,12 9,18" />
-            </svg> Never risk &gt;50% of premium on any trade<br><br>
-            <b style="color:var(--text)">Why 30&ndash;40%:</b> Below 30% the stop is too tight &mdash; routine
-            volatility triggers it. Above 40% the loss compounds too fast if you take multiple trades in a row.<br><br>
-            <b style="color:var(--bull)">Best for:</b> Scalps, ATM intraday trades, momentum plays where the underlying
-            level is moving too fast to set a chart-based stop.<br>
-            <b style="color:var(--bear)">Avoid when:</b> IV is unstable (event days) &mdash; premium moves on IV can
-            trigger it even when direction is right.
+            <b style="color:var(--text)">What it is in plain English:</b> Set the stop loss on
+            the OPTION PREMIUM itself. If the premium drops by a fixed percentage of what you
+            paid, you exit.<br><br>
+            <b style="color:var(--text)">The 30 to 40 percent rule:</b><br>
+            &middot; You bought at &#8377;100 → exit at &#8377;60-&#8377;70 (lose 30-40 percent).<br>
+            &middot; You bought at &#8377;80 → exit at &#8377;48-&#8377;56.<br>
+            &middot; <b>Never let any single trade lose more than 50 percent of the premium.</b><br><br>
+            <b style="color:var(--text)">Why 30-40 percent?</b> Below 30 percent → the stop loss is
+            too tight. Normal market wiggles will trigger it and you will be stopped out for no
+            real reason. Above 40 percent → the losses compound too fast if you take 3-4 losing
+            trades in a row.<br><br>
+            <b style="color:var(--bull)">Best for:</b> Quick scalp trades, At The Money intraday
+            trades, fast momentum trades where Nifty moves too quickly to set a chart-based stop
+            loss.<br>
+            <b style="color:var(--bear)">Skip when:</b> It is a big event day (Budget, RBI policy,
+            results) &mdash; the &quot;Implied Volatility crush&quot; can drop the premium even if
+            Nifty moves in your favour.
           </div>
         </div>
 
         <div class="card bear">
-          <div class="cname"><span class="cnum">3</span> TIME SL (Clock-based)</div>
+          <div class="cname"><span class="cnum">3</span> TIME-BASED STOP LOSS (clock-based)</div>
           <div class="cdesc" style="text-align:left">
-            <b style="color:var(--text)">What it is:</b> A hard rule that if the trade hasn't worked in <b>N
-              minutes</b>, you exit regardless of premium or structure.<br><br>
+            <b style="color:var(--text)">What it is in plain English:</b> A hard rule &mdash; if
+            your trade has NOT moved in your favour within X minutes, you EXIT, no matter what the
+            premium or chart says.<br><br>
             <b style="color:var(--text)">Recommended time limits:</b><br>
-            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
-              <polyline points="9,6 15,12 9,18" />
-            </svg> 5-min setup &rarr; exit in <b>20&ndash;30 minutes</b> if not moving<br>
-            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
-              <polyline points="9,6 15,12 9,18" />
-            </svg> 15-min setup &rarr; exit in <b>45&ndash;60 minutes</b><br>
-            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
-              <polyline points="9,6 15,12 9,18" />
-            </svg> Expiry day &rarr; exit in <b>15&ndash;25 minutes</b> (theta punishes waiting)<br><br>
-            <b style="color:var(--text)">Why it works:</b> Theta (time decay) is invisible but relentless. An ATM option
-            can lose &#8377;30&ndash;&#8377;50 per hour of non-movement even when your chart stop hasn't been
-            hit.<br><br>
-            <b style="color:var(--bull)">Best for:</b> ALL option-buying trades as a <b>safety net</b> on top of Price
-            or Premium SL. Use it in combination, not alone.<br>
-            <b style="color:var(--bear)">Avoid when:</b> Swing / overnight positions (different theta dynamics).
+            &middot; You entered on a 5-minute chart → EXIT in 20-30 minutes if not moving.<br>
+            &middot; You entered on a 15-minute chart → EXIT in 45-60 minutes if not moving.<br>
+            &middot; Expiry day trade → EXIT in 15-25 minutes (time decay punishes you harshly).<br><br>
+            <b style="color:var(--text)">Why does this work?</b> Time decay (called Theta) is
+            invisible but it is ALWAYS eating your premium. An At The Money option can lose
+            &#8377;30 to &#8377;50 per HOUR of standing still &mdash; even when your chart-based
+            stop loss has not been hit.<br><br>
+            <b style="color:var(--bull)">Best for:</b> EVERY option buying trade as a SAFETY NET
+            on TOP of your chart or premium stop loss. Use it as a backup, not a primary.<br>
+            <b style="color:var(--bear)">Skip when:</b> You are trading swing / overnight positions
+            (the time-decay rules are different).
           </div>
         </div>
 
@@ -761,19 +767,58 @@
       </div>
 
       <div class="rbox" style="border-left-color:var(--bull);margin-top:32px">
-        <h3>SL &amp; TARGETS CHEAT SHEET</h3>
+        <h3>STOP LOSS AND TARGETS CHEAT SHEET</h3>
         <ul>
-          <li><b>Pick ONE SL type per trade</b> (Price / Premium / Time / Volatility) &mdash; and pair it with Time SL
-            as a safety net.</li>
-          <li><b>Always place the SL order in the system immediately after entry.</b> Mental stops are not stops.</li>
-          <li><b>Minimum 1:2 RR</b> on every option-buying trade. 1:3 is preferred.</li>
-          <li><b>Book 50% at 1:1, move SL to entry.</b> This single move converts hope-trades into guaranteed
-            non-losers.</li>
-          <li><b>Use SL-M, not SL-L</b>, for option exits. Certainty beats a few rupees of slippage.</li>
-          <li><b>Flat by 15:00 for non-expiry, 14:30 for expiry.</b> The last hour is retail's graveyard.</li>
-          <li><b>Never move SL against you. Never average a loser. Never skip the stop.</b> Three rules. Print them.
-            Read them every morning.</li>
+          <li><b>Pick ONE stop loss type per trade</b> (Price / Premium / Time / Volatility) &mdash;
+            and pair it with a Time-based stop loss as a safety net.</li>
+          <li><b>Always place the stop loss order in the broker system IMMEDIATELY after entry.</b>
+            Mental stops are not real stops.</li>
+          <li><b>Minimum risk-to-reward is 1 to 2</b> on every option-buying trade. 1 to 3 is
+            preferred.</li>
+          <li><b>Book 50 percent at 1 to 1 risk-to-reward, then move the stop loss to your entry
+            price.</b> This single move converts a hope-trade into a guaranteed non-loser.</li>
+          <li><b>Use Stop-Loss-Market orders, not Stop-Loss-Limit orders</b> for option exits.
+            Certainty beats a few rupees of slippage.</li>
+          <li><b>Be flat by 3:00 PM IST on a non-expiry day, by 2:30 PM IST on an expiry day.</b>
+            The last hour is retail&rsquo;s graveyard.</li>
+          <li><b>Never move the stop loss against you. Never average down on a loser. Never skip
+            the stop loss.</b> Three rules. Print them. Read them every morning.</li>
         </ul>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; The Disciplined Exit Plan
+        you set up BEFORE every trade</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>You have just identified a clean entry signal (a candle pattern at a key support /
+            resistance level with volume). You are about to click Buy. STOP &mdash; you must define
+            ALL of these BEFORE you enter: the stop loss type (Price / Premium / Time / Volatility),
+            the exact stop loss level, the first target, the second target, and the time stop. If
+            any one of these is missing, do NOT place the trade.</dd>
+          <dt>Entry</dt>
+          <dd>Place the buy order at your planned entry price. Within 30 seconds of the order being
+            filled, place a Stop-Loss-Market order on the broker at the exact stop loss level you
+            wrote down. If the broker supports a Bracket order or a Cover order, use it &mdash; this
+            ensures the stop is locked in atomically with the entry.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Use the type you picked &mdash; Price-based for a structural setup (the stop is just
+            beyond the wick of the signal candle), Premium-based for a scalp (a 30 to 35 percent
+            stop on the option premium itself). Pair this with a time stop &mdash; if the trade has
+            not started moving in your favour within the time window for that timeframe (15 to 30
+            minutes for a 5-minute setup, 45 to 60 minutes for a 15-minute setup), exit at market.</dd>
+          <dt>Target</dt>
+          <dd>Target 1 = a 1 to 1 risk-to-reward (book 50 percent here AND move the stop loss to
+            your entry / break-even). Target 2 = a 1 to 2 risk-to-reward (book another 25 to 30
+            percent). Trail the rest with a stop at the previous swing low (for a Call Option) or
+            swing high (for a Put Option). Be flat by 3:00 PM IST.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>You did not write down the stop loss BEFORE entering (you will move it later when
+            emotion takes over), OR the planned risk-to-reward is below 1 to 2 (the math does not
+            work in your favour over many trades), OR you have already had 2 stop-out losses today
+            (a 30-minute cool-off rule is mandatory before the third trade), OR the broker is down
+            and the Stop-Loss-Market order cannot be placed (no exit method = no entry).</dd>
+        </dl>
       </div>
 
     </div>

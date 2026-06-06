@@ -7,77 +7,136 @@
           <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg> You can be correct on direction and still lose. Most retail option buyers pick strikes too far OTM,
-        expiries too close to zero, and trade without a pre-defined exit. These three mistakes cost more money than
-        wrong direction calls ever do.</div>
+        </svg> <b>Read this first:</b> You can guess the direction RIGHT and still lose money on an
+        option. How? Most beginners pick the wrong strike (too far away), the wrong expiry (too
+        close to expiry day), and they have no exit plan. These three mistakes cost MORE money than
+        wrong direction calls ever do. This page fixes all three.</div>
 
       <div class="infobox" style="border-left-color:var(--bear)"><svg class="ico ico-err" viewBox="0 0 24 24"
           aria-hidden="true">
           <circle cx="12" cy="12" r="9" />
           <path d="M15 9l-6 6" />
           <path d="M9 9l6 6" />
-        </svg> <b>Uncomfortable fact from SEBI Sep-2024 study (FY22&ndash;FY24):</b> option <b>buyers</b> were hit the
-        hardest &mdash; the loss-ratio is significantly higher for buyers than writers, because time decay and IV crush
-        work <i>against</i> the long side every single day. This guide is for buyers who accept that asymmetry and still
-        choose to engage, with tight risk rules.</div>
+        </svg> <b>An eye-opener fact:</b> The Securities and Exchange Board of India (SEBI) studied
+        Indian retail traders from April 2021 to March 2024. The result? <b>93 out of every 100
+        retail option buyers LOST money.</b> The average loss was about &#8377;2 lakh per trader.<br><br>
+        Why? Because two invisible forces work against an option BUYER every single day:<br>
+        &middot; <b>Time decay (called Theta):</b> The option loses value every day, like ice
+        melting. Even if the market does not move, you LOSE money.<br>
+        &middot; <b>Volatility crush (called the Implied Volatility drop):</b> When fear in the
+        market drops, option premiums shrink fast. Even if you get the direction RIGHT, the premium
+        can drop.<br><br>
+        This page is for buyers who accept this reality and still choose to trade &mdash; with tight
+        rules.</div>
 
-      <div class="catdiv">WHAT IS AN OPTION? &mdash; THE 5 CORE COMPONENTS</div>
+      <div class="catdiv">WHAT IS AN OPTION? &mdash; THINK OF IT LIKE A MOVIE TICKET BOOKING</div>
       <div class="infobox"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="12" r="9" />
           <line x1="12" y1="8" x2="12" y2="12" />
           <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg> <b>An option is a contract.</b> It gives the <b>buyer</b> the <b>right (but not the obligation)</b> to
-        buy or sell an underlying asset at a pre-decided price, on or before a set date. The <b>seller (writer)</b>
-        takes the opposite side and collects the premium. Understanding the five components below is non-negotiable
-        before you place a single trade.</div>
+        </svg> <b>The simplest way to understand an option:</b> Think of booking a movie ticket
+        online for a show 3 days from now.<br><br>
+        &middot; You pay a small <b>booking fee</b> (the premium).<br>
+        &middot; The fee gives you the <b>right</b> to watch the movie at the locked-in price (the
+        strike price).<br>
+        &middot; If you decide NOT to go on movie day, you simply forfeit the booking fee. Maximum
+        loss = the small booking fee, nothing more.<br>
+        &middot; If the movie tickets become very expensive on movie day (a sold-out show), your
+        locked-in booking is now valuable &mdash; you can transfer it to someone else for a profit.<br><br>
+        That is exactly how an option works. You pay a small premium today for the RIGHT to buy or
+        sell at a fixed price later. If price moves in your favour, the option becomes valuable. If
+        not, you lose only the small premium.<br><br>
+        <b>Two parties exist in every option trade:</b><br>
+        &middot; The <b>BUYER</b> (you) &mdash; pays the premium. Has the RIGHT, not the
+        obligation.<br>
+        &middot; The <b>SELLER (also called the WRITER)</b> &mdash; collects the premium. Has the
+        obligation if the buyer chooses to use the right. Sellers are usually big institutions and
+        high-net-worth individuals (because writing requires lots of margin money).</div>
 
       <div class="pgrid md c3">
         <div class="card bull">
-          <div class="cname">1 &bull; CALL OPTION (CE)</div>
-          <div class="cdesc" style="text-align:left">Gives the buyer the <b>right to BUY</b> the underlying at the
-            strike price. <b>Used when you expect price to go UP.</b><br><br><b>Example:</b> Nifty spot at
-            <code>24,300</code>. Buy <code>NIFTY 24400 CE @ &#8377;80</code>. If Nifty rallies to <code>24,600</code>,
-            the premium may rise to <code>&#8377;210</code> &mdash; a <b>162% profit</b>. If Nifty falls, the option
-            loses value fast.</div>
+          <div class="cname">1 &bull; CALL OPTION (buy this when you think price will GO UP)</div>
+          <div class="cdesc" style="text-align:left">A Call Option gives you the <b>right to BUY</b>
+            the index at a fixed price. You buy a Call Option when you EXPECT the index to go UP.<br><br>
+            <b>Real example:</b> Nifty is at 24,300 right now. You buy the &quot;NIFTY 24400 Call
+            Option&quot; for a premium of &#8377;80 per share.<br>
+            &middot; If Nifty rallies to 24,600 → the premium can jump to &#8377;210. That is a
+            <b>162 percent profit</b>.<br>
+            &middot; If Nifty drops instead → the option loses value FAST and you can lose most of
+            the &#8377;80.<br><br>
+            <b>Memory trick:</b> Call = Calling price UP.</div>
         </div>
         <div class="card bear">
-          <div class="cname">2 &bull; PUT OPTION (PE)</div>
-          <div class="cdesc" style="text-align:left">Gives the buyer the <b>right to SELL</b> the underlying at the
-            strike price. <b>Used when you expect price to go DOWN.</b><br><br><b>Example:</b> Nifty spot at
-            <code>24,300</code>. Buy <code>NIFTY 24200 PE @ &#8377;70</code>. If Nifty falls to <code>24,000</code>, the
-            premium may rise to <code>&#8377;190</code>. If Nifty rallies, the option loses value.</div>
+          <div class="cname">2 &bull; PUT OPTION (buy this when you think price will GO DOWN)</div>
+          <div class="cdesc" style="text-align:left">A Put Option gives you the <b>right to SELL</b>
+            the index at a fixed price. You buy a Put Option when you EXPECT the index to go DOWN.<br><br>
+            <b>Real example:</b> Nifty is at 24,300 right now. You buy the &quot;NIFTY 24200 Put
+            Option&quot; for a premium of &#8377;70 per share.<br>
+            &middot; If Nifty drops to 24,000 → the premium can jump to &#8377;190. Big profit.<br>
+            &middot; If Nifty rallies instead → the option loses value.<br><br>
+            <b>Memory trick:</b> Put = Putting price DOWN.</div>
         </div>
         <div class="card info">
-          <div class="cname">3 &bull; STRIKE PRICE</div>
-          <div class="cdesc" style="text-align:left">The <b>pre-decided price</b> at which the option can be exercised.
-            Chosen by the trader from a list on the option chain (e.g., 24,000 / 24,100 / 24,200 &hellip;). Strike
-            relative to spot defines moneyness:<br><br><b>ATM</b> &mdash; strike = spot<br><b>ITM</b> &mdash; strike is
-            already profitable<br><b>OTM</b> &mdash; strike needs spot to move to be profitable</div>
+          <div class="cname">3 &bull; STRIKE PRICE (the locked-in price)</div>
+          <div class="cdesc" style="text-align:left">The strike price is the <b>fixed price you
+            lock in</b> when you buy the option. You pick a strike from a long list shown in the
+            option chain (24,000, 24,100, 24,200, and so on, in steps of 50 or 100).<br><br>
+            <b>Three types of strike (called &quot;moneyness&quot;):</b><br>
+            &middot; <b>At The Money (ATM)</b> &mdash; the strike is right around today&rsquo;s
+            spot price. (Most beginner-friendly.)<br>
+            &middot; <b>In The Money (ITM)</b> &mdash; the strike is already profitable. The
+            premium is high but the option moves like the index.<br>
+            &middot; <b>Out Of The Money (OTM)</b> &mdash; the strike is far away. The premium is
+            cheap but most of the time it expires worthless.<br><br>
+            <b>Beginner rule:</b> always start with At The Money. Never buy far Out Of The Money
+            because it &quot;looks cheap&quot;.</div>
         </div>
         <div class="card neu">
-          <div class="cname">4 &bull; PREMIUM</div>
-          <div class="cdesc" style="text-align:left">The <b>price you pay</b> the seller (writer) for the contract.
-            Quoted per share; total cost = <code>Premium &times; Lot Size</code>. <br><br><b>Example:</b>
-            <code>NIFTY 24400 CE</code> at premium <code>&#8377;80</code>, lot size <code>65</code> &rarr; cost =
-            <code>80 &times; 65 = &#8377;5,200</code>.<br><br>Premium = Intrinsic Value + Time Value. Time Value
-            evaporates daily &mdash; this is theta decay.</div>
+          <div class="cname">4 &bull; PREMIUM (the price you pay)</div>
+          <div class="cdesc" style="text-align:left">The premium is the price you PAY the seller for
+            the option. It is quoted per share &mdash; so to know your total cost, multiply it by
+            the lot size.<br><br>
+            <b>Real example:</b> The NIFTY 24400 Call Option has a premium of &#8377;80. The Nifty
+            lot size is 65. So total cost = 80 &times; 65 = <b>&#8377;5,200</b>. That is the
+            maximum you can lose.<br><br>
+            <b>The premium has two parts:</b><br>
+            &middot; <b>Intrinsic Value</b> &mdash; how much profit the option already has if you
+            were to use it RIGHT NOW.<br>
+            &middot; <b>Time Value</b> &mdash; the extra amount you pay because there is still time
+            left for price to move in your favour. <b>This time value SHRINKS every single day</b>
+            (this shrinking is called Theta decay).</div>
         </div>
         <div class="card bear">
-          <div class="cname">5 &bull; EXPIRATION DATE</div>
-          <div class="cdesc" style="text-align:left">The date the contract <b>expires and settles</b>. After expiry the
-            option is worth only its intrinsic value (often zero).<br><br><b>Weekly:</b> Nifty (Tue), Sensex (Thu)
-            &bull; <b>Monthly:</b> BankNifty, FinNifty &mdash; last Tue of month.<br><br><b>Wasting asset:</b> every
-            option loses time value daily; holding longer &ne; more profit.</div>
+          <div class="cname">5 &bull; EXPIRY DATE (the deadline)</div>
+          <div class="cdesc" style="text-align:left">The expiry date is the <b>deadline</b> for the
+            option. After this date, the option is finished &mdash; it is either worth its intrinsic
+            value or it is worth zero.<br><br>
+            <b>Indian index expiry days (current rules):</b><br>
+            &middot; <b>Nifty</b> &mdash; weekly expiry every Tuesday at 3:30 PM IST.<br>
+            &middot; <b>Sensex</b> &mdash; weekly expiry every Thursday at 3:30 PM IST.<br>
+            &middot; <b>Bank Nifty, Fin Nifty</b> &mdash; only monthly expiry now (last Tuesday /
+            Wednesday of the month). Weekly was discontinued in November 2024.<br><br>
+            <b>Important:</b> An option is a &quot;wasting asset&quot;. Every option loses time
+            value daily. Holding LONGER does not mean MORE profit &mdash; it usually means LESS
+            profit.</div>
         </div>
         <div class="card neu">
-          <div class="cname">BONUS &bull; BUYER vs WRITER</div>
-          <div class="cdesc" style="text-align:left">Every option has two sides.<br><br><b>Buyer</b> (retail): pays
-            premium. Max loss = premium paid. Max profit = unlimited (CE) / very large but capped at <i>strike &times;
-              lot</i> (PE).<br><br><b>Writer</b> (institution, HNI): receives premium. Max profit = premium. Max loss =
-            unlimited (CE) / very large but capped at <i>strike &times; lot</i> (PE) &mdash; which is why writing
-            requires margin &amp; capital that retail rarely has.<br><br><b style="color:var(--bear)">Reality check
-              (SEBI Sep-2024):</b> 93% of individual F&amp;O traders &mdash; almost all of whom are buyers &mdash;
-            <b>lost money</b> in FY24, with an average per-trader loss of ~&#8377;2 lakh.</div>
+          <div class="cname">BONUS &bull; BUYER vs SELLER (who is on the other side?)</div>
+          <div class="cdesc" style="text-align:left">Every option has two sides &mdash; like every
+            insurance policy has a buyer and a company.<br><br>
+            <b>BUYER</b> (mostly retail traders, like you):<br>
+            &middot; PAYS the premium upfront.<br>
+            &middot; Maximum loss = ONLY the premium paid.<br>
+            &middot; Maximum profit = very large (unlimited for a Call Option).<br><br>
+            <b>SELLER (also called WRITER)</b> (mostly big institutions and rich individuals):<br>
+            &middot; RECEIVES the premium upfront.<br>
+            &middot; Maximum profit = ONLY the premium received.<br>
+            &middot; Maximum loss = very large (unlimited for a Call Option).<br>
+            &middot; Needs huge margin money &mdash; that is why retail rarely sells.<br><br>
+            <b style="color:var(--bear)">Reality check:</b> The Securities and Exchange Board of
+            India (SEBI) study from 2024 found that <b>93 out of every 100 retail traders LOST
+            money</b> in Futures and Options. Average loss was around &#8377;2 lakh per trader.
+            Most retail traders are BUYERS &mdash; the side that loses the most.</div>
         </div>
       </div>
 
@@ -87,7 +146,8 @@
           <circle cx="12" cy="12" r="9" />
           <line x1="12" y1="8" x2="12" y2="12" />
           <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg> Every option contract has a unique 5-part symbol. Once you can decode one, you understand them all.</div>
+        </svg> Every option contract has a unique 5-part symbol. Once you can decode one, you can
+        understand them all.</div>
       <div class="anat-card" style="padding:20px;align-items:stretch">
         <div
           style="font-family:'IBM Plex Mono','SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:1.35rem;color:var(--text);text-align:center;padding:14px 8px;background:var(--s0);border-radius:6px;margin-bottom:16px;letter-spacing:0.02em">
@@ -107,55 +167,67 @@
             <tr>
               <td><b style="color:var(--bull)">NIFTY</b></td>
               <td>Underlying</td>
-              <td>The index (or stock) the option is based on &mdash; Nifty 50 here.</td>
+              <td>The index (or stock) that the option is based on &mdash; the Nifty 50 index in this case.</td>
             </tr>
             <tr>
               <td><b style="color:var(--amber)">17-NOV-2026</b></td>
               <td>Expiration Date</td>
-              <td>The day this contract expires and settles &mdash; <b>Tuesday</b> for Nifty weeklies. After this date
-                the option ceases to exist.</td>
+              <td>The day this contract expires and settles. For Nifty weekly options this is always
+                <b>Tuesday</b>. After this date, the option ceases to exist.</td>
             </tr>
             <tr>
               <td><b style="color:var(--info)">24400</b></td>
               <td>Strike Price</td>
-              <td>Pre-decided price at which you have the right to buy (CE) or sell (PE).</td>
+              <td>The pre-decided price at which you have the right to buy (Call Option) or sell (Put
+                Option).</td>
             </tr>
             <tr>
               <td><b style="color:var(--bear)">CE</b></td>
               <td>Type</td>
-              <td><b>CE</b> = Call European &mdash; right to BUY. <b>PE</b> = Put European &mdash; right to SELL.
-                &quot;European&quot; means it can only be exercised on expiry day.</td>
+              <td><b>CE</b> stands for Call European &mdash; the right to BUY. <b>PE</b> stands for Put
+                European &mdash; the right to SELL. The word &quot;European&quot; means the option can
+                only be exercised on the expiry day, not before.</td>
             </tr>
             <tr>
               <td><b>&#8377;80</b></td>
-              <td>Premium (LTP)</td>
-              <td>Current market price of the option. You pay this to buy it. Cost = 80 &times; 65 (lot) =
-                <b>&#8377;5,200</b>.</td>
+              <td>Premium (Last Traded Price)</td>
+              <td>The current market price of the option. You pay this amount to buy it. Total cost
+                equals 80 &times; 65 (lot size) = <b>&#8377;5,200</b>.</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="catdiv">HOW OPTIONS MAKE / LOSE MONEY &mdash; MENTAL MODEL</div>
+      <div class="catdiv">HOW OPTIONS MAKE OR LOSE MONEY &mdash; THE SIMPLE PICTURE</div>
       <div class="pgrid md c2">
         <div class="card info">
-          <div class="cname">FOR CALL OPTION BUYERS (CE)</div>
+          <div class="cname">FOR CALL OPTION BUYERS (you bet UP)</div>
           <div class="cdesc" style="text-align:left">
-            <b>You profit when:</b> underlying rises above <code>strike + premium paid</code> before expiry.<br>
-            <b>You lose when:</b> underlying stays below strike, OR stays flat (theta decay), OR IV crashes.<br><br>
-            <b>Break-even:</b> <code>Strike + Premium</code>. For <code>24400 CE @ &#8377;80</code>, Nifty must reach
-            <code>24,480</code> just to break even at expiry.<br><br>
-            <b>Max loss:</b> 100% of premium (&#8377;5,200 in the example). <b>Max profit:</b> theoretically unlimited.
+            <b>You MAKE money when:</b> the index goes UP enough &mdash; specifically, above (strike
+            price + premium you paid) by the expiry day.<br><br>
+            <b>You LOSE money when:</b><br>
+            &middot; the index drops, OR<br>
+            &middot; the index stays flat (time decay eats the premium), OR<br>
+            &middot; the fear in the market suddenly drops (the volatility crush).<br><br>
+            <b>Break-even point:</b> Strike + Premium. So for the 24400 Call Option bought at
+            &#8377;80 → Nifty must reach 24,480 just to BREAK EVEN by expiry day.<br><br>
+            <b>Maximum loss:</b> 100 percent of the premium (so &#8377;5,200 in this example).<br>
+            <b>Maximum profit:</b> in theory, unlimited.
           </div>
         </div>
         <div class="card info">
-          <div class="cname">FOR PUT OPTION BUYERS (PE)</div>
+          <div class="cname">FOR PUT OPTION BUYERS (you bet DOWN)</div>
           <div class="cdesc" style="text-align:left">
-            <b>You profit when:</b> underlying falls below <code>strike - premium paid</code> before expiry.<br>
-            <b>You lose when:</b> underlying stays above strike, OR stays flat (theta decay), OR IV crashes.<br><br>
-            <b>Break-even:</b> <code>Strike - Premium</code>. For <code>24200 PE @ &#8377;70</code>, Nifty must fall to
-            <code>24,130</code> just to break even at expiry.<br><br>
-            <b>Max loss:</b> 100% of premium. <b>Max profit:</b> large (capped when underlying = 0).
+            <b>You MAKE money when:</b> the index goes DOWN enough &mdash; specifically, below
+            (strike price - premium paid) by expiry.<br><br>
+            <b>You LOSE money when:</b><br>
+            &middot; the index rises, OR<br>
+            &middot; the index stays flat (time decay), OR<br>
+            &middot; the fear in the market suddenly drops.<br><br>
+            <b>Break-even point:</b> Strike - Premium. So for the 24200 Put Option bought at
+            &#8377;70 → Nifty must fall to 24,130 just to BREAK EVEN by expiry day.<br><br>
+            <b>Maximum loss:</b> 100 percent of the premium.<br>
+            <b>Maximum profit:</b> very large (capped only when the index reaches zero).
           </div>
         </div>
       </div>
@@ -165,15 +237,19 @@
           <circle cx="12" cy="12" r="9" />
           <path d="M15 9l-6 6" />
           <path d="M9 9l6 6" />
-        </svg> <b>The "wasting asset" truth.</b> An option that is &#8377;80 today can be &#8377;65 tomorrow and
-        &#8377;40 the day after &mdash; even if the underlying doesn't move. Time is not on your side as a buyer. This
-        is why scalping (see <b>Scalping</b> tab) and buying only current-week ATM strikes are the cleanest entry paths
-        for retail. Never &quot;hold overnight hoping it recovers&quot;.</div>
+        </svg> <b>The melting ice cube reality:</b> An option that costs &#8377;80 today can be
+        &#8377;65 tomorrow and &#8377;40 the day after &mdash; <b>even if the index does not move
+        at all</b>. Time is NOT on your side when you are a buyer. The premium melts every day,
+        like an ice cube in the sun.<br><br>
+        That is why these two rules matter:<br>
+        &middot; Trade only the <b>current-week At The Money</b> strikes.<br>
+        &middot; <b>Never &quot;hold overnight hoping it recovers&quot;</b> &mdash; the next morning
+        you will lose more from time decay alone.</div>
 
       <div class="catdiv">STRIKE SELECTION GUIDE</div>
       <div class="pgrid md">
         <div class="card bull">
-          <div class="cname">ATM (AT THE MONEY)</div>
+          <div class="cname">AT THE MONEY (ATM)</div>
           <div
             style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:1.4rem;color:var(--bull);margin:6px 0">
             <span class="rating" aria-label="1 star rating"><svg class="ico ico-star" viewBox="0 0 24 24"
@@ -182,24 +258,26 @@
                   d="m12 2 3 7 7 .8-5.4 4.7 1.7 6.9L12 17.8 5.7 21.4l1.7-6.9L2 9.8 9 9z" />
               </svg></span> BEST</div>
           <div class="badge bull">RECOMMENDED</div>
-          <div class="cdesc">Spot ≈ Strike. Delta ≈ 0.5. Best balance of cost and movement. <b>For intraday: always
-              start here.</b> Most liquid, tightest spreads.</div>
+          <div class="cdesc">Spot price is roughly equal to the strike. Delta is roughly 0.5. Best
+            balance between cost and price movement. <b>For intraday trading, always start
+            here.</b> These strikes have the most liquidity and the tightest bid-ask spreads.</div>
           <div class="action ce">→ DEFAULT CHOICE</div>
         </div>
         <div class="card neu">
-          <div class="cname">1 STRIKE OTM</div>
+          <div class="cname">1 STRIKE OUT OF THE MONEY</div>
           <div
             style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:1.4rem;color:var(--neutral);margin:6px 0">
             <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
               <polyline points="4,12 10,18 20,6" />
             </svg> OK</div>
           <div class="badge neu">AGGRESSIVE</div>
-          <div class="cdesc">One strike above/below ATM. Cheaper premium, lower Delta. Use when you expect a strong fast
-            move. Higher % return if correct, bigger loss if wrong.</div>
+          <div class="cdesc">One strike above (for Calls) or below (for Puts) the At The Money strike.
+            Cheaper premium, lower Delta. Use only when you expect a strong, fast move. Higher percentage
+            return if you are correct, but a bigger loss if you are wrong.</div>
           <div class="action ce">→ STRONG SIGNAL ONLY</div>
         </div>
         <div class="card bear">
-          <div class="cname">DEEP OTM</div>
+          <div class="cname">DEEP OUT OF THE MONEY</div>
           <div
             style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:1.4rem;color:var(--bear);margin:6px 0">
             <svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
@@ -207,12 +285,13 @@
               <path d="M6 6l12 12" />
             </svg> AVOID</div>
           <div class="badge bear">DANGEROUS</div>
-          <div class="cdesc">Far from current price. Delta very low (0.1-0.2). Looks cheap but theta kills it fast.
-            Needs massive move to profit. <b>Avoid for intraday option buying.</b></div>
+          <div class="cdesc">Far away from the current spot price. Delta is very low (0.1 to 0.2). Looks
+            cheap, but Theta decay kills it fast. Needs a massive price move to become profitable.
+            <b>Avoid these for intraday option buying.</b></div>
           <div class="action pe">→ AVOID</div>
         </div>
         <div class="card info" style="border-left:3px solid var(--info)">
-          <div class="cname" style="color:var(--info)">ITM (IN THE MONEY)</div>
+          <div class="cname" style="color:var(--info)">IN THE MONEY (ITM)</div>
           <div
             style="font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;font-size:1.4rem;color:var(--info);margin:6px 0">
             <span class="rating" aria-label="1 star rating"><svg class="ico ico-star" viewBox="0 0 24 24"
@@ -221,10 +300,37 @@
                   d="m12 2 3 7 7 .8-5.4 4.7 1.7 6.9L12 17.8 5.7 21.4l1.7-6.9L2 9.8 9 9z" />
               </svg></span> SAFE</div>
           <div class="badge info">CONSERVATIVE</div>
-          <div class="cdesc">Strike already past spot price. High Delta (0.6-0.8). Expensive but moves almost like the
-            underlying. Good for high-conviction trades with tight SL.</div>
+          <div class="cdesc">The strike is already past the spot price. High Delta (0.6 to 0.8).
+            Expensive, but moves almost like the underlying does. Good for high-conviction trades with a
+            tight stop loss.</div>
           <div class="action ce">→ HIGH CONVICTION</div>
         </div>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; The right strike for your first
+        intraday option trade</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>You have a clean entry signal (a candle pattern at support / resistance with volume
+            confirmation), India Volatility Index is between 12 and 18, and the time is between 9:30 AM
+            and 2:00 PM IST.</dd>
+          <dt>Entry</dt>
+          <dd>Buy the <b>At The Money</b> strike of the <b>current-week expiry</b> with a
+            <b>limit order at the mid-price</b> (the average of the bid and ask). Position size: NEVER
+            risk more than 1 percent of total capital on this single trade.</dd>
+          <dt>Stop Loss</dt>
+          <dd>30 percent loss on the option premium &mdash; this is the hard stop, no exceptions. For a
+            premium of &#8377;100, the stop is &#8377;70.</dd>
+          <dt>Target</dt>
+          <dd>Book 50 percent of your position when the premium gains 30 percent. Trail the rest with a
+            15-point Volume Weighted Average Price stop on Nifty. Aim for at least a 1 to 2
+            risk-to-reward ratio after costs.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>India Volatility Index is above 22 (premiums are too inflated), OR it is the day before
+            expiry (Theta decay accelerates and kills the buyer side), OR the time is after 2:30 PM and
+            you do not have a confirmed trend already in place.</dd>
+        </dl>
       </div>
 
       <div class="catdiv">EXPIRY SELECTION</div>
@@ -232,8 +338,9 @@
           <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
           <path d="M12 9v4" />
           <path d="M12 17h.01" />
-        </svg> <b>Weekly options available only on Nifty 50 (NSE, Tuesday expiry)</b> and <b>Sensex (BSE, Thursday
-          expiry)</b>. BankNifty / FinNifty / MidCpNifty have monthly-only contracts since Nov-2024.</div>
+        </svg> <b>Weekly options are available only on Nifty 50 (NSE, Tuesday expiry)</b> and on
+        <b>Sensex (BSE, Thursday expiry)</b>. Bank Nifty, Fin Nifty, and MidCap Nifty have only monthly
+        contracts since November 2024.</div>
       <table class="strat-table">
         <thead>
           <tr>
@@ -246,37 +353,37 @@
         </thead>
         <tbody>
           <tr>
-            <td>Same Day (0 DTE — Tue Nifty / Thu Sensex)</td>
+            <td>Same Day (0 Days To Expiry — Nifty Tuesday / Sensex Thursday)</td>
             <td class="tp">VERY HIGH</td>
             <td class="tp">Extreme</td>
             <td>Experts only, clean breakout trades</td>
-            <td>Beginners, sideways markets, post-1 PM</td>
+            <td>Beginners, sideways markets, after 1:00 PM</td>
           </tr>
           <tr>
             <td>Current Week (Nifty / Sensex)</td>
             <td class="tw">HIGH</td>
             <td class="tw">Fast</td>
-            <td>Intraday, strong signals</td>
-            <td>Day before expiry (Mon for Nifty, Wed for Sensex)</td>
+            <td>Intraday trades, strong signals</td>
+            <td>Day before expiry (Monday for Nifty, Wednesday for Sensex)</td>
           </tr>
           <tr>
             <td>Next Week (Nifty / Sensex)</td>
             <td class="tc">MEDIUM</td>
             <td class="tc">Moderate</td>
-            <td>Best default for intraday option buying</td>
-            <td>High IV environments (&gt;20)</td>
+            <td>The best default for intraday option buying</td>
+            <td>High Implied Volatility environments (above 20)</td>
           </tr>
           <tr>
             <td>Monthly (All indices)</td>
             <td class="tc">LOW</td>
             <td class="tc">Slow</td>
-            <td>Swing trades, positional, BankNifty-only traders</td>
+            <td>Swing trades, positional, Bank Nifty traders</td>
             <td>Pure intraday scalping</td>
           </tr>
         </tbody>
       </table>
 
-      <div class="catdiv">ORDER TYPES — EXECUTION MATTERS</div>
+      <div class="catdiv">ORDER TYPES &mdash; EXECUTION MATTERS</div>
       <div class="pgrid md c3">
         <div class="card bull">
           <div class="cname">LIMIT ORDER</div>
@@ -285,29 +392,32 @@
                 <path fill="currentColor" stroke="currentColor"
                   d="m12 2 3 7 7 .8-5.4 4.7 1.7 6.9L12 17.8 5.7 21.4l1.7-6.9L2 9.8 9 9z" />
               </svg></span> USE THIS FOR OPTIONS</div>
-          <div class="cdesc" style="text-align:left">Fills at your chosen price or better. Avoids the wide bid-ask
-            spread on options, especially at open. <b>Always use a limit buy at the mid-price</b> — you save ₹3–10 per
-            trade vs market.</div>
+          <div class="cdesc" style="text-align:left">Fills only at your chosen price or better. Avoids
+            the wide bid-ask spread on options, especially at the open. <b>Always use a limit buy at the
+            mid-price</b> &mdash; you save &#8377;3 to &#8377;10 per trade compared to a market order.</div>
         </div>
         <div class="card bear">
           <div class="cname">MARKET ORDER</div>
           <div class="badge bear">AVOID FOR OPTIONS</div>
-          <div class="cdesc" style="text-align:left">Fills at the best available price — meaning the <b>ask</b> when
-            buying. On slow-moving strikes you can lose ₹10+ per lot to slippage. Only acceptable for breakouts needing
-            instant fill.</div>
+          <div class="cdesc" style="text-align:left">Fills at the best available price &mdash; meaning
+            the <b>ask price</b> when buying. On slow-moving strikes you can lose &#8377;10 or more per
+            lot to slippage. Only acceptable for breakout trades that need an instant fill.</div>
         </div>
         <div class="card bull">
-          <div class="cname">BRACKET ORDER (BO)</div>
-          <div class="badge bull">AUTO SL + TARGET</div>
-          <div class="cdesc" style="text-align:left">One entry + SL + target placed together. Automatically closes on
-            either hit. Good for disciplined execution. <b>Note: mostly disabled for option buying post-2020 (SEBI peak
-              margin framework) — check if your broker still offers it.</b></div>
+          <div class="cname">BRACKET ORDER</div>
+          <div class="badge bull">AUTO STOP LOSS + TARGET</div>
+          <div class="cdesc" style="text-align:left">One entry order, one stop loss order, and one
+            target order, all placed together. Closes automatically when either is hit. Good for
+            disciplined execution. <b>Note: this has been mostly disabled for option buying since 2020
+            (the Securities and Exchange Board of India peak margin framework) &mdash; check whether
+            your broker still offers it.</b></div>
         </div>
         <div class="card neu">
-          <div class="cname">COVER ORDER (CO)</div>
-          <div class="badge neu">ENTRY + SL</div>
-          <div class="cdesc" style="text-align:left">Entry + mandatory SL in one order. Provides higher intraday margin
-            on equity, but generally not enabled for options post-SEBI margin framework changes.</div>
+          <div class="cname">COVER ORDER</div>
+          <div class="badge neu">ENTRY + STOP LOSS</div>
+          <div class="cdesc" style="text-align:left">An entry order plus a mandatory stop loss in one
+            order. Provides higher intraday margin on equity, but it is generally not enabled for
+            options after the Securities and Exchange Board of India margin framework changes.</div>
         </div>
       </div>
 
@@ -315,62 +425,76 @@
           <circle cx="12" cy="12" r="9" />
           <line x1="12" y1="8" x2="12" y2="12" />
           <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg> <b>SL-M vs SL-L &mdash; stop-loss order mechanics</b> (which to use, how to place on broker, slippage
-        rules, worked example) are covered in depth in the <button onclick="show('exits')"
+        </svg> <b>Stop Loss Market vs Stop Loss Limit &mdash; the order mechanics</b> (which to use, how
+        to place them on your broker, slippage rules, and worked examples) are covered in depth in the
+        <button onclick="show('exits')"
           style="background:none;border:none;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit;padding:0"><b>STOPS
-            &amp; TARGETS tab &rarr; Step 6</b></button>. This tab keeps the focus on entry-order selection.</div>
+          &amp; TARGETS tab &rarr; Step 6</b></button>. This tab keeps the focus on entry-order
+        selection.</div>
 
-      <div class="catdiv">COSTS &amp; TAXATION — KNOW YOUR BREAK-EVEN</div>
+      <div class="catdiv">COSTS &amp; TAXATION &mdash; KNOW YOUR BREAK-EVEN</div>
       <div class="pgrid md">
         <div class="card bear">
           <div class="cname">COST BREAKDOWN PER TRADE</div>
           <div class="cdesc" style="text-align:left">
-            <b style="color:var(--text)">Option buying, round-trip (1 lot Nifty):</b><br>
-            • Brokerage: ₹20 × 2 = <b>₹40</b><br>
-            • STT (sell side): <b>0.10% of premium value</b><br>
-            • Exchange txn charges: ~₹3.5<br>
-            • GST (18% on brokerage): ~₹7<br>
-            • SEBI + Stamp: ₹1–2<br><br>
-            <b style="color:var(--neutral)">Total ≈ ₹55–70 + 0.10% STT</b>. For ₹150 ATM × 65 = ₹9,750 premium, STT
-            alone ≈ ₹10.
+            <b style="color:var(--text)">Option buying, full round-trip (1 lot Nifty):</b><br>
+            • Brokerage: &#8377;20 &times; 2 = <b>&#8377;40</b><br>
+            • Securities Transaction Tax (sell side only): <b>0.10 percent of premium value</b><br>
+            • Exchange transaction charges: about &#8377;3.5<br>
+            • Goods and Services Tax (18 percent on brokerage): about &#8377;7<br>
+            • Securities and Exchange Board of India fee + Stamp duty: &#8377;1 to &#8377;2<br><br>
+            <b style="color:var(--neutral)">Total comes to about &#8377;55 to &#8377;70, plus 0.10
+            percent Securities Transaction Tax.</b> For a &#8377;150 At The Money premium &times; 65 lot
+            size = &#8377;9,750 premium value, the Securities Transaction Tax alone comes to about
+            &#8377;10.
           </div>
         </div>
         <div class="card neu">
           <div class="cname">BREAK-EVEN CALCULATION</div>
           <div class="cdesc" style="text-align:left">
-            <b style="color:var(--text)">Entry premium:</b> ₹150<br>
-            <b style="color:var(--text)">Costs:</b> ~₹70 + STT<br>
-            <b style="color:var(--text)">Lot:</b> 65 units<br>
-            <b style="color:var(--text)">Break-even premium sell:</b> ~₹151.2<br><br>
-            Doesn't sound like much — but on 10 trades/month, ₹700 leaks out to costs alone. <b>A 60% win rate at 1:1 RR
-              = 0 after costs.</b> You NEED 1:2 minimum just to be profitable after fees.
+            <b style="color:var(--text)">Entry premium:</b> &#8377;150<br>
+            <b style="color:var(--text)">Costs:</b> about &#8377;70 + Securities Transaction Tax<br>
+            <b style="color:var(--text)">Lot size:</b> 65 units<br>
+            <b style="color:var(--text)">Break-even sell price for premium:</b> about &#8377;151.2<br><br>
+            That doesn't sound like much &mdash; but if you do 10 trades a month, &#8377;700 leaks out to
+            costs alone. <b>A 60 percent win rate at 1:1 risk-to-reward equals zero profit after
+            costs.</b> You NEED at least a 1:2 risk-to-reward just to be profitable after fees.
           </div>
         </div>
         <div class="card bear" style="border-left:3px solid var(--bear)">
-          <div class="cname" style="color:var(--bear)">EXERCISE-STT TRAP &mdash; THE ITM-EXPIRY LANDMINE</div>
+          <div class="cname" style="color:var(--bear)">SECURITIES TRANSACTION TAX TRAP &mdash; THE IN-THE-MONEY EXPIRY LANDMINE</div>
           <div class="cdesc" style="text-align:left">
-            If you <b>let an ITM option expire</b> instead of squaring off, STT jumps to <b>0.125% of the FULL intrinsic
-              settlement value</b> (not just premium). This is the single biggest silent retail wipe-out cost.<br><br>
-            <b style="color:var(--text)">Example:</b> Nifty 26,000 CE, spot settles 26,050, lot 65.<br>
-            • Sold before 3:30 PM → STT on premium ≈ ₹5&ndash;10<br>
-            • Let expire ITM → STT = 0.125% × 26,050 × 65 ≈ <b>₹2,117</b><br><br>
-            <b style="color:var(--bear)">Rule:</b> Always square off ITM options before expiry close. The "do nothing"
-            button is the most expensive button on your broker app.
+            If you <b>let an In The Money option expire</b> instead of squaring it off, the Securities
+            Transaction Tax jumps to <b>0.125 percent of the FULL intrinsic settlement value</b> (not
+            just the premium). This is the single biggest silent retail wipe-out cost.<br><br>
+            <b style="color:var(--text)">Example:</b> A Nifty 26,000 Call Option, with spot settling at
+            26,050, lot size 65:<br>
+            • Sold before 3:30 PM &rarr; Securities Transaction Tax on premium is about &#8377;5 to
+            &#8377;10.<br>
+            • Let it expire In The Money &rarr; Securities Transaction Tax = 0.125 percent &times;
+            26,050 &times; 65 = about <b>&#8377;2,117</b>.<br><br>
+            <b style="color:var(--bear)">Rule:</b> Always square off In The Money options before expiry
+            close. The &quot;do nothing&quot; button is the most expensive button on your broker app.
           </div>
         </div>
         <div class="card info" style="border-left:3px solid var(--info)">
-          <div class="cname" style="color:var(--info)">TAXATION (F&amp;O INTRADAY &amp; POSITIONAL)</div>
+          <div class="cname" style="color:var(--info)">TAXATION (FUTURES &amp; OPTIONS, INTRADAY &amp; POSITIONAL)</div>
           <div class="cdesc" style="text-align:left">
-            <b style="color:var(--bull)">F&amp;O income = Non-speculative business income</b> under <b>Section
-              43(5)(d)</b> of the Income-Tax Act (not capital gains, not speculative).<br>
-            • Taxed at your applicable slab rate, added to total income<br>
-            • Losses can offset any non-speculative business income, carry-forward <b>8 years</b><br>
-            • <b>Tax audit</b> (Sec 44AB) if turnover &gt; ₹10 cr, or if opting out of presumptive taxation with profit
-            &lt;6% of turnover<br>
-            • Turnover = sum of absolute profit/loss on each trade (ICAI Guidance Note)<br>
-            • STT, brokerage, exchange &amp; SEBI charges = allowable deductions<br><br>
-            <b style="color:var(--bear)">Always consult a qualified CA</b> &mdash; treatment of presumptive 44AD for
-            F&amp;O is contested. This note is educational, not tax advice.
+            <b style="color:var(--bull)">Income from Futures &amp; Options is treated as Non-speculative
+            Business Income</b> under <b>Section 43(5)(d)</b> of the Income Tax Act (it is NOT capital
+            gains, and NOT speculative income).<br>
+            • Taxed at your applicable slab rate, added to your total income.<br>
+            • Losses can offset any non-speculative business income, and can be carried forward for
+            <b>8 years</b>.<br>
+            • A <b>tax audit</b> (under Section 44AB) is required if turnover exceeds &#8377;10 crore,
+            or if you opt out of presumptive taxation with profit less than 6 percent of turnover.<br>
+            • Turnover = the sum of absolute profit or loss on each trade (per the Institute of
+            Chartered Accountants of India Guidance Note).<br>
+            • Securities Transaction Tax, brokerage, exchange, and Securities and Exchange Board of India
+            charges = all allowable as deductions.<br><br>
+            <b style="color:var(--bear)">Always consult a qualified Chartered Accountant.</b> The
+            treatment of Section 44AD presumptive taxation for Futures &amp; Options is contested. This
+            note is educational, not tax advice.
           </div>
         </div>
         <div class="card bear">
@@ -380,29 +504,32 @@
               <circle cx="12" cy="12" r="9" />
               <path d="M15 9l-6 6" />
               <path d="M9 9l6 6" />
-            </svg> <b style="color:var(--text)">Averaging losing options</b> → 2× the STT drain<br>
+            </svg> <b style="color:var(--text)">Averaging losing options</b> &rarr; doubles your
+            Securities Transaction Tax drain.<br>
             <svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="9" />
               <path d="M15 9l-6 6" />
               <path d="M9 9l6 6" />
-            </svg> <b style="color:var(--text)">Scalping for ₹5</b> → costs eat the profit<br>
+            </svg> <b style="color:var(--text)">Scalping for &#8377;5</b> &rarr; the costs eat the
+            entire profit.<br>
             <svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="9" />
               <path d="M15 9l-6 6" />
               <path d="M9 9l6 6" />
-            </svg> <b style="color:var(--text)">Chasing deep OTM</b> → low Delta + high costs = mathematically
-            losing<br>
+            </svg> <b style="color:var(--text)">Chasing deep Out Of The Money options</b> &rarr; low
+            Delta combined with high costs equals a mathematically losing strategy.<br>
             <svg class="ico ico-err" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="9" />
               <path d="M15 9l-6 6" />
               <path d="M9 9l6 6" />
-            </svg> <b style="color:var(--text)">Over-trading</b> → 10 trades/day × ₹70 = ₹700 daily toll<br>
+            </svg> <b style="color:var(--text)">Over-trading</b> &rarr; 10 trades a day &times; &#8377;70
+            = a &#8377;700 daily toll on your account.<br>
             <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="9" />
               <path d="M8.5 12.5 11 15l4.5-6" />
-            </svg> <b style="color:var(--text)">2–3 trades/day at 1:2 RR</b> = costs become noise
+            </svg> <b style="color:var(--text)">Take 2 to 3 trades a day at 1:2 risk-to-reward</b>
+            &rarr; costs become noise.
           </div>
         </div>
       </div>
     </div>
-  

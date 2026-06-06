@@ -1,0 +1,1893 @@
+:root {
+  --bg: #07090f;
+  --s1: #0f1422;
+  --s2: #161d30;
+  --s3: #1e2640;
+  --bull: #09a86e;
+  --bull-hover: #0a9962;
+  --bull-tint: rgba(9, 168, 110, 0.16);
+  --bull-tint-strong: rgba(9, 168, 110, 0.28);
+  --bear: #c91f3a;
+  --bear-hover: #b41a33;
+  --bear-tint: rgba(201, 31, 58, 0.16);
+  --bear-tint-strong: rgba(201, 31, 58, 0.28);
+  --neutral: #d4941a;
+  --info: #4db8ff;
+  --amber: #f59e0b;
+  --bd: rgba(255, 255, 255, 0.07);
+  --text: #ffffff;
+  --muted: #b0c4e8;
+  --nav-bg: rgba(7, 9, 15, 0.96);
+  --header-grad: rgba(9, 168, 110, 0.05);
+  --hover-bg: rgba(255, 255, 255, 0.03);
+  --card-hover-bd: rgba(255, 255, 255, 0.14);
+  --text-soft: #c0d4f0;
+  --text-dim: #a0b8d8;
+  --grid-line: rgba(9, 168, 110, 0.025);
+  --shadow-color: rgba(0, 0, 0, 0.55);
+  --sub-hover: rgba(9, 168, 110, 0.07);
+  --sub-active-bg: rgba(9, 168, 110, 0.09);
+  /* Convenience aliases for code that uses the shorter `--card` /
+     `--border` names. They MUST resolve to the canonical tokens
+     (--s1, --bd) or the swing analyzer's many `background: var(--card)`
+     and `border: 1px solid var(--border)` rules silently fall through
+     to `transparent` / `currentColor` and surfaces vanish. */
+  --card: var(--s1);
+  --border: var(--bd);
+  --scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --s1: #ffffff;
+  --s2: #f1f5f9;
+  --s3: #e2e8f0;
+  --bull: #059669;
+  --bull-hover: #047857;
+  --bull-tint: rgba(5, 150, 105, 0.13);
+  --bull-tint-strong: rgba(5, 150, 105, 0.22);
+  --bear: #dc2626;
+  --bear-hover: #b91c1c;
+  --bear-tint: rgba(220, 38, 38, 0.12);
+  --bear-tint-strong: rgba(220, 38, 38, 0.22);
+  --neutral: #b45309;
+  --info: #2563eb;
+  --amber: #d97706;
+  --bd: rgba(15, 23, 42, 0.1);
+  --text: #0f172a;
+  --muted: #475569;
+  --nav-bg: rgba(255, 255, 255, 0.94);
+  --header-grad: rgba(5, 150, 105, 0.06);
+  --hover-bg: rgba(15, 23, 42, 0.035);
+  --card-hover-bd: rgba(15, 23, 42, 0.18);
+  --text-soft: #475569;
+  --text-dim: #64748b;
+  --grid-line: rgba(5, 150, 105, 0.03);
+  --shadow-color: rgba(15, 23, 42, 0.12);
+  --sub-hover: rgba(5, 150, 105, 0.08);
+  --sub-active-bg: rgba(5, 150, 105, 0.1);
+  /* See aliases note in :root above. */
+  --card: var(--s1);
+  --border: var(--bd);
+  --scheme: light;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  /* Use dynamic viewport height when available so iOS Safari's collapsing
+     URL bar doesn't push content under the bottom nav. Fallback to 100vh. */
+  min-height: 100dvh;
+  overflow-x: hidden;
+  /* Prevents pull-to-refresh from interrupting chart polling on mobile. */
+  overscroll-behavior-y: contain;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.55;
+  transition: background 0.25s ease;
+  /* Respect iOS notch / home indicator when the PWA runs in standalone mode. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* ── Mobile / touch-device polish ─────────────────────────────────
+   Everything clickable should opt out of the 300ms tap delay and the
+   Android tap highlight that defaults to a translucent grey rectangle. */
+button,
+a,
+[role="button"],
+.tab,
+input[type="button"],
+input[type="submit"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── PWA standalone-mode adjustments ──────────────────────────────
+   When the app is launched from the home screen iOS hides the URL bar
+   and there's no in-page back button, so add a touch more breathing
+   room at the top to compensate for the status-bar overlay. */
+@media all and (display-mode: standalone) {
+  body {
+    padding-top: max(env(safe-area-inset-top), 8px);
+  }
+}
+
+/* Global tabular numerals so any column of digits aligns cleanly (IBM Plex Sans supports this). */
+body,
+table,
+.tc,
+.tp,
+.tw,
+.cnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Functional monospace — code, keyboard keys, and numeric data cells where character-by-character alignment matters. */
+code,
+kbd,
+samp,
+pre,
+.mono,
+.tc,
+.tp,
+.tw,
+.cnum {
+  font-family: 'IBM Plex Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+
+/* SVG chart labels that request monospace via attribute */
+svg text[font-family="'IBM Plex Mono',monospace"] {
+  font-family: 'IBM Plex Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* THEME TOGGLE */
+.theme-toggle {
+  position: fixed;
+  top: 12px;
+  right: 14px;
+  z-index: 300;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.22s;
+  padding: 0;
+  color: var(--text);
+  box-shadow: 0 4px 14px var(--shadow-color);
+}
+
+.theme-toggle:hover {
+  border-color: var(--bull);
+  color: var(--bull);
+  transform: rotate(18deg);
+}
+
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.theme-toggle .icon-sun {
+  display: none;
+}
+
+.theme-toggle .icon-moon {
+  display: block;
+}
+
+[data-theme="light"] .theme-toggle .icon-sun {
+  display: block;
+}
+
+[data-theme="light"] .theme-toggle .icon-moon {
+  display: none;
+}
+
+/* HEADER */
+header {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 32px 20px 24px;
+  background: linear-gradient(180deg, var(--header-grad) 0%, transparent 100%);
+  border-bottom: 1px solid var(--bd);
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title-row .logo {
+  width: clamp(36px, 5vw, 54px);
+  height: auto;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.logo-link {
+  display: inline-flex;
+  line-height: 0;
+  text-decoration: none;
+}
+
+.logo-link:hover .logo {
+  transform: scale(1.06);
+}
+
+@media (max-width:520px) {
+  .title-row {
+    gap: 12px;
+  }
+}
+
+.hbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  color: var(--bull);
+  background: rgba(9, 168, 110, 0.08);
+  border: 1px solid rgba(9, 168, 110, 0.2);
+  padding: 6px 16px;
+  border-radius: 3px;
+  margin-bottom: 14px;
+}
+
+header h1,
+header h2 {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 4.5vw, 2.6rem);
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+header h1 em,
+header h2 em {
+  color: var(--text);
+  font-style: normal;
+}
+
+.hstats {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.hstat {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+}
+
+.hstat b {
+  color: var(--bull);
+  font-weight: 600;
+}
+
+/* NAV */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--nav-bg);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--bd);
+  transition: background 0.25s ease;
+}
+
+.ntabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 1500px;
+  padding: 4px 6px;
+  gap: 3px;
+}
+
+.tab {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  padding: 11px 10px;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tab:hover {
+  color: var(--bull);
+  background: var(--hover-bg);
+}
+
+.tab.active {
+  color: var(--bull);
+  border-bottom-color: var(--bull);
+}
+
+/* NAV ICONS (top-level + submenu) */
+.nico {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  opacity: 0.92;
+}
+
+.tab.active .nico,
+.tab:hover .nico {
+  opacity: 1;
+}
+
+.sub .nico {
+  width: 14px;
+  height: 14px;
+}
+
+/* GROUPED NAV (submenus) */
+.ngroup {
+  position: relative;
+}
+
+.chevron {
+  width: 9px;
+  height: 9px;
+  opacity: 0.5;
+  transition: transform 0.22s;
+  flex-shrink: 0;
+  margin-left: 2px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.ngroup:hover .chevron,
+.ngroup.open .chevron {
+  opacity: 1;
+  transform: rotate(-180deg);
+}
+
+.sub {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  padding: 4px;
+  min-width: 190px;
+  flex-direction: column;
+  box-shadow: 0 12px 36px var(--shadow-color);
+  z-index: 200;
+  margin-top: 2px;
+}
+
+.ngroup.open .sub {
+  display: flex;
+}
+
+@media (hover:hover) {
+  .ngroup:hover .sub {
+    display: flex;
+  }
+}
+
+.sub .tab {
+  text-align: left;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.94rem;
+  border-bottom: none;
+  border-left: 2px solid transparent;
+  border-radius: 3px;
+  justify-content: flex-start;
+}
+
+.sub .tab:hover {
+  background: var(--sub-hover);
+}
+
+.sub .tab.active {
+  color: var(--bull);
+  border-left-color: var(--bull);
+  border-bottom-color: transparent;
+  background: var(--sub-active-bg);
+}
+
+/* Cosmetic mini-section label inside a .sub dropdown. Splits a long
+   item list into scannable clusters without adding navigation depth.
+   Renders a small mono uppercase label trailed by a hairline rule. */
+.sub .sub-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px 3px;
+  margin-top: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sub .sub-divider:first-child {
+  margin-top: 0;
+}
+
+.sub .sub-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--bd);
+  opacity: 0.55;
+}
+
+.tab-group.group-active {
+  color: var(--bull);
+  border-bottom-color: var(--bull);
+}
+
+@media (max-width:640px) {
+  .tab {
+    font-size: 0.74rem;
+    padding: 10px 12px;
+    letter-spacing: 0.03em;
+  }
+
+  .sub {
+    min-width: 170px;
+    padding: 4px;
+  }
+
+  .sub .tab {
+    padding: 11px 12px;
+    font-size: 0.76rem;
+  }
+}
+
+/* SECTIONS */
+.sec {
+  display: none;
+  position: relative;
+  z-index: 1;
+}
+
+.sec.active {
+  display: block;
+}
+
+.wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 18px 80px;
+}
+
+.shead {
+  margin-bottom: 28px;
+}
+
+.shead h2 {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 2.2rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.shead p {
+  font-size: 1.02rem;
+  color: var(--text-soft);
+  margin-top: 8px;
+  font-weight: 400;
+}
+
+/* Sub-title badge next to section h2 (e.g. "FOUNDATION", "18 PATTERNS").
+   Hidden per design preference — markup left in place so it's easy to
+   re-enable globally by deleting this rule. Visible-styles preserved
+   below in :where() so they're applied only if `display` is overridden. */
+.count-badge {
+  display: none;
+}
+
+/* CATEGORY DIVIDER */
+.catdiv {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin: 30px 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.catdiv::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--bd);
+}
+
+/* GRID */
+.pgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 12px;
+}
+
+.pgrid.md {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.pgrid.lg {
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+}
+
+/* Explicit column counts — prevents orphan cards (e.g., 6 cards showing as 5+1).
+Use .c3 for 6/9-card sections, .c4 for 7/8/12-card sections, .c5 for 10-card sections. */
+.pgrid.c2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pgrid.c3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pgrid.c4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pgrid.c5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width:1100px) {
+  .pgrid.c5 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .pgrid.c4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width:860px) {
+
+  .pgrid.c5,
+  .pgrid.c4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pgrid.c3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width:560px) {
+
+  .pgrid.c5,
+  .pgrid.c4,
+  .pgrid.c3,
+  .pgrid.c2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* FAQ HORIZONTAL LAYOUT — full-width rows, Q on left, A on right */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.faq-list .card {
+  width: 100%;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 28px;
+  padding: 20px 24px;
+  text-align: left;
+}
+
+.faq-list .card .cname {
+  flex: 0 0 32%;
+  max-width: 340px;
+  min-width: 220px;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+  padding-top: 2px;
+  text-align: left;
+  white-space: normal;
+  color: var(--text);
+}
+
+.faq-list .card .cdesc {
+  flex: 1;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  text-align: left;
+  line-height: 1.7;
+  font-size: 0.98rem;
+  color: var(--text-soft);
+}
+
+.faq-list .card::after {
+  background: var(--bull);
+  width: 3px;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: auto;
+  opacity: 0.85;
+}
+
+.faq-list .card.bear::after {
+  background: var(--bear);
+}
+
+.faq-list .card.neu::after {
+  background: var(--neutral);
+}
+
+.faq-list .card.info::after {
+  background: var(--info);
+}
+
+@media (max-width:760px) {
+  .faq-list .card {
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 18px;
+  }
+
+  .faq-list .card .cname {
+    flex: 0 0 auto;
+    max-width: 100%;
+    min-width: 0;
+    font-size: 0.98rem;
+  }
+
+  .faq-list .card .cdesc {
+    font-size: 0.94rem;
+  }
+}
+
+/* GLOSSARY HORIZONTAL LAYOUT — alphabet range on left, terms flowing multi-column on right */
+.glossary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.glossary-list .card {
+  width: 100%;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 28px;
+  padding: 22px 26px;
+  text-align: left;
+}
+
+.glossary-list .card .cname {
+  flex: 0 0 140px;
+  max-width: 140px;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  padding-top: 2px;
+  text-align: left;
+  white-space: normal;
+  color: var(--bull);
+}
+
+.glossary-list .card .cdesc {
+  flex: 1;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  text-align: left;
+  line-height: 1.75;
+  font-size: 0.95rem;
+  color: var(--text-soft);
+  columns: 3;
+  column-gap: 32px;
+  column-rule: 1px solid var(--bd);
+}
+
+.glossary-list .card .cdesc .term {
+  break-inside: avoid;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.glossary-list .card .cdesc .term b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.glossary-list .card::after {
+  background: var(--bull);
+  width: 3px;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: auto;
+  opacity: 0.85;
+}
+
+@media (max-width:1000px) {
+  .glossary-list .card .cdesc {
+    columns: 2;
+  }
+}
+
+@media (max-width:760px) {
+  .glossary-list .card {
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 20px;
+  }
+
+  .glossary-list .card .cname {
+    flex: 0 0 auto;
+    max-width: 100%;
+    font-size: 1rem;
+  }
+
+  .glossary-list .card .cdesc {
+    columns: 1;
+  }
+}
+
+/* CARD */
+.card {
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  padding: 16px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.22s;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+}
+
+.card.bull::after {
+  background: linear-gradient(90deg, var(--bull), transparent);
+}
+
+.card.bear::after {
+  background: linear-gradient(90deg, var(--bear), transparent);
+}
+
+.card.neu::after {
+  background: linear-gradient(90deg, var(--neutral), transparent);
+}
+
+.card.info::after {
+  background: linear-gradient(90deg, var(--info), transparent);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: var(--card-hover-bd);
+}
+
+.card.bull:hover {
+  box-shadow: 0 8px 32px rgba(9, 168, 110, 0.12);
+}
+
+.card.bear:hover {
+  box-shadow: 0 8px 32px rgba(201, 31, 58, 0.12);
+}
+
+.cname {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.35;
+  width: 100%;
+}
+
+.badge {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.96rem;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+}
+
+.badge.bull {
+  background: rgba(9, 168, 110, 0.1);
+  color: var(--bull);
+  border: 1px solid rgba(9, 168, 110, 0.18);
+}
+
+.badge.bear {
+  background: rgba(201, 31, 58, 0.1);
+  color: var(--bear);
+  border: 1px solid rgba(201, 31, 58, 0.18);
+}
+
+.badge.neu {
+  background: rgba(212, 148, 26, 0.1);
+  color: var(--neutral);
+  border: 1px solid rgba(212, 148, 26, 0.18);
+}
+
+.badge.info {
+  background: rgba(77, 184, 255, 0.1);
+  color: var(--info);
+  border: 1px solid rgba(77, 184, 255, 0.18);
+}
+
+.cdesc {
+  font-size: 0.92rem;
+  color: var(--text-soft);
+  text-align: center;
+  line-height: 1.7;
+  font-weight: 400;
+  width: 100%;
+}
+
+.action {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.98rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 4px 11px;
+  border-radius: 3px;
+  margin-top: auto;
+}
+
+.action.ce {
+  background: rgba(9, 168, 110, 0.07);
+  color: var(--bull);
+  border: 1px solid rgba(9, 168, 110, 0.14);
+}
+
+.action.pe {
+  background: rgba(201, 31, 58, 0.07);
+  color: var(--bear);
+  border: 1px solid rgba(201, 31, 58, 0.14);
+}
+
+.action.wt {
+  background: rgba(212, 148, 26, 0.07);
+  color: var(--neutral);
+  border: 1px solid rgba(212, 148, 26, 0.14);
+}
+
+/* ANATOMY */
+.anat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.anat-card {
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  table-layout: auto;
+}
+
+td svg.mini {
+  width: 52px;
+  height: 20px;
+  vertical-align: middle;
+  margin-right: 12px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+@media (max-width:560px) {
+  td svg.mini {
+    width: 42px;
+    height: 17px;
+    margin-right: 8px;
+  }
+}
+
+th {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.98rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+  background: var(--s2);
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--bd);
+  text-transform: uppercase;
+  vertical-align: bottom;
+}
+
+td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--bd);
+  color: var(--text);
+  line-height: 1.5;
+  vertical-align: top;
+}
+
+tr:hover td {
+  background: var(--s2);
+}
+
+/* Data cells (.tc/.tw/.tp) — colored tint + mono for numeric data. Prose wraps naturally. */
+.tc,
+.tp,
+.tw {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* In .strat-table the last column is long-form prose — use readable body font, allow wrapping. */
+.strat-table td:last-child {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.5;
+}
+
+.strat-table td:last-child b {
+  font-weight: 700;
+}
+
+/* Wrap tables on narrow viewports so they scroll instead of clipping. */
+.strat-table {
+  display: table;
+  width: 100%;
+}
+
+.strat-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 20px;
+}
+
+.strat-wrap .strat-table {
+  margin-bottom: 0;
+  min-width: 720px;
+}
+
+/* Generic scroll wrapper for any wide table — use inside centered flex containers (e.g. .anat-card) */
+.table-scroll {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  align-self: stretch;
+  margin: 0;
+}
+
+.table-scroll>table {
+  margin: 0;
+}
+
+@media (max-width:720px) {
+  .table-scroll {
+    box-shadow: inset -14px 0 10px -12px var(--shadow-color, rgba(0, 0, 0, 0.35));
+    border-radius: 6px;
+  }
+}
+
+.tc {
+  color: var(--bull);
+  background: rgba(9, 168, 110, 0.1);
+  box-shadow: inset 2px 0 0 var(--bull);
+}
+
+.tp {
+  color: var(--bear);
+  background: rgba(201, 31, 58, 0.1);
+  box-shadow: inset 2px 0 0 var(--bear);
+}
+
+.tw {
+  color: var(--neutral);
+  background: rgba(212, 148, 26, 0.1);
+  box-shadow: inset 2px 0 0 var(--neutral);
+}
+
+tr:hover td.tc {
+  background: rgba(9, 168, 110, 0.16);
+}
+
+tr:hover td.tp {
+  background: rgba(201, 31, 58, 0.16);
+}
+
+tr:hover td.tw {
+  background: rgba(212, 148, 26, 0.16);
+}
+
+.rbox {
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-left: 3px solid var(--bull);
+  border-radius: 6px;
+  padding: 22px;
+  margin-top: 24px;
+}
+
+.rbox h3 {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.96rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--bull);
+  margin-bottom: 14px;
+}
+
+.rbox ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding-left: 0;
+  margin: 0;
+}
+
+.rbox li {
+  font-size: 0.98rem;
+  color: var(--text-soft);
+  line-height: 1.6;
+  position: relative;
+  padding-left: 22px;
+}
+
+.rbox li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 10px;
+  height: 10px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2309a86e' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><polyline points='9,6 15,12 9,18'/></svg>");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.rbox li b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* INFO BOX */
+.infobox {
+  background: rgba(77, 184, 255, 0.05);
+  border: 1px solid rgba(77, 184, 255, 0.15);
+  border-radius: 6px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  font-size: 0.96rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* ── WHEN TO TAKE THIS TRADE — actionable setup callout ──────────────
+   Reusable card that appears at the bottom of every concept that
+   describes a trade setup. Five fixed slots (Setup, Entry, Stop Loss,
+   Target, Skip if) so the trader sees the same shape everywhere and
+   can scan for the actionable bits without re-reading the whole
+   explanation. The green-tinted left border + bull color signal
+   "this is what you actually do" and contrasts with the muted
+   informational tone of the surrounding .infobox / paragraph text.
+*/
+.tradesetup {
+  background: rgba(9, 168, 110, 0.04);
+  border: 1px solid rgba(9, 168, 110, 0.18);
+  border-left: 4px solid var(--bull);
+  border-radius: 6px;
+  padding: 16px 18px 14px;
+  margin: 20px 0 24px;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.tradesetup-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--bull);
+  margin-bottom: 12px;
+}
+
+.tradesetup-title::before {
+  content: "▶";
+  font-size: 9px;
+  line-height: 1;
+}
+
+.tradesetup-grid {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 8px 14px;
+  align-items: start;
+}
+
+.tradesetup-grid dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-top: 2px;
+}
+
+.tradesetup-grid dd {
+  margin: 0;
+  color: var(--text);
+}
+
+.tradesetup-grid dd b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tradesetup-grid dd code {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.88em;
+  background: var(--s2);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--text-soft);
+}
+
+.tradesetup-skip dt {
+  color: var(--bear) !important;
+}
+
+[data-theme="light"] .tradesetup {
+  background: rgba(9, 168, 110, 0.05);
+  border-color: rgba(9, 168, 110, 0.22);
+}
+
+@media (max-width: 640px) {
+  .tradesetup {
+    padding: 14px 14px 12px;
+    font-size: 0.92rem;
+  }
+  .tradesetup-grid {
+    grid-template-columns: 80px 1fr;
+    gap: 6px 10px;
+  }
+}
+
+/* ── LIGHT-THEME OVERRIDES for hardcoded inline colors (SVGs + inline styles) ── */
+[data-theme="light"] svg [stroke="#ffffff"],
+[data-theme="light"] svg [stroke="#fff"] {
+  stroke: #0f172a;
+}
+
+[data-theme="light"] svg [fill="#ffffff"],
+[data-theme="light"] svg [fill="#fff"] {
+  fill: #0f172a;
+}
+
+/* Header logo is transparent-background — candles render directly on the page */
+[data-theme="light"] svg [stroke="rgba(255,255,255,0.3)"] {
+  stroke: rgba(15, 23, 42, 0.25);
+}
+
+[data-theme="light"] svg [stroke="rgba(255,255,255,0.2)"] {
+  stroke: rgba(15, 23, 42, 0.2);
+}
+
+[data-theme="light"] svg [stroke="rgba(255,255,255,0.15)"] {
+  stroke: rgba(15, 23, 42, 0.15);
+}
+
+[data-theme="light"] svg [fill="rgba(255,255,255,0.4)"] {
+  fill: rgba(15, 23, 42, 0.32);
+}
+
+[data-theme="light"] svg [fill="rgba(255,255,255,0.35)"] {
+  fill: rgba(15, 23, 42, 0.28);
+}
+
+[data-theme="light"] svg [fill="rgba(255,255,255,0.3)"] {
+  fill: rgba(15, 23, 42, 0.24);
+}
+
+[data-theme="light"] svg [fill="rgba(255,255,255,0.25)"] {
+  fill: rgba(15, 23, 42, 0.2);
+}
+
+[data-theme="light"] svg [fill="rgba(255,255,255,0.2)"] {
+  fill: rgba(15, 23, 42, 0.17);
+}
+
+[data-theme="light"] svg [fill="rgba(255,255,255,0.15)"] {
+  fill: rgba(15, 23, 42, 0.13);
+}
+
+[data-theme="light"] svg [fill="rgba(255,255,255,0.12)"] {
+  fill: rgba(15, 23, 42, 0.1);
+}
+
+[data-theme="light"] svg [fill="rgba(255,255,255,0.08)"] {
+  fill: rgba(15, 23, 42, 0.07);
+}
+
+[data-theme="light"] svg [fill="rgba(255,255,255,0.06)"] {
+  fill: rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] svg text[fill="#c0d4f0"] {
+  fill: #475569;
+}
+
+[data-theme="light"] svg text[fill="#b0c4e8"] {
+  fill: #475569;
+}
+
+[data-theme="light"] svg text[fill="#a0b8d8"] {
+  fill: #64748b;
+}
+
+[data-theme="light"] svg text[fill="#4a5a8a"] {
+  fill: #94a3b8;
+}
+
+/* Inline style="color:#..." overrides */
+[data-theme="light"] [style*="color:var(--text)"] {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] [style*="color:#FFF"] {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] [style*="color:var(--text-soft)"] {
+  color: #475569 !important;
+}
+
+[data-theme="light"] [style*="color:#b0c4e8"] {
+  color: #475569 !important;
+}
+
+[data-theme="light"] [style*="color:#a0b8d8"] {
+  color: #64748b !important;
+}
+
+[data-theme="light"] [style*="color:#b0c8e8"] {
+  color: #475569 !important;
+}
+
+/* Card / info backgrounds - slightly warmer in light */
+[data-theme="light"] .infobox {
+  background: rgba(37, 99, 235, 0.06);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+[data-theme="light"] .count-badge {
+  background: rgba(5, 150, 105, 0.08);
+  border-color: rgba(5, 150, 105, 0.22);
+}
+
+[data-theme="light"] .card {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .card:hover {
+  box-shadow: 0 6px 22px rgba(15, 23, 42, 0.09);
+}
+
+[data-theme="light"] body::before {
+  opacity: 0.7;
+}
+
+/* ══════════════════════════════════════════════════════
+MOBILE HARDENING  (phones ≤ 640px, tight phones ≤ 420px)
+══════════════════════════════════════════════════════ */
+
+/* Images, SVGs, videos never overflow their container */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Inline SVG charts inside cards keep intrinsic aspect */
+.card svg,
+.anat-card svg {
+  max-width: 100%;
+  display: block;
+}
+
+/* Prevent long monospace strings (tickers, numbers) from blowing out mobile */
+td,
+th,
+.cdesc,
+p,
+li {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Tables become horizontally scrollable on small screens */
+@media (max-width:720px) {
+  .wrap table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  .wrap table thead,
+  .wrap table tbody {
+    display: table;
+    width: 100%;
+  }
+
+  .wrap table th,
+  .wrap table td {
+    padding: 9px 11px;
+    font-size: 0.88rem;
+  }
+
+  /* Hint there's more to scroll */
+  .wrap table {
+    background-image: linear-gradient(to right, transparent 90%, var(--s2) 100%);
+    background-repeat: no-repeat;
+    background-attachment: local;
+  }
+
+  /* Tables already inside a scroll wrapper keep normal table layout — wrapper handles scrolling */
+  .wrap .table-scroll table,
+  .wrap .strat-wrap table {
+    display: table;
+    width: auto;
+    max-width: none;
+    background-image: none;
+  }
+
+  .wrap .table-scroll thead,
+  .wrap .table-scroll tbody,
+  .wrap .strat-wrap thead,
+  .wrap .strat-wrap tbody {
+    display: table-row-group;
+    width: auto;
+  }
+}
+
+/* Force inline 2-col / 3-col grids into single column on narrow phones */
+@media (max-width:560px) {
+
+  [style*="grid-template-columns:1fr 1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width:480px) {
+
+  [style*="grid-template-columns:1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Tighten headings, paddings on phones */
+@media (max-width:640px) {
+  .wrap {
+    padding: 22px 14px 60px;
+  }
+
+  .shead h2 {
+    font-size: 1.55rem;
+    line-height: 1.2;
+  }
+
+  .shead p {
+    font-size: 0.95rem;
+  }
+
+  /* Mobile-breakpoint override of .count-badge intentionally left empty:
+     badge is hidden globally via .count-badge{display:none;} above. */
+
+  .catdiv {
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    margin: 22px 0 12px;
+  }
+
+  header {
+    padding: 28px 14px 22px;
+  }
+
+  header h1,
+  header h2 {
+    font-size: clamp(1.3rem, 5.5vw, 1.75rem);
+  }
+
+  .title-row .logo {
+    width: clamp(30px, 8vw, 42px);
+  }
+}
+
+/* Even tighter at very narrow widths */
+@media (max-width:420px) {
+  .wrap {
+    padding: 18px 12px 50px;
+  }
+
+  .shead h2 {
+    font-size: 1.35rem;
+  }
+
+  .tab {
+    font-size: 0.72rem;
+    padding: 9px 10px;
+  }
+
+  .pgrid {
+    gap: 10px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+}
+
+/* Fix submenu dropdown edge-clipping on phones: anchor to left of group */
+@media (max-width:640px) {
+  .ngroup {
+    position: static;
+  }
+
+  .sub {
+    left: 12px;
+    right: 12px;
+    transform: none;
+    min-width: auto;
+    width: auto;
+  }
+}
+
+/* Theme toggle: shrink + move down on phones so it doesn't cover nav */
+@media (max-width:640px) {
+  .theme-toggle {
+    width: 34px;
+    height: 34px;
+    top: 8px;
+    right: 10px;
+  }
+
+  .theme-toggle svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Anatomy / rbox padding trim */
+@media (max-width:520px) {
+  .anat-card {
+    padding: 16px;
+  }
+
+  .rbox {
+    padding: 16px;
+  }
+
+  .infobox {
+    padding: 13px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Min card grid track slightly smaller on narrowest screens */
+@media (max-width:380px) {
+  .pgrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pgrid.md,
+  .pgrid.lg {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+FOOTER
+══════════════════════════════════════════════════════ */
+footer {
+  background: var(--s1);
+  border-top: 1px solid var(--bd);
+  margin-top: 60px;
+  padding: 48px 20px 28px;
+  position: relative;
+  z-index: 1;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.foot-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.foot-top {
+  display: grid;
+  grid-template-columns: 1fr 1.9fr;
+  gap: 44px;
+  padding-bottom: 34px;
+  border-bottom: 1px solid var(--bd);
+}
+
+.foot-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.foot-brand-row svg {
+  width: 36px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.foot-brand-row h3 {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.foot-tag {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+  max-width: 320px;
+}
+
+.foot-disclaimer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.foot-alert {
+  padding: 14px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--bd);
+  background: var(--s2);
+}
+
+.foot-alert strong {
+  display: block;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.foot-alert p {
+  font-size: 0.87rem;
+  color: var(--text-soft);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.foot-alert.risk {
+  border-left: 3px solid var(--bear);
+}
+
+.foot-alert.risk strong {
+  color: var(--bear);
+}
+
+.foot-alert.edu {
+  border-left: 3px solid var(--info);
+}
+
+.foot-alert.edu strong {
+  color: var(--info);
+}
+
+.foot-alert.sebi {
+  border-left: 3px solid var(--neutral);
+}
+
+.foot-alert.sebi strong {
+  color: var(--neutral);
+}
+
+.foot-links {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--bd);
+}
+
+.foot-linkcol h4 {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.foot-linkcol ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+}
+
+.foot-linkcol li {
+  font-size: 0.88rem;
+  color: var(--text-soft);
+}
+
+.foot-linkcol a {
+  color: var(--text-soft);
+  text-decoration: none;
+  border-bottom: 1px dotted transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.foot-linkcol a:hover {
+  color: var(--bull);
+  border-bottom-color: var(--bull);
+}
+
+/* ── Maintenance row: in-app "clear cache / reset data" controls ── */
+.foot-maint {
+  padding-top: 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.foot-maint-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.foot-cache-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-soft);
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.foot-cache-btn svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+/* Primary maintenance action follows the app's brand-green accent
+   (matches the rest of the UI; the old blue --info hover was off-theme). */
+.foot-cache-btn:hover {
+  background: var(--bull-tint);
+  border-color: var(--bull);
+  color: var(--bull);
+}
+
+.foot-cache-btn:active {
+  transform: translateY(1px);
+}
+
+.foot-cache-btn:focus-visible {
+  outline: 2px solid var(--bull);
+  outline-offset: 2px;
+}
+
+/* Destructive action stays red — semantics over accent. */
+.foot-cache-btn--danger:hover {
+  background: var(--bear-tint);
+  border-color: var(--bear);
+  color: var(--bear);
+}
+
+.foot-cache-btn--danger:focus-visible {
+  outline-color: var(--bear);
+}
+
+.foot-cache-status {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.foot-bottom {
+  padding-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.foot-meta {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.06em;
+}
+
+.foot-copy {
+  max-width: 60%;
+  line-height: 1.55;
+}
+
+@media (max-width:820px) {
+  footer {
+    padding: 40px 16px 26px;
+    margin-top: 40px;
+  }
+
+  .foot-top {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    padding-bottom: 26px;
+  }
+
+  .foot-links {
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    padding: 24px 0;
+  }
+}
+
+@media (max-width:480px) {
+  .foot-links {
+    grid-template-columns: 1fr;
+  }
+
+  .foot-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .foot-copy {
+    max-width: 100%;
+  }
+}
+

@@ -1,0 +1,1153 @@
+{
+ "generatedAt": "2026-06-01T19:58:23.146Z",
+ "floorTurnover": 20000000,
+ "keepPerSector": 10,
+ "minBars": 300,
+ "medianWindow": 250,
+ "count": 127,
+ "stocks": [
+  {
+   "isin": "INE073K01018",
+   "sym": "SONACOMS",
+   "sector": "auto",
+   "medTurnover": 925511469,
+   "bars": 1223,
+   "oldest": "2021-06-24",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE885A01032",
+   "sym": "ARE&M",
+   "sector": "auto",
+   "medTurnover": 351450628,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE042A01014",
+   "sym": "ESCORTS",
+   "sector": "auto",
+   "medTurnover": 350526148,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE872H01027",
+   "sym": "LUMAXTECH",
+   "sector": "auto",
+   "medTurnover": 260063845,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE399G01023",
+   "sym": "RKFORGE",
+   "sector": "auto",
+   "medTurnover": 207361923,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE731H01025",
+   "sym": "ACE",
+   "sector": "auto",
+   "medTurnover": 182630579,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE665L01035",
+   "sym": "VARROC",
+   "sector": "auto",
+   "medTurnover": 77761711,
+   "bars": 1954,
+   "oldest": "2018-07-06",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE287B01021",
+   "sym": "SUBROS",
+   "sector": "auto",
+   "medTurnover": 56584711,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE387A01021",
+   "sym": "SUNDRMFAST",
+   "sector": "auto",
+   "medTurnover": 54604966,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE0R6Z01013",
+   "sym": "SRM",
+   "sector": "auto",
+   "medTurnover": 51925892,
+   "bars": 534,
+   "oldest": "2024-04-03",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE040A01034",
+   "sym": "HDFCBANK",
+   "sector": "banking",
+   "medTurnover": 20062358166,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE090A01021",
+   "sym": "ICICIBANK",
+   "sector": "banking",
+   "medTurnover": 15887814315,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE062A01020",
+   "sym": "SBIN",
+   "sector": "banking",
+   "medTurnover": 10564934902,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE238A01034",
+   "sym": "AXISBANK",
+   "sector": "banking",
+   "medTurnover": 7317138271,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE095A01012",
+   "sym": "INDUSINDBK",
+   "sector": "banking",
+   "medTurnover": 2585526429,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE949L01017",
+   "sym": "AUBANK",
+   "sector": "banking",
+   "medTurnover": 1789656348,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE562A01011",
+   "sym": "INDIANB",
+   "sector": "banking",
+   "medTurnover": 1442782947,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE668A01016",
+   "sym": "TMB",
+   "sector": "banking",
+   "medTurnover": 65109698,
+   "bars": 918,
+   "oldest": "2022-09-15",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE00R701025",
+   "sym": "DALBHARAT",
+   "sector": "cement-construction",
+   "medTurnover": 521633106,
+   "bars": 1812,
+   "oldest": "2019-02-05",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE217B01036",
+   "sym": "KAJARIACER",
+   "sector": "cement-construction",
+   "medTurnover": 249222042,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE220B01022",
+   "sym": "KPIL",
+   "sector": "cement-construction",
+   "medTurnover": 167989870,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE758C01029",
+   "sym": "AHLUCONT",
+   "sector": "cement-construction",
+   "medTurnover": 48591204,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE841L01016",
+   "sym": "DEEDEV",
+   "sector": "cement-construction",
+   "medTurnover": 37431785,
+   "bars": 478,
+   "oldest": "2024-06-26",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE450D01021",
+   "sym": "PITTIENG",
+   "sector": "cement-construction",
+   "medTurnover": 33165419,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE583C01021",
+   "sym": "DECCANCE",
+   "sector": "cement-construction",
+   "medTurnover": 25853842,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE019C01026",
+   "sym": "HSCL",
+   "sector": "chemicals",
+   "medTurnover": 541699959,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE221J01015",
+   "sym": "SHARDACROP",
+   "sector": "chemicals",
+   "medTurnover": 229744630,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE258G01013",
+   "sym": "SUMICHEM",
+   "sector": "chemicals",
+   "medTurnover": 122564813,
+   "bars": 1574,
+   "oldest": "2020-01-27",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE0BWX01014",
+   "sym": "AETHER",
+   "sector": "chemicals",
+   "medTurnover": 118695307,
+   "bars": 989,
+   "oldest": "2022-06-03",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE128X01021",
+   "sym": "ACI",
+   "sector": "chemicals",
+   "medTurnover": 83968747,
+   "bars": 874,
+   "oldest": "2022-11-21",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE506W01012",
+   "sym": "KRISHANA",
+   "sector": "chemicals",
+   "medTurnover": 75512170,
+   "bars": 1745,
+   "oldest": "2018-06-04",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE136S01016",
+   "sym": "NEOGEN",
+   "sector": "chemicals",
+   "medTurnover": 60586522,
+   "bars": 1752,
+   "oldest": "2019-05-08",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE270I01022",
+   "sym": "VISHNU",
+   "sector": "chemicals",
+   "medTurnover": 44708484,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE982J01020",
+   "sym": "PAYTM",
+   "sector": "financial-services",
+   "medTurnover": 3343318292,
+   "bars": 1123,
+   "oldest": "2021-11-18",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE417T01026",
+   "sym": "POLICYBZR",
+   "sector": "financial-services",
+   "medTurnover": 2212322103,
+   "bars": 1126,
+   "oldest": "2021-11-15",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE918I01026",
+   "sym": "BAJAJFINSV",
+   "sector": "financial-services",
+   "medTurnover": 1991986061,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE018E01016",
+   "sym": "SBICARD",
+   "sector": "financial-services",
+   "medTurnover": 795314721,
+   "bars": 1540,
+   "oldest": "2020-03-16",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE115A01026",
+   "sym": "LICHSGFIN",
+   "sector": "financial-services",
+   "medTurnover": 701863540,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE298J01013",
+   "sym": "NAM-INDIA",
+   "sector": "financial-services",
+   "medTurnover": 657707793,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE726G01019",
+   "sym": "ICICIPRULI",
+   "sector": "financial-services",
+   "medTurnover": 572925373,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE672A01026",
+   "sym": "TATAINVEST",
+   "sector": "financial-services",
+   "medTurnover": 300495784,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE404A01024",
+   "sym": "ABSLAMC",
+   "sector": "financial-services",
+   "medTurnover": 234108339,
+   "bars": 1149,
+   "oldest": "2021-10-11",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE200M01039",
+   "sym": "VBL",
+   "sector": "fmcg-consumer",
+   "medTurnover": 2439452097,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE239A01024",
+   "sym": "NESTLEIND",
+   "sector": "fmcg-consumer",
+   "medTurnover": 1351386878,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE192A01025",
+   "sym": "TATACONSUM",
+   "sector": "fmcg-consumer",
+   "medTurnover": 1247125713,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE871C01038",
+   "sym": "AVANTIFEED",
+   "sector": "fmcg-consumer",
+   "medTurnover": 421409704,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE686F01025",
+   "sym": "UBL",
+   "sector": "fmcg-consumer",
+   "medTurnover": 199820386,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE421D01022",
+   "sym": "CCL",
+   "sector": "fmcg-consumer",
+   "medTurnover": 188323156,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE427F01016",
+   "sym": "CHALET",
+   "sector": "fmcg-consumer",
+   "medTurnover": 102395746,
+   "bars": 1810,
+   "oldest": "2019-02-07",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE321T01012",
+   "sym": "DOMS",
+   "sector": "fmcg-consumer",
+   "medTurnover": 100698024,
+   "bars": 605,
+   "oldest": "2023-12-20",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE665J01013",
+   "sym": "VMART",
+   "sector": "fmcg-consumer",
+   "medTurnover": 80724159,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE225D01027",
+   "sym": "SYMPHONY",
+   "sector": "fmcg-consumer",
+   "medTurnover": 63255797,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE382Z01011",
+   "sym": "GRSE",
+   "sector": "industrial-goods",
+   "medTurnover": 2996429607,
+   "bars": 1891,
+   "oldest": "2018-10-10",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE318A01026",
+   "sym": "PIDILITIND",
+   "sector": "industrial-goods",
+   "medTurnover": 814419083,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE386C01029",
+   "sym": "ASTRAMICRO",
+   "sector": "industrial-goods",
+   "medTurnover": 318340162,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE0Q3J01015",
+   "sym": "KRN",
+   "sector": "industrial-goods",
+   "medTurnover": 268369008,
+   "bars": 410,
+   "oldest": "2024-10-03",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE288B01029",
+   "sym": "DEEPAKNTR",
+   "sector": "industrial-goods",
+   "medTurnover": 210430262,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE999A01023",
+   "sym": "KSB",
+   "sector": "industrial-goods",
+   "medTurnover": 58414225,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE0U3I01011",
+   "sym": "UNIMECH",
+   "sector": "industrial-goods",
+   "medTurnover": 45986585,
+   "bars": 350,
+   "oldest": "2024-12-31",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE893J01029",
+   "sym": "MOLDTKPAC",
+   "sector": "industrial-goods",
+   "medTurnover": 36383962,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE860A01027",
+   "sym": "HCLTECH",
+   "sector": "it",
+   "medTurnover": 3851133628,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE142M01025",
+   "sym": "TATATECH",
+   "sector": "it",
+   "medTurnover": 505901260,
+   "bars": 619,
+   "oldest": "2023-11-30",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE093A01041",
+   "sym": "HEXT",
+   "sector": "it",
+   "medTurnover": 369702123,
+   "bars": 313,
+   "oldest": "2025-02-19",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE00WC01027",
+   "sym": "AFFLE",
+   "sector": "it",
+   "medTurnover": 360498568,
+   "bars": 1687,
+   "oldest": "2019-08-08",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE0LCL01028",
+   "sym": "AVALON",
+   "sector": "it",
+   "medTurnover": 167696100,
+   "bars": 774,
+   "oldest": "2023-04-18",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE759A01021",
+   "sym": "MASTEK",
+   "sector": "it",
+   "medTurnover": 153898164,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE111B01023",
+   "sym": "63MOONS",
+   "sector": "it",
+   "medTurnover": 103414555,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE332H01014",
+   "sym": "INDOTECH",
+   "sector": "it",
+   "medTurnover": 30450079,
+   "bars": 1960,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE191H01014",
+   "sym": "PVRINOX",
+   "sector": "media",
+   "medTurnover": 321994382,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE424H01027",
+   "sym": "SUNTV",
+   "sector": "media",
+   "medTurnover": 117263036,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE716B01029",
+   "sym": "TIPSMUSIC",
+   "sector": "media",
+   "medTurnover": 104532069,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE197D01010",
+   "sym": "JINDALPOLY",
+   "sector": "media",
+   "medTurnover": 20019799,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE531E01026",
+   "sym": "HINDCOPPER",
+   "sector": "metals",
+   "medTurnover": 3384646944,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE131A01031",
+   "sym": "GMDCLTD",
+   "sector": "metals",
+   "medTurnover": 1802015282,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE019A01038",
+   "sym": "JSWSTEEL",
+   "sector": "metals",
+   "medTurnover": 1736404069,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE281B01032",
+   "sym": "LLOYDSME",
+   "sector": "metals",
+   "medTurnover": 453338623,
+   "bars": 712,
+   "oldest": "2023-07-17",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE024L01027",
+   "sym": "GRAVITA",
+   "sector": "metals",
+   "medTurnover": 343921254,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE637C01025",
+   "sym": "POKARNA",
+   "sector": "metals",
+   "medTurnover": 62284229,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE0JA001018",
+   "sym": "VENUSPIPES",
+   "sector": "metals",
+   "medTurnover": 60961507,
+   "bars": 997,
+   "oldest": "2022-05-24",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE703B01027",
+   "sym": "RATNAMANI",
+   "sector": "metals",
+   "medTurnover": 47450112,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE907A01026",
+   "sym": "KSL",
+   "sector": "metals",
+   "medTurnover": 30729201,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE002A01018",
+   "sym": "RELIANCE",
+   "sector": "oil-gas",
+   "medTurnover": 15686202679,
+   "bars": 1980,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE364U01010",
+   "sym": "ADANIGREEN",
+   "sector": "oil-gas",
+   "medTurnover": 2111738581,
+   "bars": 1968,
+   "oldest": "2018-06-18",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE0BS701011",
+   "sym": "PREMIERENE",
+   "sector": "oil-gas",
+   "medTurnover": 1098582528,
+   "bars": 431,
+   "oldest": "2024-09-03",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE178A01016",
+   "sym": "CHENNPETRO",
+   "sector": "oil-gas",
+   "medTurnover": 1060969571,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE002S01010",
+   "sym": "MGL",
+   "sector": "oil-gas",
+   "medTurnover": 316968973,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE146L01010",
+   "sym": "KIRLOSENG",
+   "sector": "oil-gas",
+   "medTurnover": 307133630,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE152M01016",
+   "sym": "TRITURBINE",
+   "sector": "oil-gas",
+   "medTurnover": 274135595,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE208C01025",
+   "sym": "AEGISLOG",
+   "sector": "oil-gas",
+   "medTurnover": 245241530,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE635Q01029",
+   "sym": "GULFOILLUB",
+   "sector": "oil-gas",
+   "medTurnover": 56362684,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE880Y01017",
+   "sym": "SOLEX",
+   "sector": "oil-gas",
+   "medTurnover": 35545204,
+   "bars": 1332,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE939A01011",
+   "sym": "STAR",
+   "sector": "pharma-healthcare",
+   "medTurnover": 255739576,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE205C01021",
+   "sym": "POLYMED",
+   "sector": "pharma-healthcare",
+   "medTurnover": 202813684,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE0RB801010",
+   "sym": "SENORES",
+   "sector": "pharma-healthcare",
+   "medTurnover": 162645710,
+   "bars": 351,
+   "oldest": "2024-12-30",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE700A01033",
+   "sym": "JUBLPHARMA",
+   "sector": "pharma-healthcare",
+   "medTurnover": 148101168,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE594H01019",
+   "sym": "THYROCARE",
+   "sector": "pharma-healthcare",
+   "medTurnover": 127829895,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE075I01017",
+   "sym": "HCG",
+   "sector": "pharma-healthcare",
+   "medTurnover": 99686024,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE09XN01023",
+   "sym": "AKUMS",
+   "sector": "pharma-healthcare",
+   "medTurnover": 72916765,
+   "bars": 450,
+   "oldest": "2024-08-06",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE781S01027",
+   "sym": "VENTIVE",
+   "sector": "pharma-healthcare",
+   "medTurnover": 51305230,
+   "bars": 351,
+   "oldest": "2024-12-30",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE08LI01020",
+   "sym": "KRSNAA",
+   "sector": "pharma-healthcare",
+   "medTurnover": 41131074,
+   "bars": 1187,
+   "oldest": "2021-08-16",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE067A01029",
+   "sym": "CGPOWER",
+   "sector": "power",
+   "medTurnover": 1714384767,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE931S01010",
+   "sym": "ADANIENSOL",
+   "sector": "power",
+   "medTurnover": 1452252598,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE121E01018",
+   "sym": "JSWENERGY",
+   "sector": "power",
+   "medTurnover": 1244983624,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE176B01034",
+   "sym": "HAVELLS",
+   "sector": "power",
+   "medTurnover": 1069160081,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE839M01018",
+   "sym": "SCHNEIDER",
+   "sector": "power",
+   "medTurnover": 130218340,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE624Z01016",
+   "sym": "SOLARA",
+   "sector": "power",
+   "medTurnover": 45734614,
+   "bars": 1961,
+   "oldest": "2018-06-27",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE279A01012",
+   "sym": "UNIVCABLES",
+   "sector": "power",
+   "medTurnover": 42729902,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE0UIZ01018",
+   "sym": "BLACKBUCK",
+   "sector": "services",
+   "medTurnover": 409698489,
+   "bars": 376,
+   "oldest": "2024-11-22",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE284S01014",
+   "sym": "SJS",
+   "sector": "services",
+   "medTurnover": 170918294,
+   "bars": 1126,
+   "oldest": "2021-11-15",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE00IN01015",
+   "sym": "STOVEKRAFT",
+   "sector": "services",
+   "medTurnover": 52216562,
+   "bars": 1316,
+   "oldest": "2021-02-05",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE985S01024",
+   "sym": "TEAMLEASE",
+   "sector": "services",
+   "medTurnover": 33750245,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE397D01024",
+   "sym": "BHARTIARTL",
+   "sector": "telecom-infra",
+   "medTurnover": 11118391553,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE484J01027",
+   "sym": "GODREJPROP",
+   "sector": "telecom-infra",
+   "medTurnover": 1437104321,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE242C01024",
+   "sym": "ANANTRAJ",
+   "sector": "telecom-infra",
+   "medTurnover": 1059199400,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE093I01010",
+   "sym": "OBEROIRLTY",
+   "sector": "telecom-infra",
+   "medTurnover": 756517655,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE615H01020",
+   "sym": "TITAGARH",
+   "sector": "telecom-infra",
+   "medTurnover": 685464592,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE335Y01020",
+   "sym": "IRCTC",
+   "sector": "telecom-infra",
+   "medTurnover": 629942189,
+   "bars": 1646,
+   "oldest": "2019-10-14",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE017A01032",
+   "sym": "GESHIP",
+   "sector": "telecom-infra",
+   "medTurnover": 414115598,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE343G01021",
+   "sym": "BHARTIHEXA",
+   "sector": "telecom-infra",
+   "medTurnover": 267183356,
+   "bars": 528,
+   "oldest": "2024-04-12",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE055A01016",
+   "sym": "ABREL",
+   "sector": "telecom-infra",
+   "medTurnover": 226598672,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE671H01015",
+   "sym": "SOBHA",
+   "sector": "telecom-infra",
+   "medTurnover": 195034060,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE887G01027",
+   "sym": "GOKEX",
+   "sector": "textiles",
+   "medTurnover": 267214662,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE930H01031",
+   "sym": "KPRMILL",
+   "sector": "textiles",
+   "medTurnover": 264395003,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE02ID01020",
+   "sym": "RAYMONDLSL",
+   "sector": "textiles",
+   "medTurnover": 116951434,
+   "bars": 429,
+   "oldest": "2024-09-05",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE825A01020",
+   "sym": "VTL",
+   "sector": "textiles",
+   "medTurnover": 97081845,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE940H01022",
+   "sym": "PGIL",
+   "sector": "textiles",
+   "medTurnover": 93992223,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  },
+  {
+   "isin": "INE076B01028",
+   "sym": "SIYSIL",
+   "sector": "textiles",
+   "medTurnover": 39694420,
+   "bars": 1979,
+   "oldest": "2018-06-01",
+   "newest": "2026-06-01"
+  }
+ ]
+}

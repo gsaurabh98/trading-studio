@@ -6,41 +6,45 @@
       <div class="faq-list">
 
         <div class="card bull">
-          <div class="cname">Q1 · Why did my CE lose money even though Nifty went UP?</div>
+          <div class="cname">Q1 · Why did my Call Option lose money even though Nifty went UP?</div>
           <div class="cdesc" style="text-align:left">
             Three possible reasons:<br>
-            • <b>Theta decay</b> — the spot move wasn't enough to offset time decay, especially after 1 PM on expiry
-            day.<br>
-            • <b>IV crush</b> — India VIX fell after an anticipated event. Your option lost vega value faster than it
-            gained delta value.<br>
-            • <b>OTM entry</b> — if your CE was far out-of-the-money, delta was 0.1–0.2. A 30-point Nifty move only
-            moved your premium ₹3–6 while theta ate ₹10.<br><br>
-            <b style="color:var(--bull)">Fix:</b> Buy ATM / slightly ITM strikes. Exit by 1:30 PM on expiry. Avoid
-            buying when VIX is near a multi-day high.
+            • <b>Theta decay</b> &mdash; the spot price move wasn't enough to offset the time decay,
+            especially after 1 PM on expiry day.<br>
+            • <b>Implied Volatility crush</b> &mdash; the India Volatility Index fell after an
+            anticipated event. Your option lost Vega value faster than it gained Delta value.<br>
+            • <b>Out Of The Money entry</b> &mdash; if your Call Option was far Out Of The Money, Delta
+            was just 0.1 to 0.2. A 30-point Nifty move only moved your premium &#8377;3 to &#8377;6,
+            while Theta ate &#8377;10.<br><br>
+            <b style="color:var(--bull)">Fix:</b> Buy At The Money or slightly In The Money strikes.
+            Exit by 1:30 PM on expiry. Avoid buying when the India Volatility Index is near a
+            multi-day high.
           </div>
         </div>
 
         <div class="card neu">
-          <div class="cname">Q2 · Why does price gravitate to Max Pain on expiry?</div>
+          <div class="cname">Q2 · Why does price gravitate towards the Max Pain level on expiry?</div>
           <div class="cdesc" style="text-align:left">
-            Market makers (institutional option sellers) have short gamma near the most-written strikes. As expiry
-            approaches, they dynamically hedge by buying/selling Nifty futures — and the net effect pushes spot toward
-            the strike where their loss is minimised (= Max Pain).<br><br>
-            <b style="color:var(--text)">It's not a conspiracy</b> — it's the mechanical result of delta hedging.
-            Strongest effect after 1 PM on expiry day.
+            Market makers (the institutional option sellers) have short Gamma near the most-written
+            strikes. As expiry approaches, they dynamically hedge by buying or selling Nifty futures
+            &mdash; and the net effect of all that hedging pushes the spot price towards the strike
+            where their loss is minimised (this is called the Max Pain level).<br><br>
+            <b style="color:var(--text)">It is NOT a conspiracy</b> &mdash; it is the mechanical
+            result of Delta hedging. The strongest effect is seen after 1 PM on expiry day.
           </div>
         </div>
 
         <div class="card bear">
-          <div class="cname">Q3 · Why does theta kill me on Tuesday afternoon?</div>
+          <div class="cname">Q3 · Why does Theta kill me on Tuesday afternoon?</div>
           <div class="cdesc" style="text-align:left">
-            Nifty weekly expiry = Tuesday 3:30 PM. ATM theta decay is <b>non-linear</b> — roughly:<br>
-            • Mon: ₹15–20/hour<br>
-            • Tue morning: ₹25–35/hour<br>
-            • Tue 12–3 PM: ₹40–60/hour<br>
-            • Tue 3–3:30 PM: near-vertical collapse<br><br>
-            <b style="color:var(--bear)">Rule:</b> Don't BUY ATM Nifty options after 1 PM on Tuesday. Either exit or
-            switch to short strangles/iron condors if experienced.
+            The Nifty weekly expiry is Tuesday at 3:30 PM. The Theta decay on At The Money options is
+            <b>non-linear</b> &mdash; roughly:<br>
+            • Monday: &#8377;15 to &#8377;20 per hour.<br>
+            • Tuesday morning: &#8377;25 to &#8377;35 per hour.<br>
+            • Tuesday 12 PM to 3 PM: &#8377;40 to &#8377;60 per hour.<br>
+            • Tuesday 3 PM to 3:30 PM: a near-vertical collapse.<br><br>
+            <b style="color:var(--bear)">Rule:</b> Do NOT buy At The Money Nifty options after 1 PM on
+            Tuesday. Either exit, or switch to short strangles or iron condors if you are experienced.
           </div>
         </div>
 
@@ -61,111 +65,130 @@
         <div class="card neu">
           <div class="cname">Q5 · What capital do I need to start trading options?</div>
           <div class="cdesc" style="text-align:left">
-            Post-SEBI 2024–26 lot revision (Nifty 65, BankNifty 30, Sensex 20):<br>
-            • <b>Minimum realistic:</b> ₹1,00,000 — 1 lot Nifty ATM, 1–2 trades/day<br>
-            • <b>Comfortable:</b> ₹3,00,000 — 1–2 lots, scaled position sizing<br>
-            • <b>Ideal:</b> ₹5,00,000+ — full diversification across Nifty + Sensex<br><br>
-            Below ₹1 lakh, even one losing trade can breach the 2% risk rule. <b>Paper trade until you have ₹1 lakh
-              dedicated risk capital.</b>
+            After the Securities and Exchange Board of India 2024 to 2026 lot revision (Nifty lot is
+            65, Bank Nifty lot is 30, Sensex lot is 20):<br>
+            • <b>Minimum realistic:</b> &#8377;1,00,000 &mdash; 1 lot of Nifty At The Money, 1 to 2
+            trades a day.<br>
+            • <b>Comfortable:</b> &#8377;3,00,000 &mdash; 1 to 2 lots, with scaled position sizing.<br>
+            • <b>Ideal:</b> &#8377;5,00,000 and above &mdash; full diversification across Nifty and
+            Sensex.<br><br>
+            Below &#8377;1 lakh, even one losing trade can breach the 2 percent risk rule. <b>Paper
+            trade until you have &#8377;1 lakh of dedicated risk capital.</b>
           </div>
         </div>
 
         <div class="card bear">
-          <div class="cname">Q6 · Is trading on expiry day (0 DTE) worth it?</div>
+          <div class="cname">Q6 · Is trading on expiry day (Zero Days To Expiry) worth it?</div>
           <div class="cdesc" style="text-align:left">
-            <b>0 DTE = gambling disguised as trading for most retail.</b> Premiums are tiny, theta is brutal, one small
-            wrong move = 100% loss.<br><br>
-            <b style="color:var(--text)">Only consider if:</b><br>
-            • You trade in the first 30 min (9:15–9:45) when gamma still works for you<br>
-            • Strict SL ≤ 30% of premium<br>
-            • Max 2 attempts then stop<br><br>
-            <b style="color:var(--bear)">For beginners: skip 0 DTE entirely.</b>
+            <b>Trading at Zero Days To Expiry is gambling disguised as trading for most retail
+            traders.</b> Premiums are tiny, Theta is brutal, and one small wrong move equals a 100
+            percent loss.<br><br>
+            <b style="color:var(--text)">Only consider it if:</b><br>
+            • You trade in the first 30 minutes (9:15 AM to 9:45 AM IST), when Gamma still works for
+            you.<br>
+            • You set a strict stop loss of 30 percent of the premium or less.<br>
+            • Maximum 2 attempts, then stop trading.<br><br>
+            <b style="color:var(--bear)">For beginners: skip Zero Days To Expiry trading entirely.</b>
           </div>
         </div>
 
         <div class="card bull">
-          <div class="cname">Q7 · ATM, ITM, or OTM — which should I buy?</div>
+          <div class="cname">Q7 · At The Money, In The Money, or Out Of The Money &mdash; which should I buy?</div>
           <div class="cdesc" style="text-align:left">
-            <b style="color:var(--bull)">ATM (At-The-Money):</b> Best balance of delta + theta. <b>Default choice for
-              90% of intraday option buying.</b><br>
-            <b style="color:var(--neutral)">ITM (In-The-Money):</b> Higher delta (~0.6–0.8), less theta but 2–3× more
-            capital per lot. Use for high-conviction trades with wider SL.<br>
-            <b style="color:var(--bear)">OTM (Out-of-The-Money):</b> Cheapest, but you need a BIG move to profit. Low
-            probability trade. Avoid except in specific breakout setups.
+            <b style="color:var(--bull)">At The Money:</b> The best balance of Delta + Theta.
+            <b>Default choice for 90 percent of intraday option buying.</b><br>
+            <b style="color:var(--neutral)">In The Money:</b> Higher Delta (around 0.6 to 0.8), less
+            Theta, but 2 to 3 times more capital required per lot. Use for high-conviction trades with
+            a wider stop loss.<br>
+            <b style="color:var(--bear)">Out Of The Money:</b> Cheapest, but you need a BIG move to
+            profit. A low-probability trade. Avoid these except in specific breakout setups.
           </div>
         </div>
 
         <div class="card neu">
-          <div class="cname">Q8 · When should I book profit / exit?</div>
+          <div class="cname">Q8 · When should I book profit / exit a winning trade?</div>
           <div class="cdesc" style="text-align:left">
             Use a <b>scale-out approach:</b><br>
-            • <b>T1 (1:1 R:R):</b> Book 50%. Move SL to entry (risk-free trade).<br>
-            • <b>T2 (1:2 R:R):</b> Book 30%. Trail SL below recent swing low.<br>
-            • <b>T3 (runner):</b> Let 20% ride with trailing SL.<br><br>
-            This gives you lower avg drawdown + the psychological relief of banking profit while still capturing big
-            winners.
+            • <b>Target 1 (1 to 1 risk-to-reward):</b> Book 50 percent. Move stop loss to your entry
+            (this makes the rest of the trade risk-free).<br>
+            • <b>Target 2 (1 to 2 risk-to-reward):</b> Book another 30 percent. Trail the stop loss
+            below the most recent swing low.<br>
+            • <b>Target 3 (the runner):</b> Let the remaining 20 percent ride with a trailing stop
+            loss.<br><br>
+            This gives you a lower average drawdown plus the psychological relief of banking some
+            profit, while still capturing the big winners.
           </div>
         </div>
 
         <div class="card bear">
-          <div class="cname">Q9 · Why did BankNifty weekly options get discontinued?</div>
+          <div class="cname">Q9 · Why did Bank Nifty weekly options get discontinued?</div>
           <div class="cdesc" style="text-align:left">
-            In <b>Nov 2024</b>, SEBI reduced each exchange to ONE weekly option to curb the option-buyer retail wipeout
-            (regulators estimated 91% of F&amp;O traders were net losers). Consequence:<br>
-            • NSE kept <b>Nifty weekly</b> (moved to Tuesday, Sep 2025)<br>
-            • NSE dropped <b>BankNifty, FinNifty, MidCpNifty</b> weeklies — monthly only<br>
-            • BSE kept <b>Sensex weekly</b> (moved to Thursday, Sep 2025)<br><br>
-            For retail, this means BankNifty is now a lot less useful for weekly theta plays.
+            In <b>November 2024</b>, the Securities and Exchange Board of India reduced each exchange
+            to ONE weekly option, to curb the retail option-buyer wipeout (regulators estimated that
+            91 percent of Futures and Options traders were net losers). The consequence:<br>
+            • The National Stock Exchange kept the <b>Nifty weekly</b> (moved to Tuesday in September
+            2025).<br>
+            • The National Stock Exchange dropped <b>Bank Nifty, Fin Nifty, and MidCap Nifty</b>
+            weeklies &mdash; monthly contracts only.<br>
+            • The Bombay Stock Exchange kept the <b>Sensex weekly</b> (moved to Thursday in September
+            2025).<br><br>
+            For retail traders, this means Bank Nifty is now far less useful for weekly Theta plays.
           </div>
         </div>
 
         <div class="card neu">
-          <div class="cname">Q10 · Scalping vs positional vs swing — which suits beginners?</div>
+          <div class="cname">Q10 · Scalping vs positional vs swing &mdash; which suits beginners?</div>
           <div class="cdesc" style="text-align:left">
-            <b style="color:var(--bull)">Swing / positional (2–10 day holds):</b> BEST for beginners. Lower emotional
-            load, tolerates imperfect entries, longer decision windows.<br>
-            <b style="color:var(--neutral)">Intraday (hold 1–4 hrs):</b> Standard option-buying timeframe. Second-best
-            for beginners once basics are solid.<br>
-            <b style="color:var(--bear)">Scalping (hold &lt; 10 min):</b> Requires microsecond discipline, low costs,
-            full-time attention. <b>Retail option buyers almost always lose at scalping due to bid-ask + brokerage.</b>
+            <b style="color:var(--bull)">Swing / positional (2 to 10 day holds):</b> BEST for
+            beginners. Lower emotional load, tolerates imperfect entries, gives you longer decision
+            windows.<br>
+            <b style="color:var(--neutral)">Intraday (hold for 1 to 4 hours):</b> The standard
+            option-buying timeframe. Second-best for beginners, once their basics are solid.<br>
+            <b style="color:var(--bear)">Scalping (hold less than 10 minutes):</b> Requires
+            microsecond discipline, low transaction costs, and full-time attention. <b>Retail option
+            buyers almost always lose at scalping because of the bid-ask spread and brokerage costs.</b>
           </div>
         </div>
 
         <div class="card bull">
-          <div class="cname">Q11 · Technical analysis or fundamentals — what matters for intraday options?</div>
+          <div class="cname">Q11 · Technical analysis or fundamentals &mdash; what matters for intraday options?</div>
           <div class="cdesc" style="text-align:left">
-            For intraday index options: <b>Technical analysis is 95% of the edge.</b> Fundamentals move on
-            quarterly/yearly cycles — irrelevant for a 2-hour option trade.<br><br>
-            What matters intraday:<br>
-            • Chart pattern + S/R + volume + VWAP + OI<br>
-            • India VIX<br>
-            • Gift Nifty + global cues (for open)<br>
-            • Upcoming events (RBI, Fed, Budget, results)<br><br>
-            Fundamentals matter only for <b>delivery equity</b> holdings.
+            For intraday index options: <b>Technical analysis is 95 percent of your edge.</b>
+            Fundamentals move on quarterly or yearly cycles &mdash; they are irrelevant for a 2-hour
+            option trade.<br><br>
+            What matters for intraday trading:<br>
+            • Chart patterns + Support and Resistance + volume + Volume Weighted Average Price + Open
+            Interest.<br>
+            • The India Volatility Index.<br>
+            • Gift Nifty + global market cues (for the market open).<br>
+            • Upcoming events (Reserve Bank of India, Federal Reserve, Union Budget, quarterly
+            results).<br><br>
+            Fundamentals only matter for <b>delivery equity</b> holdings.
           </div>
         </div>
 
         <div class="card neu">
-          <div class="cname">Q12 · How do I know I'm ready to increase lot size?</div>
+          <div class="cname">Q12 · How do I know I am ready to increase my lot size?</div>
           <div class="cdesc" style="text-align:left">
             Before scaling up, require ALL of the following:<br>
             <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
               <polyline points="4,12 10,18 20,6" />
-            </svg> <b>6 months</b> of consistent profitable trading<br>
+            </svg> <b>6 months</b> of consistent profitable trading.<br>
             <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
               <polyline points="4,12 10,18 20,6" />
-            </svg> <b>50+ trades</b> with logged data, avg R:R ≥ 1.5<br>
+            </svg> <b>50 or more trades</b> with logged data, average risk-to-reward of 1 to 1.5 or
+            better.<br>
             <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
               <polyline points="4,12 10,18 20,6" />
-            </svg> <b>Win rate</b> on main setup ≥ 45%<br>
+            </svg> <b>Win rate</b> on your main setup of 45 percent or more.<br>
             <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
               <polyline points="4,12 10,18 20,6" />
-            </svg> <b>Max drawdown</b> in the 6 months &lt; 15% of capital<br>
+            </svg> <b>Maximum drawdown</b> over the 6 months less than 15 percent of capital.<br>
             <svg class="ico ico-ok" viewBox="0 0 24 24" aria-hidden="true">
               <polyline points="4,12 10,18 20,6" />
-            </svg> Didn't break risk rules <b>even once</b> in last 30 days<br><br>
-            <b style="color:var(--bull)">Scale by 1.5×, never 2×.</b> Scaling too fast means the first losing streak at
-            new size hurts disproportionately.
+            </svg> You did NOT break the risk rules <b>even once</b> in the last 30 days.<br><br>
+            <b style="color:var(--bull)">Scale by 1.5 times, never by 2 times.</b> Scaling too fast
+            means the first losing streak at the new size hurts disproportionately.
           </div>
         </div>
 

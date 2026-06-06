@@ -8,13 +8,17 @@
           <path d="M22 4a2 2 0 0 0-2-2h-6v18h6a2 2 0 0 0 2-2z" />
         </svg> <b>How to read each card below:</b><br>
         &middot; <b>Drawing</b> = what the candle looks like on a chart<br>
-        &middot; <b>Colored badge</b> &mdash; green = bullish bias, red = bearish, yellow = neutral / reversal<br>
-        &middot; <b>Description</b> = what the candle tells you about buyer vs seller psychology<br>
-        &middot; <b>Action line</b> (&rarr; BUY CE / BUY PE / WAIT) = recommended intraday option-buying
+        &middot; <b>Coloured badge</b> &mdash; green means bullish (price likely to go up), red means bearish
+        (price likely to go down), yellow means neutral or reversal warning<br>
+        &middot; <b>Description</b> = what the candle tells you about who is winning the fight between buyers
+        and sellers<br>
+        &middot; <b>Action line</b> (BUY CALL, BUY PUT, or WAIT) = the recommended intraday option-buying
         response<br><br>
-        <b>Important for beginners:</b> A pattern by itself is <u>not</u> a trade signal. Always wait for <b>candle
-          close</b>, then confirm with <b>volume</b>, <b>higher timeframe trend</b>, and nearby <b>support /
-          resistance</b>. Patterns at the right location = high probability. Random mid-range patterns = coin-flip.
+        <b>Important for beginners:</b> A pattern by itself is <u>not</u> a trade signal. Always wait for the
+        candle to fully <b>close</b>, then check three things: <b>volume</b> (was it above average?),
+        <b>higher timeframe trend</b> (which direction is the daily chart moving?), and the nearest
+        <b>support or resistance</b> level. A pattern that forms at the right location is high-probability.
+        A pattern in the middle of nowhere is just a coin flip.
       </div>
 
       <div class="catdiv">MOMENTUM CANDLES</div>
@@ -25,8 +29,9 @@
             <rect x="8" y="3" width="30" height="94" fill="#09a86e" rx="2" />
           </svg>
           <div class="badge bull">STRONG BULLISH</div>
-          <div class="cdesc">Full green body, no wicks. Bulls controlled the entire session.</div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="cdesc">A full green body with no wicks at all. Buyers were in complete control for the
+            entire candle period.</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
         <div class="card bear">
           <div class="cname">BEARISH MARUBOZU</div>
@@ -34,52 +39,82 @@
             <rect x="8" y="3" width="30" height="94" fill="#c91f3a" rx="2" />
           </svg>
           <div class="badge bear">STRONG BEARISH</div>
-          <div class="cdesc">Full red body, no wicks. Bears controlled the entire session.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">A full red body with no wicks at all. Sellers were in complete control for the
+            entire candle period.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
         <div class="card bull">
-          <div class="cname">OPENING MARUBOZU (BULL)</div>
+          <div class="cname">OPENING MARUBOZU (BULLISH)</div>
           <svg width="46" height="100" viewBox="0 0 46 100">
             <line x1="23" y1="3" x2="23" y2="15" stroke="#09a86e" stroke-width="2" />
             <rect x="8" y="15" width="30" height="82" fill="#09a86e" rx="2" />
           </svg>
           <div class="badge bull">BULLISH</div>
-          <div class="cdesc">No lower wick (opens at session low), small upper wick. Bulls opened in full control.</div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="cdesc">No lower wick (the candle opened at its lowest price), with a small upper wick.
+            Buyers took control from the very first second of the candle.</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
         <div class="card bear">
-          <div class="cname">OPENING MARUBOZU (BEAR)</div>
+          <div class="cname">OPENING MARUBOZU (BEARISH)</div>
           <svg width="46" height="100" viewBox="0 0 46 100">
             <rect x="8" y="3" width="30" height="82" fill="#c91f3a" rx="2" />
             <line x1="23" y1="85" x2="23" y2="97" stroke="#c91f3a" stroke-width="2" />
           </svg>
           <div class="badge bear">BEARISH</div>
-          <div class="cdesc">No upper wick (opens at session high), small lower wick. Bears opened in full control.
+          <div class="cdesc">No upper wick (the candle opened at its highest price), with a small lower wick.
+            Sellers took control from the very first second of the candle.
           </div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
         <div class="card bull">
-          <div class="cname">CLOSING MARUBOZU (BULL)</div>
+          <div class="cname">CLOSING MARUBOZU (BULLISH)</div>
           <svg width="46" height="100" viewBox="0 0 46 100">
             <rect x="8" y="3" width="30" height="78" fill="#09a86e" rx="2" />
             <line x1="23" y1="81" x2="23" y2="97" stroke="#09a86e" stroke-width="2" />
           </svg>
           <div class="badge bull">BULLISH</div>
-          <div class="cdesc">No upper wick (closes at session high), small lower wick. Bulls finished in full control.
+          <div class="cdesc">No upper wick (the candle closed at its highest price), with a small lower wick.
+            Buyers won the fight by the close, regardless of how the candle started.
           </div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
         <div class="card bear">
-          <div class="cname">CLOSING MARUBOZU (BEAR)</div>
+          <div class="cname">CLOSING MARUBOZU (BEARISH)</div>
           <svg width="46" height="100" viewBox="0 0 46 100">
             <line x1="23" y1="3" x2="23" y2="18" stroke="#c91f3a" stroke-width="2" />
             <rect x="8" y="18" width="30" height="79" fill="#c91f3a" rx="2" />
           </svg>
           <div class="badge bear">BEARISH</div>
-          <div class="cdesc">No lower wick (closes at session low), small upper wick. Bears finished in full control.
+          <div class="cdesc">No lower wick (the candle closed at its lowest price), with a small upper wick.
+            Sellers won the fight by the close, regardless of how the candle started.
           </div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Bullish Marubozu</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>A full green Marubozu candle has just closed on your trading timeframe (5-minute or 15-minute).
+            The candle is at least as large as the average of the last 10 candles. Volume on this candle is
+            1.5 times higher than the recent average. The broader trend (daily chart) is also moving up.</dd>
+          <dt>Entry</dt>
+          <dd>Buy a Call Option (At the Money or one strike Out of the Money) at the open of the very next
+            candle. Do not wait for a pullback; momentum candles often run hard in the same direction for the
+            next 2 to 4 candles.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Place the stop loss at the low of the Marubozu candle on Nifty. For the option premium, set a
+            hard stop at 30 to 35 percent loss of the option price.</dd>
+          <dt>Target</dt>
+          <dd>Aim for the next major resistance level above. The minimum target should be 2 times your stop
+            loss distance. Trail your stop loss to breakeven once you are 1 times the stop loss distance in
+            profit.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The Marubozu forms during the lunch hour (12:30 PM to 1:30 PM IST), there is a major news
+            event in the next hour, or the candle forms right into a strong resistance level (price might
+            run out of room).</dd>
+        </dl>
       </div>
 
       <div class="catdiv">DOJI FAMILY</div>
@@ -92,7 +127,8 @@
             <line x1="23" y1="51" x2="23" y2="95" stroke="#d4941a" stroke-width="2" />
           </svg>
           <div class="badge neu">INDECISION</div>
-          <div class="cdesc">Open = close, equal upper and lower wicks. Perfect indecision.</div>
+          <div class="cdesc">The opening price equals the closing price, with roughly equal upper and lower
+            wicks. Perfect indecision &mdash; buyers and sellers are evenly matched.</div>
           <div class="action wt">→ WAIT</div>
         </div>
         <div class="card bull">
@@ -102,8 +138,9 @@
             <line x1="23" y1="13" x2="23" y2="95" stroke="#09a86e" stroke-width="2" />
           </svg>
           <div class="badge bull">BULLISH REVERSAL</div>
-          <div class="cdesc">Long lower wick, no upper. Buyers absorbed all selling — strong at support.</div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="cdesc">Long lower wick with no upper wick. Buyers absorbed all the selling pressure and
+            pushed price back up. Strong signal when this appears at a support level.</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
         <div class="card bear">
           <div class="cname">GRAVESTONE DOJI</div>
@@ -112,8 +149,9 @@
             <rect x="6" y="90" width="34" height="3" fill="#c91f3a" rx="1" />
           </svg>
           <div class="badge bear">BEARISH REVERSAL</div>
-          <div class="cdesc">Long upper wick, no lower. Sellers rejected the highs — strong at resistance.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">Long upper wick with no lower wick. Sellers rejected the highs and pushed price
+            back down. Strong signal when this appears at a resistance level.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
         <div class="card neu">
           <div class="cname">LONG-LEGGED DOJI</div>
@@ -123,7 +161,8 @@
             <line x1="23" y1="51" x2="23" y2="97" stroke="#d4941a" stroke-width="2" />
           </svg>
           <div class="badge neu">EXTREME INDECISION</div>
-          <div class="cdesc">Very long wicks on both sides. Massive intraday volatility, no direction.</div>
+          <div class="cdesc">Very long wicks on both sides. There was massive intraday volatility but no
+            clear winner. The market is confused.</div>
           <div class="action wt">→ WAIT</div>
         </div>
         <div class="card neu">
@@ -132,7 +171,8 @@
             <rect x="4" y="49" width="38" height="2" fill="#d4941a" rx="1" />
           </svg>
           <div class="badge neu">NO MOVEMENT</div>
-          <div class="cdesc">O = H = L = C. Zero movement — illiquid name or halted market.</div>
+          <div class="cdesc">The open, high, low, and close are all the same price. Zero movement. Usually
+            seen in illiquid stocks or when the market is halted.</div>
           <div class="action wt">→ AVOID</div>
         </div>
         <div class="card neu">
@@ -142,10 +182,35 @@
             <rect x="8" y="49" width="30" height="2" fill="#d4941a" rx="1" />
             <line x1="23" y1="51" x2="23" y2="97" stroke="#d4941a" stroke-width="2" />
           </svg>
-          <div class="badge neu">MAX INDECISION</div>
-          <div class="cdesc">Doji with equal long wicks, body exactly in the middle. Maximum uncertainty.</div>
+          <div class="badge neu">MAXIMUM INDECISION</div>
+          <div class="cdesc">A Doji with equal long wicks and the body sitting exactly in the middle. The
+            highest level of uncertainty in candle patterns.</div>
           <div class="action wt">→ WAIT</div>
         </div>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Dragonfly Doji at Support</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>A Dragonfly Doji has formed exactly at a known support level (such as the previous day's low,
+            the 20 period Exponential Moving Average, or a Volume Weighted Average Price). The lower wick is
+            very long and the body is tiny at the top.</dd>
+          <dt>Entry</dt>
+          <dd>Buy a Call Option (At the Money or one strike Out of the Money) only after you see a green
+            confirmation candle close above the high of the Dragonfly Doji. Do NOT enter on the Doji candle
+            itself.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Place the stop loss below the lowest point (the bottom tip of the lower wick) of the Dragonfly
+            Doji. For the option premium, exit if you lose 30 to 40 percent of the option price.</dd>
+          <dt>Target</dt>
+          <dd>Aim for the next resistance level above. Minimum target is 2 times your stop loss distance.
+            The Dragonfly often signals a multi-candle reversal, so book half the position at the first
+            target and trail the stop on the rest.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The Doji forms in the middle of nowhere (not at a known support level), the daily trend is
+            strongly downward, or the confirmation candle never appears within 1 to 2 candles after the Doji.</dd>
+        </dl>
       </div>
 
       <div class="catdiv">REVERSAL CANDLES</div>
@@ -158,8 +223,9 @@
             <line x1="23" y1="40" x2="23" y2="95" stroke="#09a86e" stroke-width="2" />
           </svg>
           <div class="badge bull">BULLISH REVERSAL</div>
-          <div class="cdesc">Small body at top, lower wick ≥ 2× body. Bullish reversal at support.</div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="cdesc">Small body at the top, with a lower wick that is at least 2 times longer than
+            the body. Signals a bullish reversal when it appears at a support level.</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
         <div class="card bear">
           <div class="cname">HANGING MAN</div>
@@ -169,8 +235,9 @@
             <line x1="23" y1="40" x2="23" y2="95" stroke="#c91f3a" stroke-width="2" />
           </svg>
           <div class="badge bear">BEARISH REVERSAL</div>
-          <div class="cdesc">Same shape as hammer but at the top. Warns of a bearish reversal.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">Same shape as a Hammer but appearing at the top of an uptrend. Warns that a
+            bearish reversal is likely.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
         <div class="card bull">
           <div class="cname">INVERTED HAMMER</div>
@@ -180,8 +247,9 @@
             <line x1="23" y1="86" x2="23" y2="95" stroke="#09a86e" stroke-width="2" />
           </svg>
           <div class="badge bull">BULLISH REVERSAL</div>
-          <div class="cdesc">Long upper wick, small body at bottom. Bullish reversal at support.</div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="cdesc">Long upper wick with a small body at the bottom. A bullish reversal signal when
+            it appears at a support level.</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
         <div class="card bear">
           <div class="cname">SHOOTING STAR</div>
@@ -191,8 +259,9 @@
             <line x1="23" y1="86" x2="23" y2="95" stroke="#c91f3a" stroke-width="2" />
           </svg>
           <div class="badge bear">BEARISH REVERSAL</div>
-          <div class="cdesc">Long upper wick, small body at top. Bearish reversal at resistance.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">Long upper wick with a small body at the top. A bearish reversal signal when it
+            appears at a resistance level.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
         <div class="card bull">
           <div class="cname">BULLISH BELT HOLD</div>
@@ -201,9 +270,9 @@
             <line x1="23" y1="75" x2="23" y2="97" stroke="#09a86e" stroke-width="2" />
           </svg>
           <div class="badge bull">BULLISH</div>
-          <div class="cdesc">Opens at session low (no lower wick), closes near the high. Strong single-candle bullish
-            reversal.</div>
-          <div class="action ce">→ BUY CE</div>
+          <div class="cdesc">Opens at the session low (no lower wick) and closes near the high. A strong
+            single-candle bullish reversal.</div>
+          <div class="action ce">→ BUY CALL</div>
         </div>
         <div class="card bear">
           <div class="cname">BEARISH BELT HOLD</div>
@@ -212,10 +281,58 @@
             <rect x="8" y="25" width="30" height="72" fill="#c91f3a" rx="2" />
           </svg>
           <div class="badge bear">BEARISH</div>
-          <div class="cdesc">Opens at session high (no upper wick), closes near the low. Strong single-candle bearish
-            reversal.</div>
-          <div class="action pe">→ BUY PE</div>
+          <div class="cdesc">Opens at the session high (no upper wick) and closes near the low. A strong
+            single-candle bearish reversal.</div>
+          <div class="action pe">→ BUY PUT</div>
         </div>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Hammer at Support (the most reliable single candle)</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>A Hammer candle has formed at a known support level on the 15-minute or hourly chart. The lower
+            wick is at least 2 times the size of the body. The body sits in the upper third of the candle.
+            Volume on the Hammer candle is above the average of the last 10 candles.</dd>
+          <dt>Entry</dt>
+          <dd>Buy a Call Option (At the Money or one strike Out of the Money) when the very next candle
+            opens above the Hammer's high. The next candle must be green; if it opens lower or red, skip
+            the trade entirely.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Place the stop loss 5 to 10 points below the bottom tip of the Hammer's lower wick on Nifty.
+            For the option premium, exit if you lose 30 to 40 percent of the option price.</dd>
+          <dt>Target</dt>
+          <dd>Aim for the next resistance level above. Minimum target is 2 times the size of the Hammer
+            candle (measured from low to high). Book half at the first target and trail the stop on the
+            rest of the position.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The Hammer forms in the middle of nowhere (no clear support nearby), the broader market
+            trend is strongly downward, the next candle does not confirm with a green close above the
+            Hammer's high, or the Hammer formed during the lunch hour.</dd>
+        </dl>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Shooting Star at Resistance</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>A Shooting Star candle has formed at a known resistance level. The upper wick is at least 2
+            times the size of the body. The body sits at the bottom of the candle. Volume is above average
+            on the Shooting Star candle.</dd>
+          <dt>Entry</dt>
+          <dd>Buy a Put Option (At the Money or one strike Out of the Money) when the next candle opens
+            below the Shooting Star's low. The next candle should be red. If it opens higher or green,
+            skip the trade.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Place the stop loss 5 to 10 points above the top tip of the Shooting Star's upper wick. For
+            the option premium, exit if you lose 30 to 40 percent.</dd>
+          <dt>Target</dt>
+          <dd>Aim for the next support level below. Minimum target is 2 times the size of the Shooting
+            Star candle. Book half at the first target and trail the stop on the rest.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The Shooting Star forms in the middle of nowhere, the broader trend is strongly upward, the
+            next candle does not confirm with a red close, or the formation happens during the lunch hour.</dd>
+        </dl>
       </div>
 
       <div class="catdiv">INDECISION CANDLES</div>
@@ -228,7 +345,8 @@
             <line x1="23" y1="62" x2="23" y2="95" stroke="#d4941a" stroke-width="2" />
           </svg>
           <div class="badge neu">INDECISION</div>
-          <div class="cdesc">Small body with roughly equal wicks. Neither buyers nor sellers dominate.</div>
+          <div class="cdesc">A small body with roughly equal wicks on both sides. Neither buyers nor
+            sellers were able to dominate.</div>
           <div class="action wt">→ WAIT</div>
         </div>
         <div class="card neu">
@@ -239,7 +357,8 @@
             <line x1="23" y1="58" x2="23" y2="97" stroke="#d4941a" stroke-width="2" />
           </svg>
           <div class="badge neu">HIGH VOLATILITY</div>
-          <div class="cdesc">Tiny body with extremely long wicks. A wild, directionless session.</div>
+          <div class="cdesc">A tiny body with extremely long wicks on both sides. A wild, directionless
+            session with high emotion and no clear winner.</div>
           <div class="action wt">→ AVOID</div>
         </div>
         <div class="card neu">
@@ -250,7 +369,8 @@
             <line x1="23" y1="60" x2="23" y2="72" stroke="#d4941a" stroke-width="2" />
           </svg>
           <div class="badge neu">LOW VOLATILITY</div>
-          <div class="cdesc">Short body with short wicks. Low-volume consolidation or sideways chop.</div>
+          <div class="cdesc">A short body with short wicks. Indicates low volume sideways consolidation
+            or a quiet choppy market.</div>
           <div class="action wt">→ WAIT</div>
         </div>
       </div>
@@ -258,12 +378,14 @@
       <div class="rbox" style="border-left-color:var(--bull);margin-top:28px">
         <h3>BEGINNER PRIORITY &mdash; MASTER THESE FIRST</h3>
         <ul>
-          <li><b>Bullish / Bearish Marubozu</b> &mdash; unmistakable strong-trend candles. Easy to spot, high
-            reliability when they close at the top / bottom of a visible range.</li>
-          <li><b>Hammer &amp; Shooting Star</b> &mdash; the two most reliable single-candle reversals. Hammer at support
-            = buy the next candle open. Shooting star at resistance = buy puts.</li>
-          <li><b>Doji</b> &mdash; the universal indecision signal. <u>Never</u> trade a doji on its own &mdash; it is an
-            alert, not an entry. Wait for the next candle to break one way, then act.</li>
+          <li><b>Bullish and Bearish Marubozu</b> &mdash; Unmistakable strong-trend candles. Easy to spot,
+            and very reliable when they close at the top or bottom of a visible range.</li>
+          <li><b>Hammer and Shooting Star</b> &mdash; The two most reliable single-candle reversals. A
+            Hammer at support means you can buy the next candle's open with a Call Option. A Shooting Star
+            at resistance means you can buy a Put Option.</li>
+          <li><b>Doji</b> &mdash; The universal indecision signal. <u>Never</u> trade a Doji on its own
+            &mdash; it is a warning to pay attention, not an entry signal. Wait for the next candle to break
+            in one direction, then take action.</li>
         </ul>
       </div>
 
@@ -271,9 +393,9 @@
           <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg> <b>Common beginner mistake:</b> buying the MOMENT you see a pattern. The pattern must appear at a
-        <b>meaningful location</b> (previous day high/low, VWAP, CPR edge, trend-line) with <b>above-average volume</b>.
-        Patterns in no-man's-land mid-range are mostly noise.</div>
+        </svg> <b>Common beginner mistake:</b> Buying the MOMENT you see a pattern. The pattern must appear
+        at a <b>meaningful location</b> (previous day high or low, Volume Weighted Average Price line,
+        Central Pivot Range edge, or trendline) with <b>above-average volume</b>. Patterns that form in
+        no-man's-land in the middle of the range are mostly noise and should be ignored.</div>
 
     </div>
-  

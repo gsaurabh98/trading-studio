@@ -6,13 +6,15 @@
       <div class="infobox"><svg class="ico ico-info" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M2 4a2 2 0 0 1 2-2h6v18H4a2 2 0 0 1-2-2z" />
           <path d="M22 4a2 2 0 0 0-2-2h-6v18h6a2 2 0 0 0 2-2z" />
-        </svg> <b>What is a breakout?</b> A breakout is when price closes <b>decisively beyond a well-tested
-          boundary</b> &mdash; a horizontal level, trend-line, pattern edge, or volatility range &mdash; with enough
-        conviction (volume, OI shift, follow-through) to signal the start of a new leg.<br><br>
-        <b>Why option buyers love breakouts:</b> they produce the <b>sharp, directional, trending moves</b> that options
-        need to overcome theta. A slow grind kills OTM premium. A clean breakout 2-3&times;&apos;s your option in
-        1&ndash;2 candles. But <b>fake breakouts</b> are the #1 option-buyer graveyard &mdash; this tab exists to
-        separate the real from the fake.
+        </svg> <b>What is a breakout?</b> A breakout is when the price firmly closes <b>past a level it has been
+          stuck below or above for a while</b>. The level can be a horizontal line, a slanted trendline, the edge
+        of a chart pattern, or a tight quiet range. To count as a real breakout, the move needs strong volume,
+        Open Interest changes that match the direction, and the next candle should keep going the same way.<br><br>
+        <b>Why option buyers love breakouts:</b> Options need <b>fast, one-direction moves</b> to make money before
+        time decay (Theta) eats the premium. A slow back-and-forth market kills options that are slightly
+        Out of the Money. A clean breakout can double or triple your option price in just one or two candles.
+        But <b>fake breakouts</b> are the number-one reason option buyers lose money. This page exists to teach
+        you how to tell the real ones from the fakes.
       </div>
 
       <div class="catdiv">THE 4 TYPES OF BREAKOUT</div>
@@ -27,8 +29,9 @@
             <text x="130" y="14" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="8">BREAK</text>
           </svg>
           <div class="badge bull">HORIZONTAL LEVEL</div>
-          <div class="cdesc" style="text-align:left">Price escapes a multi-day range (previous day high/low, weekly
-            high/low, round numbers). Simplest and most reliable breakout type.</div>
+          <div class="cdesc" style="text-align:left">Price escapes a flat range it has been stuck in for several
+            days. Common range edges include the previous day's high or low, the weekly high or low, and round
+            numbers (like 23,500 on Nifty). This is the simplest and most reliable breakout type for beginners.</div>
         </div>
         <div class="card bull">
           <div class="cname">2 &middot; PATTERN BREAKOUT</div>
@@ -42,8 +45,9 @@
               BREAK</text>
           </svg>
           <div class="badge bull">CHART PATTERN</div>
-          <div class="cdesc" style="text-align:left">Price exits a defined pattern &mdash; Triangle, Flag, Wedge,
-            H&amp;S neckline, Double-Top/Bottom, Cup-&amp;-Handle. Pattern projects a target measured from its height.
+          <div class="cdesc" style="text-align:left">Price exits a known shape on the chart. Common shapes are
+            Triangle, Flag, Wedge, the neckline of a Head and Shoulders pattern, Double Top or Double Bottom,
+            and Cup and Handle. The size of the pattern tells you roughly how big the next move should be.
           </div>
         </div>
         <div class="card bull">
@@ -55,8 +59,8 @@
             <circle cx="160" cy="16" r="2" fill="#09a86e" />
           </svg>
           <div class="badge bull">SLOPING LINE</div>
-          <div class="cdesc" style="text-align:left">Price breaks through an ascending / descending trend-line that has
-            at least <b>3 touches</b>. Signals a potential shift in trend structure.</div>
+          <div class="cdesc" style="text-align:left">Price breaks through a slanted line that connects at least
+            <b>3 touches</b> on the chart. This usually signals that the existing trend is changing direction.</div>
         </div>
         <div class="card bull">
           <div class="cname">4 &middot; VOLATILITY BREAKOUT</div>
@@ -69,42 +73,81 @@
               stroke="#4db8ff" stroke-width="1.6" />
             <text x="105" y="10" fill="#09a86e" font-family="'IBM Plex Mono',monospace" font-size="8">EXPAND</text>
           </svg>
-          <div class="badge bull">BB SQUEEZE / NR7</div>
-          <div class="cdesc" style="text-align:left">Bollinger Bands contract then expand explosively. Low-volatility
-            periods precede large moves. Best EV type for option buyers &mdash; low IV entry, high-realised-vol exit.
+          <div class="badge bull">QUIET RANGE EXPLODES</div>
+          <div class="cdesc" style="text-align:left">The Bollinger Bands squeeze tight (price moves in a very small
+            range), then suddenly explode outward. Quiet markets always come before big moves. This is the best
+            type of breakout for option buyers because Implied Volatility is low at entry (so options are cheap)
+            and high at exit (so options become expensive).
           </div>
         </div>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Range Breakout (the easiest one)</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>Price has been moving sideways for at least 5 to 10 candles between a clear high and clear low.
+            Volume is calm. The same level has been touched 3 or more times without breaking.</dd>
+          <dt>Entry</dt>
+          <dd>Buy when a candle <b>closes</b> above the high (for an upward breakout) or below the low (for a
+            downward breakout). The close must be at least 0.2% past the level on Nifty. Volume on this candle
+            should be 1.5 times higher than the average of the last 20 candles.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Place your stop loss just inside the broken level. For example, if Nifty broke above 23,500, put
+            your stop loss at 23,485 (about 15 points back inside the range).</dd>
+          <dt>Target</dt>
+          <dd>Use the height of the range as your target. If the range was 100 points wide (23,400 to 23,500),
+            aim for 23,600 (100 points above the breakout). Book half your position there and trail the stop
+            loss for the rest.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>Volume is below average on the breakout candle, the broader market index is moving in the opposite
+            direction, or the breakout happens during the lunch hour (12:30 PM to 1:30 PM IST) when fake moves
+            are most common.</dd>
+        </dl>
       </div>
 
       <div class="catdiv">5 SIGNS OF A REAL BREAKOUT (CONFIRMATION)</div>
       <div class="infobox"><svg class="ico ico-zap" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
-        </svg> Any ONE of these alone can be noise. You want at least <b>3 of 5</b>. If you have all 5, size up.</div>
+        </svg> Any single sign on its own can be noise. You want at least <b>3 out of 5</b> signs to agree before
+        taking the trade. If you have all 5, increase your position size.</div>
 
       <div class="pgrid md c5">
         <div class="card bull">
           <div class="cname">1 &middot; VOLUME SURGE</div>
           <div class="badge bull">NON-NEGOTIABLE</div>
-          <div class="cdesc" style="text-align:left">Breakout candle volume &ge; <b>1.5&times; 20-period average</b>. No
-            volume = no conviction. Skip every breakout that lacks this.</div>
+          <div class="cdesc" style="text-align:left">The breakout candle's volume should be at least
+            <b>1.5 times the average of the last 20 candles</b>. No volume means no real interest from buyers
+            or sellers. Skip every breakout that does not have this.</div>
         </div>
         <div class="card bull">
           <div class="cname">2 &middot; DECISIVE CLOSE</div>
-          <div class="badge bull">CLOSE &gt; WICK</div>
-          <div class="cdesc" style="text-align:left">Candle must <b>CLOSE beyond the level</b>, not just wick. Ideally
-            by 0.2&ndash;0.5% for index, 0.3&ndash;1% for stocks.</div>
+          <div class="badge bull">CLOSE BEATS WICK</div>
+          <div class="cdesc" style="text-align:left">The candle must <b>actually close</b> past the level, not
+            just poke through with the wick. The close should be at least 0.2 to 0.5 percent past the level for
+            an index like Nifty, and 0.3 to 1 percent past for individual stocks.</div>
         </div>
         <div class="card bull">
           <div class="cname">3 &middot; FOLLOW-THROUGH</div>
           <div class="badge bull">NEXT CANDLE</div>
-          <div class="cdesc" style="text-align:left">The candle after the break stays on the breakout side. If the next
-            candle retraces back inside = warning.</div>
+          <div class="cdesc" style="text-align:left">The candle right after the breakout should stay on the new
+            side of the level. If the very next candle pulls back inside the range, that is a warning sign that
+            the breakout might be fake.</div>
         </div>
         <div class="card bull">
-          <div class="cname">4 &middot; INDEX / SECTOR ALIGN</div>
+          <div class="cname">4 &middot; INDEX AND SECTOR ALIGN</div>
           <div class="badge bull">CONTEXT</div>
-          <div class="cdesc" style="text-align:left">Stock breakout while NIFTY &amp; its sector are in the same
-            direction. Solo breakouts against index = lower hit-rate.</div>
+          <div class="cdesc" style="text-align:left">When trading a stock breakout, check that Nifty and the
+            stock's sector are also moving in the same direction. Stocks that break out alone, against the
+            broader market, succeed less often.</div>
+        </div>
+        <div class="card bull">
+          <div class="cname">5 &middot; OPEN INTEREST CONFIRMS</div>
+          <div class="badge bull">F&amp;O EVIDENCE</div>
+          <div class="cdesc" style="text-align:left">For an upward breakout, you want Put options to be adding
+            Open Interest (sellers writing puts shows confidence in the move). For a downward breakout, you want
+            Call options to be adding Open Interest. The Put-Call Ratio should also be moving in the same
+            direction.</div>
         </div>
       </div>
 
@@ -112,69 +155,128 @@
           <circle cx="12" cy="12" r="9" />
           <path d="M9 12h6" />
           <path d="M12 9v6" />
-        </svg> <b>F&amp;O confirmation (CE/PE OI build-up, PCR, max OI strikes)</b> is taught in <a href="#"
-          onclick="gotoId('chain');return false;" style="color:var(--info);font-weight:600">F&amp;O Playbook &rarr;
-          Option Chain</a>. <b>Fake breakouts &amp; bull/bear traps</b> are covered in <a href="#"
-          onclick="gotoId('traps');return false;" style="color:var(--info);font-weight:600">Patterns &rarr; Traps &amp;
-          Failures</a>.</div>
+        </svg> <b>Detailed Open Interest, Put-Call Ratio, and Max Open Interest strikes</b> are taught in
+        <a href="#" onclick="gotoId('chain');return false;" style="color:var(--info);font-weight:600">Futures and
+          Options Playbook &rarr; Option Chain</a>. <b>Fake breakouts and bull or bear traps</b> are covered in
+        <a href="#" onclick="gotoId('traps');return false;" style="color:var(--info);font-weight:600">Patterns
+          &rarr; Traps and Failures</a>.</div>
 
       <div class="catdiv">3 BREAKOUT ENTRY STRATEGIES</div>
       <div class="pgrid md c3">
         <div class="card neu">
-          <div class="cname">A &middot; AGGRESSIVE (ON-BREAK)</div>
+          <div class="cname">A &middot; AGGRESSIVE (BUY ON THE BREAK)</div>
           <div class="badge neu">HIGH RISK / HIGH REWARD</div>
-          <div class="cdesc" style="text-align:left">Buy when the candle closes beyond the level. You catch the full
-            move but 40&ndash;50% of these fail. Use only with volume + OI confirmation. Size smaller.</div>
+          <div class="cdesc" style="text-align:left">Buy as soon as the candle closes past the level. You catch
+            the full move when it works, but 40 to 50 percent of these breakouts fail and reverse. Only use
+            this entry style when volume and Open Interest both confirm the move. Use a smaller position size
+            because the failure rate is higher.</div>
         </div>
         <div class="card bull">
-          <div class="cname">B &middot; CONSERVATIVE (RETEST)</div>
-          <div class="badge bull">BEST R:R</div>
-          <div class="cdesc" style="text-align:left">Wait for price to pull back to the broken level and hold as new
-            support. Enter on the bounce candle. Hit-rate &uarr;, risk &darr;, but you miss &#x25;20 of fastest
-            breakouts.</div>
+          <div class="cname">B &middot; CONSERVATIVE (WAIT FOR RETEST)</div>
+          <div class="badge bull">BEST RISK TO REWARD</div>
+          <div class="cdesc" style="text-align:left">After the breakout candle, wait for price to come back and
+            touch the broken level (now flipped from resistance to support, or support to resistance). Buy when
+            you see a bounce candle from that level. The success rate goes up and the risk goes down, but you
+            will miss about 20 percent of the fastest breakouts that never come back to retest.</div>
         </div>
         <div class="card neu">
-          <div class="cname">C &middot; HYBRID (SPLIT SIZE)</div>
+          <div class="cname">C &middot; HYBRID (SPLIT YOUR SIZE)</div>
           <div class="badge neu">RECOMMENDED</div>
-          <div class="cdesc" style="text-align:left">Deploy 50% on the break, 50% on the retest. Captures both setups
-            with balanced risk. Standard institutional approach for breakout trades.</div>
+          <div class="cdesc" style="text-align:left">Buy 50 percent of your planned position on the breakout
+            candle, and the other 50 percent on the retest. This way you get a piece of every breakout, and a
+            full position only on the ones that come back to retest. Most professional traders use this approach.</div>
         </div>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Retest Entry (highest hit-rate)</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>A clean breakout has already happened with strong volume. The breakout candle closed firmly past the
+            level. Now price is pulling back toward the level it broke through.</dd>
+          <dt>Entry</dt>
+          <dd>Buy when price touches the broken level and forms a bounce candle (a green candle for an upward
+            breakout, or a red candle for a downward breakout). The bounce candle should ideally have a long body
+            and a small wick on the side facing the level.</dd>
+          <dt>Stop Loss</dt>
+          <dd>Place the stop loss just past the bounce candle's low (for upward) or high (for downward). Usually
+            10 to 20 points away on Nifty. Tight stop because if the retest fails, the whole breakout was fake.</dd>
+          <dt>Target</dt>
+          <dd>Same as the original breakout target. The retest does not change the target; it just gives you a
+            better entry price and a tighter stop. Aim for at least 2 times your stop loss distance.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>Price falls all the way back through the level (this is a failed breakout, now a bull trap or bear
+            trap), the retest happens more than 5 to 10 candles later (momentum is gone), or volume is dead
+            during the retest pullback.</dd>
+        </dl>
+      </div>
+
+      <div class="tradesetup">
+        <div class="tradesetup-title">When to take this trade &mdash; Volatility Breakout (best for options)</div>
+        <dl class="tradesetup-grid">
+          <dt>Setup</dt>
+          <dd>The Bollinger Bands have been squeezing tight for at least 6 to 10 candles (price is barely moving).
+            Implied Volatility on the option chain is at the lowest reading of the last 5 trading days. Volume
+            has been dropping (the calm before the storm).</dd>
+          <dt>Entry</dt>
+          <dd>Buy a slightly Out of the Money option (one or two strikes away from the current spot price) the
+            moment price closes outside the upper or lower Bollinger Band with volume at least 2 times the
+            recent average.</dd>
+          <dt>Stop Loss</dt>
+          <dd>If you bought a Call Option, exit if Nifty closes back inside the Bollinger Bands. For the option
+            premium, set a hard stop at 30 to 40 percent loss of the option price.</dd>
+          <dt>Target</dt>
+          <dd>Aim for the option premium to double (a 100 percent gain). Volatility breakouts often produce
+            100 to 200 percent option moves in just 1 to 3 candles because both the price move AND the rise in
+            Implied Volatility help your position.</dd>
+          <dt class="tradesetup-skip" style="color:var(--bear)">Skip if</dt>
+          <dd>The squeeze is happening close to a major event (Reserve Bank of India meeting, Federal Reserve
+            announcement, results day) because the breakout direction can flip after the news, or the squeeze
+            happens during the lunch hour when most expansions are fake.</dd>
+        </dl>
       </div>
 
       <div class="infobox" style="margin-top:18px"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="12" r="9" />
           <path d="M9 12h6" />
           <path d="M12 9v6" />
-        </svg> <b>Strike, expiry &amp; option-leg setup</b> for breakout trades is covered in <a href="#"
-          onclick="gotoId('options');return false;" style="color:var(--info);font-weight:600">F&amp;O Playbook &rarr;
-          Buying Rules</a>. <b>Stop-loss &amp; targets</b> in <a href="#" onclick="gotoId('exits');return false;"
-          style="color:var(--info);font-weight:600">F&amp;O Playbook &rarr; SL &amp; Targets</a>.</div>
+        </svg> <b>Strike selection, expiry choice, and option leg setup</b> for breakout trades is covered in
+        <a href="#" onclick="gotoId('options');return false;" style="color:var(--info);font-weight:600">Futures
+          and Options Playbook &rarr; Buying Rules</a>. <b>Stop loss and target placement</b> is in
+        <a href="#" onclick="gotoId('exits');return false;" style="color:var(--info);font-weight:600">Futures and
+          Options Playbook &rarr; Stop Loss and Targets</a>.</div>
 
       <div class="rbox" style="border-left-color:var(--bull);margin-top:28px">
         <h3>5-STEP BREAKOUT PLAYBOOK</h3>
         <ul>
-          <li><b>1 &middot; IDENTIFY</b> &mdash; mark the level or pattern <u>before</u> the break. No after-the-fact
-            lines.</li>
-          <li><b>2 &middot; WAIT FOR COMPRESSION</b> &mdash; real breaks emerge from narrowing range / BB squeeze /
-            NR4-NR7 candles.</li>
-          <li><b>3 &middot; CONFIRM</b> &mdash; volume 1.5&times;+, close beyond level, OI aligned, index supportive. 3
-            of 5 minimum.</li>
-          <li><b>4 &middot; ENTER</b> &mdash; aggressive 50% on break, 50% on retest. Or full-size on retest only if you
-            want higher hit-rate.</li>
-          <li><b>5 &middot; MANAGE</b> &mdash; SL just back inside the level. Trail SL to breakeven after 1:1 move. Book
-            50% at 1:2, ride the rest.</li>
+          <li><b>1 &middot; IDENTIFY</b> &mdash; Mark the level or pattern <u>before</u> price breaks it. No
+            drawing lines after the move has already happened.</li>
+          <li><b>2 &middot; WAIT FOR COMPRESSION</b> &mdash; Real breakouts come out of narrowing ranges, tight
+            Bollinger Band squeezes, or a series of smaller-than-usual candles (Narrow Range 4 or Narrow Range 7
+            patterns).</li>
+          <li><b>3 &middot; CONFIRM</b> &mdash; Check the 5 confirmation signs: volume 1.5 times average,
+            decisive close past the level, follow-through on the next candle, broader market alignment, and
+            Open Interest agreement. You need at least 3 out of 5.</li>
+          <li><b>4 &middot; ENTER</b> &mdash; Use the hybrid approach: 50 percent of your position on the
+            breakout candle, 50 percent on the retest. Or use the conservative retest-only entry if you want a
+            higher success rate.</li>
+          <li><b>5 &middot; MANAGE</b> &mdash; Place your stop loss just back inside the broken level. Move the
+            stop to your entry price (breakeven) once price has moved 1 times your risk in your favor. Book
+            half the position at 2 times your risk, and trail the stop on the rest.</li>
         </ul>
       </div>
 
       <div class="rbox" style="border-left-color:var(--bull);margin-top:20px">
         <h3>BEGINNER PRIORITY &mdash; MASTER THESE FIRST</h3>
         <ul>
-          <li><b>Previous Day High / Low breakout</b> &mdash; simplest, most reliable, works every day.</li>
-          <li><b>Opening Range (ORB) breakout</b> &mdash; high-probability intraday setup; see PICK STRATEGY tab for
-            full playbook.</li>
-          <li><b>Triangle / Flag breakouts</b> &mdash; classical continuation patterns with measured targets.</li>
-          <li><b>Avoid trend-line breaks for first 3 months</b> &mdash; they fail most often for beginners; need
-            experience to draw lines objectively.</li>
+          <li><b>Previous Day High and Low breakout</b> &mdash; The simplest, most reliable breakout. Works on
+            almost every trading day.</li>
+          <li><b>Opening Range Breakout</b> &mdash; A high-probability intraday setup using the high and low of
+            the first 15 to 30 minutes. The full playbook is in the PICK STRATEGY tab.</li>
+          <li><b>Triangle and Flag breakouts</b> &mdash; Classic chart patterns where price gives you a clear
+            target measured from the pattern's height.</li>
+          <li><b>Avoid trendline breakouts for the first 3 months</b> &mdash; They fail most often for
+            beginners. You need experience to draw trendlines correctly without bias.</li>
         </ul>
       </div>
 
@@ -182,9 +284,9 @@
           <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
-        </svg> <b>The breakout trader's paradox:</b> the <i>obvious</i> breakouts &mdash; the ones where everyone on
-        FinTwit is shouting "BREAKOUT!" &mdash; fail more than they succeed. Quiet breakouts emerging from boring
-        compression ranges win. If it feels exciting, it's probably a trap.</div>
+        </svg> <b>The breakout trader's paradox:</b> The <i>obvious</i> breakouts &mdash; the ones where everyone
+        on social media is shouting "BREAKOUT!" &mdash; fail more often than they succeed. Quiet breakouts that
+        emerge from boring sideways ranges are the ones that win. If a breakout feels exciting and crowded, it
+        is probably a trap.</div>
 
     </div>
-  

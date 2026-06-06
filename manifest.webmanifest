@@ -59,9 +59,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Live Chart & Paper Trade",
-      "short_name": "Chart",
-      "description": "Open the live Nifty 50 chart and paper-trading sandbox",
+      "name": "Live Chart & Options Trading",
+      "short_name": "Options",
+      "description": "Open the live Nifty 50 chart and options-trading sandbox (simulated)",
       "url": "./candlestick-patterns.html#live",
       "icons": [{ "src": "pwa/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
     },

@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-06-05T07:20:15.486Z",
+  "params": {
+    "WARMUP": 40,
+    "STEP": 5,
+    "CAP": 80,
+    "TARGET_MULTS": [
+      2,
+      3,
+      4,
+      6,
+      8,
+      10
+    ],
+    "ADX_OFFSET": 27
+  },
+  "entriesTried": 308028,
+  "hit": 150444,
+  "reachRatePct": 48.84,
+  "rangeCoveragePct": 52.9,
+  "biasMedian": 0.978,
+  "byBucket": {
+    "STRONG": {
+      "n": 66416,
+      "chosenEff": 0.17,
+      "medianImpliedEff": 0.171
+    },
+    "NORMAL": {
+      "n": 43897,
+      "chosenEff": 0.17,
+      "medianImpliedEff": 0.171
+    },
+    "CHOPPY": {
+      "n": 40131,
+      "chosenEff": 0.17,
+      "medianImpliedEff": 0.182
+    }
+  }
+}

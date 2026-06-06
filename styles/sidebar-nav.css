@@ -1,0 +1,1043 @@
+/* ═════════ SIDEBAR LAYOUT (scoped to body.has-sidebar) ═════════ */
+.sidebar-brand,
+.sidebar-footer,
+.sidebar-toggle,
+.sidebar-backdrop,
+.sidebar-collapse {
+  display: none;
+}
+
+body.has-sidebar>header {
+  display: none;
+}
+
+body.has-sidebar .nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 295px;
+  border-right: 1px solid var(--bd);
+  border-bottom: none;
+  background: var(--s1);
+  backdrop-filter: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 150;
+  transition: transform 0.26s ease;
+}
+
+body.has-sidebar .sidebar-brand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--bd);
+  flex-shrink: 0;
+  color: var(--text);
+}
+
+body.has-sidebar .sidebar-brand-link {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+  min-width: 0;
+}
+
+body.has-sidebar .sidebar-brand-logo {
+  width: 32px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+body.has-sidebar .sidebar-brand-logo .ms-bear,
+body.has-sidebar .sidebar-brand-logo .ms-star,
+body.has-sidebar .sidebar-brand-logo .ms-bull {
+  transform-box: fill-box;
+}
+
+body.has-sidebar .sidebar-brand-logo .ms-bear {
+  transform-origin: center bottom;
+  animation: ms-bear 3.6s ease-in-out infinite;
+}
+
+body.has-sidebar .sidebar-brand-logo .ms-star {
+  transform-origin: center;
+  animation: ms-star 3.6s ease-in-out 0.4s infinite;
+}
+
+body.has-sidebar .sidebar-brand-logo .ms-bull {
+  transform-origin: center bottom;
+  animation: ms-bull 3.6s ease-in-out 0.8s infinite;
+}
+
+@keyframes ms-bear {
+
+  0%,
+  5% {
+    transform: scaleY(0.1);
+    opacity: 0.3
+  }
+
+  25%,
+  90% {
+    transform: scaleY(1);
+    opacity: 1
+  }
+
+  100% {
+    transform: scaleY(0.1);
+    opacity: 0.3
+  }
+}
+
+@keyframes ms-star {
+
+  0%,
+  20% {
+    transform: scale(0.2);
+    opacity: 0
+  }
+
+  40% {
+    transform: scale(1.2);
+    opacity: 1
+  }
+
+  55%,
+  90% {
+    transform: scale(1);
+    opacity: 1
+  }
+
+  100% {
+    transform: scale(0.2);
+    opacity: 0
+  }
+}
+
+@keyframes ms-bull {
+
+  0%,
+  40% {
+    transform: scaleY(0.1);
+    opacity: 0.3
+  }
+
+  65%,
+  90% {
+    transform: scaleY(1);
+    opacity: 1
+  }
+
+  100% {
+    transform: scaleY(0.1);
+    opacity: 0.3
+  }
+}
+
+/* ═════════ NEXT / PREV SECTION NAVIGATION (bottom of every section) ═════════ */
+.section-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 48px;
+  margin-bottom: 8px;
+  padding-top: 26px;
+  border-top: 1px solid var(--bd);
+}
+
+.section-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--text);
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  min-width: 0;
+}
+
+.section-nav-btn:hover:not([disabled]) {
+  border-color: var(--bull);
+  background: var(--s2);
+  transform: translateY(-1px);
+}
+
+.section-nav-btn[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.section-nav-btn.next {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.section-nav-btn .snav-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.section-nav-btn .snav-label {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.section-nav-btn .snav-title {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+  font-size: 0.98rem;
+  line-height: 1.25;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.section-nav-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+  opacity: 0.65;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.section-nav-btn:hover:not([disabled]) svg {
+  opacity: 1;
+  color: var(--bull);
+}
+
+@media (max-width:600px) {
+  .section-nav {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .section-nav-btn {
+    padding: 11px 14px;
+  }
+}
+
+/* ═════════ JUMP TO ANY SECTION (below next/prev) ═════════ */
+.section-jump {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--bd);
+}
+
+.section-jump-title {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 18px;
+  font-weight: 600;
+}
+
+.section-jump-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.section-jump-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.section-jump-col-title {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  font-weight: 600;
+  margin: 0 0 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--bd);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.section-jump-link {
+  display: block;
+  padding: 5px 8px;
+  color: var(--text-soft);
+  text-decoration: none;
+  font-size: 0.84rem;
+  border-radius: 4px;
+  transition: color 0.12s, background 0.12s, box-shadow 0.12s;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.section-jump-link:hover {
+  color: var(--bull);
+  background: var(--s2);
+}
+
+.section-jump-link.is-current {
+  color: var(--bull);
+  font-weight: 600;
+  background: var(--s2);
+  pointer-events: none;
+  box-shadow: inset 2px 0 0 var(--bull);
+}
+
+@media (max-width:1400px) {
+  .section-jump-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px 24px;
+  }
+}
+
+@media (max-width:720px) {
+  .section-jump-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width:480px) {
+  .section-jump-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═════════ INLINE ICON SYSTEM (replaces emoji) ═════════ */
+.ico {
+  display: inline-block;
+  width: 1.05em;
+  height: 1.05em;
+  vertical-align: -0.2em;
+  margin-right: 0.35em;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.ico-warn {
+  color: var(--neu);
+}
+
+.ico-zap {
+  color: var(--neu);
+}
+
+.ico-err {
+  color: var(--bear);
+}
+
+.ico-ok {
+  color: var(--bull);
+}
+
+.ico-info {
+  color: var(--info);
+}
+
+.ico-star {
+  color: var(--neu);
+}
+
+.rating {
+  display: inline-flex;
+  gap: 1px;
+  vertical-align: -0.2em;
+}
+
+.rating .ico {
+  margin-right: 0;
+  width: 1em;
+  height: 1em;
+}
+
+.cnum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35em;
+  height: 1.35em;
+  border: 1.4px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.7em;
+  font-weight: 700;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  line-height: 1;
+  vertical-align: 0.1em;
+  margin-right: 0.45em;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion:reduce) {
+
+  body.has-sidebar .sidebar-brand-logo .ms-bear,
+  body.has-sidebar .sidebar-brand-logo .ms-star,
+  body.has-sidebar .sidebar-brand-logo .ms-bull {
+    animation: none;
+  }
+}
+
+body.has-sidebar .sidebar-brand-title {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.05em;
+  line-height: 1.22;
+  color: var(--text);
+  text-transform: uppercase;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+}
+
+body.has-sidebar .sidebar-collapse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+body.has-sidebar .sidebar-collapse:hover {
+  color: var(--text);
+  background: var(--s2);
+  border-color: var(--bd);
+}
+
+body.has-sidebar .sidebar-collapse svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+body.has-sidebar .ntabs {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  max-width: none;
+  margin: 0;
+  padding: 8px;
+  gap: 1px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+body.has-sidebar .ntabs::-webkit-scrollbar {
+  width: 6px;
+}
+
+body.has-sidebar .ntabs::-webkit-scrollbar-thumb {
+  background: var(--s3);
+  border-radius: 3px;
+}
+
+body.has-sidebar .tab {
+  justify-content: flex-start;
+  text-align: left;
+  width: 100%;
+  padding: 11px 12px;
+  font-size: 0.93rem;
+  letter-spacing: 0.03em;
+  border-bottom: none;
+  border-radius: 5px;
+  gap: 10px;
+}
+
+body.has-sidebar .tab .nico,
+body.has-sidebar .sub .nico {
+  width: 16px;
+  height: 16px;
+}
+
+body.has-sidebar .tab:hover {
+  background: var(--sub-hover);
+  color: var(--bull);
+}
+
+body.has-sidebar .tab.active {
+  background: var(--sub-active-bg);
+  color: var(--bull);
+  border-bottom-color: transparent;
+  box-shadow: inset 2px 0 0 var(--bull);
+}
+
+/* ═════════ Sidebar icon tones ═════════
+   Each top-level tab carries a data-tone="bull|info|neutral|bear|violet"
+   attribute that picks a hue for ONLY its .nico icon. The button label
+   text stays the regular --text-dim gray. Hover and active states
+   override the tone with bull-green for consistent "active" feedback.
+
+   Removing this entire block reverts every icon to the previous monochrome
+   look — no HTML changes needed (data-tone attributes are no-ops without
+   a CSS rule). */
+body.has-sidebar .tab[data-tone="bull"] > .nico {
+  color: var(--bull);
+}
+body.has-sidebar .tab[data-tone="info"] > .nico {
+  color: var(--info);
+}
+body.has-sidebar .tab[data-tone="neutral"] > .nico {
+  color: var(--neutral);
+}
+body.has-sidebar .tab[data-tone="bear"] > .nico {
+  color: var(--bear);
+}
+body.has-sidebar .tab[data-tone="violet"] > .nico {
+  color: #8b5cf6;
+}
+
+[data-theme="light"] body.has-sidebar .tab[data-tone="violet"] > .nico {
+  color: #7c3aed;
+}
+
+/* Hover / active wins over the per-icon tone so user always knows where
+   they are. Source-order win: same specificity, declared later. */
+body.has-sidebar .tab:hover > .nico,
+body.has-sidebar .tab.active > .nico,
+body.has-sidebar .tab-group.group-active > .nico {
+  color: var(--bull);
+}
+
+/* Standalone top-level sidebar tabs (e.g. ANATOMY, PAPER TRADING) — match
+the visual treatment of group titles so the sidebar reads consistently. */
+body.has-sidebar .ntabs>.tab:not(.tab-group) {
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  font-weight: 600;
+  padding: 10px 12px;
+}
+
+body.has-sidebar .ntabs>.tab:not(.tab-group):hover {
+  color: var(--bull);
+  background: var(--sub-hover);
+}
+
+body.has-sidebar .ntabs>.tab:not(.tab-group).active {
+  color: var(--bull);
+  background: var(--sub-active-bg);
+  box-shadow: inset 2px 0 0 var(--bull);
+}
+
+body.has-sidebar .ngroup {
+  position: static;
+  margin-top: 6px;
+}
+
+body.has-sidebar .tab-group {
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  font-weight: 600;
+  padding: 10px 12px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+body.has-sidebar .tab-group:hover {
+  background: transparent;
+  color: var(--text);
+}
+
+body.has-sidebar .tab-group.group-active {
+  color: var(--text);
+  border-bottom-color: transparent;
+}
+
+body.has-sidebar .tab-group .chevron {
+  margin-left: auto;
+  margin-right: 0;
+  opacity: 0.7;
+}
+
+body.has-sidebar .ngroup.open .chevron {
+  transform: rotate(-180deg);
+}
+
+body.has-sidebar .sub {
+  position: static;
+  display: none;
+  width: 100%;
+  min-width: 0;
+  left: auto;
+  top: auto;
+  transform: none;
+  background: transparent;
+  padding: 2px 0 4px;
+  box-shadow: none;
+  border: none;
+  flex-direction: column;
+  gap: 1px;
+}
+
+body.has-sidebar .ngroup.open>.sub {
+  display: flex;
+}
+
+body.has-sidebar .ngroup:not(.open):hover>.sub {
+  display: none;
+}
+
+body.has-sidebar .sub .tab {
+  padding: 8px 12px 8px 26px;
+  font-size: 0.81rem;
+  color: var(--text-soft);
+  border-left: 2px solid transparent;
+  border-radius: 4px;
+}
+
+body.has-sidebar .sub .sub-divider {
+  padding: 9px 12px 3px 18px;
+  font-size: 8.5px;
+}
+
+body.has-sidebar .sub .tab:hover {
+  background: var(--sub-hover);
+  color: var(--bull);
+  border-left-color: transparent;
+}
+
+body.has-sidebar .sub .tab.active {
+  color: var(--bull);
+  background: var(--sub-active-bg);
+  border-left-color: var(--bull);
+  box-shadow: none;
+}
+
+body.has-sidebar .sidebar-footer {
+  display: flex;
+  flex-shrink: 0;
+  border-top: 1px solid var(--bd);
+  padding: 10px;
+  gap: 6px;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+}
+
+body.has-sidebar .sidebar-footer button {
+  flex: 1;
+  padding: 8px 6px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 4px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+body.has-sidebar .sidebar-footer button:hover {
+  color: var(--bull);
+  border-color: rgba(9, 168, 110, 0.3);
+}
+
+body.has-sidebar .sidebar-footer svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Maintenance row (Clear cache / Reset data) sits just below the
+   Search/Theme/Keys row. Reuses .sidebar-footer styling; the destructive
+   "Reset data" button hovers red instead of the default green. */
+body.has-sidebar .sidebar-footer-maint .sidebar-footer-danger:hover {
+  color: var(--bear);
+  border-color: var(--bear-tint);
+}
+
+body.has-sidebar .sec,
+body.has-sidebar>footer {
+  margin-left: 295px;
+  transition: margin-left 0.26s ease;
+}
+
+body.has-sidebar .sec {
+  scroll-margin-top: 24px;
+}
+
+body.has-sidebar .search-trigger {
+  top: 14px;
+  right: 20px;
+}
+
+body.has-sidebar .theme-toggle {
+  top: 14px;
+  right: 128px;
+}
+
+/* Floating hamburger — shown when sidebar is collapsed (desktop) or as drawer opener (mobile) */
+body.has-sidebar .sidebar-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  z-index: 160;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+body.has-sidebar .sidebar-toggle svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+body.has-sidebar .sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 140;
+  display: none;
+}
+
+body.has-sidebar .sidebar-backdrop.visible {
+  display: block;
+}
+
+/* Collapsed state (desktop): mini sidebar — icons only, 64px wide */
+body.has-sidebar.sidebar-collapsed .nav {
+  width: 64px;
+  transform: translateX(0);
+  transition: width 0.24s ease;
+}
+
+body.has-sidebar.sidebar-collapsed .sec,
+body.has-sidebar.sidebar-collapsed>footer {
+  margin-left: 64px;
+}
+
+/* Brand area: stack logo and hamburger vertically, hide title */
+body.has-sidebar.sidebar-collapsed .sidebar-brand {
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 6px 10px;
+}
+
+body.has-sidebar.sidebar-collapsed .sidebar-brand-link {
+  flex: 0 0 auto;
+  gap: 0;
+  justify-content: center;
+  overflow: visible;
+}
+
+body.has-sidebar.sidebar-collapsed .sidebar-brand-logo {
+  width: 38px;
+  height: auto;
+}
+
+body.has-sidebar.sidebar-collapsed .sidebar-brand-title {
+  display: none;
+}
+
+body.has-sidebar.sidebar-collapsed .sidebar-collapse {
+  margin: 0 auto;
+}
+
+/* Tabs: hide text via text-indent (SVG icons remain visible) */
+/* Hide tab label text via font-size:0 so we can leave overflow:visible (tooltip escape) */
+body.has-sidebar.sidebar-collapsed .tab {
+  font-size: 0;
+  padding: 11px 0;
+  justify-content: center;
+  gap: 0;
+  overflow: visible;
+}
+
+/* Specificity override for STANDALONE top-level tabs (ANATOMY, PAPER TRADING).
+   Their non-collapsed rule (`body.has-sidebar .ntabs>.tab:not(.tab-group)`)
+   carries 4 classes vs the generic `.tab` collapse rule's 3, which would
+   otherwise leave their `font-size: 0.78rem` and `letter-spacing: 0.1em`
+   in effect — leaking the label text into the 64px rail. */
+body.has-sidebar.sidebar-collapsed .ntabs > .tab:not(.tab-group) {
+  font-size: 0;
+  letter-spacing: 0;
+  padding: 11px 0;
+}
+
+body.has-sidebar.sidebar-collapsed .tab .nico {
+  font-size: initial;
+  width: 18px;
+  height: 18px;
+}
+
+body.has-sidebar.sidebar-collapsed .tab .chevron {
+  display: none;
+}
+
+body.has-sidebar.sidebar-collapsed .tab-group {
+  padding: 10px 0 8px;
+  letter-spacing: 0;
+}
+
+/* Hide sub-menus entirely when collapsed (group click will auto-expand) */
+body.has-sidebar.sidebar-collapsed .sub {
+  display: none !important;
+}
+
+/* ── Collapsed-sidebar tooltips: hover over an icon to see the section name ── */
+body.has-sidebar.sidebar-collapsed .ntabs .tab,
+body.has-sidebar.sidebar-collapsed .sidebar-footer button {
+  position: relative;
+}
+
+body.has-sidebar.sidebar-collapsed .ntabs .tab[data-tip]::after,
+body.has-sidebar.sidebar-collapsed .sidebar-footer button[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  background: var(--s3);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 7px 11px;
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px var(--shadow-color);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
+  z-index: 250;
+}
+
+/* Small arrow pointing back at the icon */
+body.has-sidebar.sidebar-collapsed .ntabs .tab[data-tip]::before,
+body.has-sidebar.sidebar-collapsed .sidebar-footer button[data-tip]::before {
+  content: '';
+  position: absolute;
+  left: calc(100% + 4px);
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  background: var(--s3);
+  border-left: 1px solid var(--bd);
+  border-bottom: 1px solid var(--bd);
+  transform: translateY(-50%) rotate(45deg) translateX(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
+  pointer-events: none;
+  z-index: 251;
+}
+
+body.has-sidebar.sidebar-collapsed .ntabs .tab:hover[data-tip]::after,
+body.has-sidebar.sidebar-collapsed .ntabs .tab:focus-visible[data-tip]::after,
+body.has-sidebar.sidebar-collapsed .sidebar-footer button:hover[data-tip]::after,
+body.has-sidebar.sidebar-collapsed .sidebar-footer button:focus-visible[data-tip]::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+body.has-sidebar.sidebar-collapsed .ntabs .tab:hover[data-tip]::before,
+body.has-sidebar.sidebar-collapsed .ntabs .tab:focus-visible[data-tip]::before,
+body.has-sidebar.sidebar-collapsed .sidebar-footer button:hover[data-tip]::before,
+body.has-sidebar.sidebar-collapsed .sidebar-footer button:focus-visible[data-tip]::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) rotate(45deg) translateX(0);
+}
+
+/* Group headers (CANDLES, CHART, etc.) use accent color in their tooltip */
+body.has-sidebar.sidebar-collapsed .ntabs .tab-group[data-tip]::after {
+  color: var(--bull);
+  border-color: rgba(9, 168, 110, 0.4);
+}
+
+/* The nav itself must allow tooltips to overflow its right edge */
+body.has-sidebar.sidebar-collapsed .nav {
+  overflow: visible;
+}
+
+body.has-sidebar.sidebar-collapsed .ntabs {
+  overflow: visible;
+}
+
+/* Footer buttons: icon-only, stacked vertically */
+body.has-sidebar.sidebar-collapsed .sidebar-footer {
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 6px;
+}
+
+body.has-sidebar.sidebar-collapsed .sidebar-footer button {
+  width: 100%;
+  padding: 9px 0;
+  gap: 0;
+  font-size: 0;
+  overflow: visible;
+}
+
+body.has-sidebar.sidebar-collapsed .sidebar-footer button svg {
+  font-size: initial;
+  margin: 0 auto;
+}
+
+/* Floating hamburger stays hidden since the in-brand hamburger is still accessible */
+body.has-sidebar.sidebar-collapsed .sidebar-toggle {
+  display: none;
+}
+
+/* Mobile: drawer behaviour (drawer opener always visible) */
+@media (max-width:960px) {
+  body.has-sidebar .sidebar-toggle {
+    display: flex;
+  }
+
+  body.has-sidebar .nav {
+    transform: translateX(-100%);
+    width: 300px;
+    box-shadow: 4px 0 24px var(--shadow-color);
+  }
+
+  body.has-sidebar .nav.drawer-open {
+    transform: translateX(0);
+  }
+
+  body.has-sidebar .sec,
+  body.has-sidebar>footer {
+    margin-left: 0;
+  }
+
+  body.has-sidebar .sec .wrap {
+    padding-top: 64px;
+  }
+
+  body.has-sidebar .search-trigger {
+    right: 16px;
+    top: 14px;
+  }
+
+  body.has-sidebar .theme-toggle {
+    top: 14px;
+    right: 68px;
+  }
+
+  /* On mobile, the collapse button inside the brand mirrors the floating one */
+  body.has-sidebar .sidebar-collapse {
+    display: flex;
+  }
+
+  /* Drawer open: hide the floating hamburger (it was overlapping the brand logo).
+ The internal .sidebar-collapse button inside the drawer stays, acting as the close control. */
+  body.has-sidebar.drawer-open .sidebar-toggle {
+    display: none;
+  }
+
+  /* Morph internal hamburger into an X when drawer is open (clearer close affordance) */
+  body.has-sidebar.drawer-open .sidebar-collapse svg {
+    position: relative;
+  }
+
+  body.has-sidebar.drawer-open .sidebar-collapse svg line {
+    transform-origin: 12px 12px;
+    transition: transform 0.2s ease;
+  }
+
+  body.has-sidebar.drawer-open .sidebar-collapse svg line:nth-child(1) {
+    transform: rotate(45deg) translate(0, 5px);
+  }
+
+  body.has-sidebar.drawer-open .sidebar-collapse svg line:nth-child(2) {
+    opacity: 0;
+  }
+
+  body.has-sidebar.drawer-open .sidebar-collapse svg line:nth-child(3) {
+    transform: rotate(-45deg) translate(0, -5px);
+  }
+
+  body.has-sidebar.drawer-open .sidebar-collapse {
+    border-color: var(--bear);
+    color: var(--bear);
+  }
+}
+
+@media (max-width:640px) {
+  body.has-sidebar .search-trigger span {
+    display: none;
+  }
+
+  body.has-sidebar .search-trigger kbd {
+    display: none;
+  }
+}

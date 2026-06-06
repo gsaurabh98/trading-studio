@@ -32,16 +32,24 @@ Pure stdlib — no ``pip install`` needed.
 """
 from __future__ import annotations
 
+import json
 import sys
 import time
 from dataclasses import dataclass
+from functools import lru_cache
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Final
 from urllib import request as urlreq
 from urllib.error import HTTPError, URLError
 
 UPSTOX_HOST: Final[str] = "https://api.upstox.com"
 PROXY_PREFIX: Final[str] = "/api"
+# Angel One SmartAPI — proxied so the browser never has to deal with CORS or
+# hold the API key. Stage-1 use is read-only market data (historical candles).
+ANGEL_HOST: Final[str] = "https://apiconnect.angelone.in"
+ANGEL_PREFIX: Final[str] = "/angel"
+ANGEL_CREDS_PATH: Final[Path] = Path(__file__).resolve().parent / "data" / "angel-one-creds.json"
 REQUEST_TIMEOUT_SEC: Final[float] = 15.0
 # Exponential backoff: first attempt is immediate, then 0.4s, 1.2s, 2.8s.
 # Mirrors the client-side fetchWithRetry budget (~4s total) so a transient
@@ -152,6 +160,116 @@ def fetch_upstream(
     return UpstreamResult(status=502, content_type="application/json", body=body)
 
 
+# ─── Angel One SmartAPI proxy ──────────────────────────────────────────────
+
+
+@lru_cache(maxsize=1)
+def _angel_api_key() -> str | None:
+    """Read the SmartAPI key from data/angel-one-creds.json (cached).
+
+    SmartAPI requires ``X-PrivateKey: <api_key>`` on every authenticated call —
+    not just the JWT. We inject it server-side so the key never reaches the
+    browser. Returns ``None`` if the creds file is missing / malformed, in
+    which case the proxy responds 400 with a clear message.
+    """
+    try:
+        raw = json.loads(ANGEL_CREDS_PATH.read_text())
+        key = str(raw.get("api_key", "")).strip()
+        return key or None
+    except Exception:
+        return None
+
+
+def _build_angel_request(
+    upstream_path: str, auth: str | None, method: str, body: bytes
+) -> urlreq.Request:
+    """Construct a SmartAPI Request with the mandatory header set.
+
+    The browser only sends ``Authorization: Bearer <JWT>``; we add the API key
+    + the fixed SmartAPI headers here. Client IP / MAC are placeholders (the
+    same ones the login script uses) — SmartAPI accepts them for personal use.
+    """
+    headers: dict[str, str] = {
+        "User-Agent": BROWSER_UA,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "identity",
+        "X-UserType": "USER",
+        "X-SourceID": "WEB",
+        "X-ClientLocalIP": "127.0.0.1",
+        "X-ClientPublicIP": "127.0.0.1",
+        "X-MACAddress": "00:00:00:00:00:00",
+        "X-PrivateKey": _angel_api_key() or "",
+    }
+    if auth:
+        headers["Authorization"] = auth
+    data = body if method == "POST" else None
+    return urlreq.Request(
+        ANGEL_HOST + upstream_path, data=data, headers=headers, method=method
+    )
+
+
+def fetch_angel(
+    upstream_path: str, auth: str | None, method: str, body: bytes
+) -> UpstreamResult:
+    """Forward a GET/POST to Angel One SmartAPI with backoff retry.
+
+    Mirrors :func:`fetch_upstream`: 4xx/5xx pass through untouched, connection
+    errors retry. A missing API key short-circuits to a 400 so the UI can tell
+    the user to create ``data/angel-one-creds.json`` and run the auth script.
+    """
+    if not _angel_api_key():
+        return UpstreamResult(
+            status=400,
+            content_type="application/json",
+            body=(
+                b'{"proxy_error":"missing Angel One API key",'
+                b'"detail":"create data/angel-one-creds.json with an api_key '
+                b'and run scripts/angel-one-auth.py"}'
+            ),
+        )
+
+    last_err: Exception | None = None
+    for delay in RETRY_BACKOFFS_SEC:
+        if delay > 0:
+            time.sleep(delay)
+        req = _build_angel_request(upstream_path, auth, method, body)
+        try:
+            with urlreq.urlopen(req, timeout=REQUEST_TIMEOUT_SEC) as resp:
+                return UpstreamResult(
+                    status=resp.status,
+                    content_type=resp.headers.get("Content-Type", "application/json"),
+                    body=resp.read(),
+                )
+        except HTTPError as e:
+            try:
+                eb = e.read()
+            except Exception:
+                eb = b'{"error":"upstream returned an error response"}'
+            return UpstreamResult(
+                status=e.code,
+                content_type=e.headers.get("Content-Type", "application/json")
+                if e.headers
+                else "application/json",
+                body=eb,
+            )
+        except URLError as e:
+            last_err = e
+            continue
+        except Exception as e:
+            last_err = e
+            break
+
+    msg = str(last_err) if last_err is not None else "unknown error"
+    detail = (
+        b'{"proxy_error":"angel upstream unreachable after retries","detail":'
+        + repr(msg).encode("utf-8", errors="replace")
+        + b"}"
+    )
+    return UpstreamResult(status=502, content_type="application/json", body=detail)
+
+
 class _StudioHandler(SimpleHTTPRequestHandler):
     """Static-file handler that intercepts /api/* and proxies it to Upstox."""
 
@@ -165,21 +283,80 @@ class _StudioHandler(SimpleHTTPRequestHandler):
         if "/api/" in first_str or status_str.startswith(("4", "5")):
             super().log_message(fmt, *args)
 
+    def end_headers(self) -> None:
+        # Dev server: never let the browser's HTTP cache hold a stale static
+        # asset. Forces revalidation so edits to the HTML shell, JS, CSS,
+        # sw.js and content/*.html show up on the next reload — and so the
+        # service worker's network-first navigation + its 60s update check
+        # always pull fresh bytes instead of a cached shell. API responses
+        # set their own Cache-Control (no-store) in do_GET below; don't
+        # clobber that, so we only inject for static files.
+        if not self.path.startswith(PROXY_PREFIX + "/"):
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+        super().end_headers()
+
+    def _write_result(self, res: UpstreamResult) -> None:
+        """Send an UpstreamResult back to the browser (proxy responses)."""
+        self.send_response(res.status)
+        self.send_header("Content-Type", res.content_type)
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        try:
+            self.wfile.write(res.body)
+        except (BrokenPipeError, ConnectionResetError):
+            # The browser aborted the request before we finished writing
+            # (normal when the app cancels a stale fetch on a rapid
+            # timeframe / stock switch). Nothing to recover — swallow it
+            # so the terminal isn't flooded with misleading tracebacks.
+            pass
+
+    def _read_body(self) -> bytes:
+        """Read the full request body (for proxied POSTs)."""
+        try:
+            length = int(self.headers.get("Content-Length", "0") or "0")
+        except ValueError:
+            length = 0
+        return self.rfile.read(length) if length > 0 else b""
+
     def do_GET(self) -> None:
+        if self.path.startswith(ANGEL_PREFIX + "/"):
+            self._write_result(
+                fetch_angel(
+                    self.path[len(ANGEL_PREFIX):],
+                    auth=self.headers.get("Authorization"),
+                    method="GET",
+                    body=b"",
+                )
+            )
+            return
         if self.path.startswith(PROXY_PREFIX + "/"):
             upstream_path = self.path[len(PROXY_PREFIX):]
-            res = fetch_upstream(
-                upstream_path,
-                auth=self.headers.get("Authorization"),
-                accept=self.headers.get("Accept", "application/json"),
+            self._write_result(
+                fetch_upstream(
+                    upstream_path,
+                    auth=self.headers.get("Authorization"),
+                    accept=self.headers.get("Accept", "application/json"),
+                )
             )
-            self.send_response(res.status)
-            self.send_header("Content-Type", res.content_type)
-            self.send_header("Cache-Control", "no-store")
-            self.end_headers()
-            self.wfile.write(res.body)
             return
         super().do_GET()
+
+    def do_POST(self) -> None:
+        # Only the Angel One proxy needs POST (SmartAPI getCandleData et al.).
+        # Upstox's endpoints we use are all GET, so anything else is rejected.
+        if self.path.startswith(ANGEL_PREFIX + "/"):
+            self._write_result(
+                fetch_angel(
+                    self.path[len(ANGEL_PREFIX):],
+                    auth=self.headers.get("Authorization"),
+                    method="POST",
+                    body=self._read_body(),
+                )
+            )
+            return
+        self.send_error(405, "Method Not Allowed")
 
 
 def main() -> None:
@@ -189,6 +366,8 @@ def main() -> None:
     print(f"  Static files:  ./")
     print(f"  API proxy:     /api/v2/* -> https://api.upstox.com/v2/*")
     print(f"                 /api/v3/* -> https://api.upstox.com/v3/*")
+    angel_ready = "ready" if _angel_api_key() else "NO api_key (see data/angel-one-creds.json)"
+    print(f"  Angel proxy:   /angel/*  -> https://apiconnect.angelone.in/*  [{angel_ready}]")
     print(f"  Stop:          Ctrl+C")
     try:
         server.serve_forever()

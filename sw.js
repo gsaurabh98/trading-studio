@@ -6,7 +6,7 @@
  *                                  WITHOUT needing a CACHE_VERSION bump)
  *   - content/*.html section files → stale-while-revalidate
  *   - Google Fonts CSS + woff2   → cache-first with long TTL (immutable URLs)
- *   - Klinecharts CDN            → cache-first (versioned URL → effectively immutable)
+ *   - LWC CDN (unpkg)            → cache-first (versioned URL → effectively immutable)
  *   - Upstox API (api.upstox.com) → bypassed entirely (live market data must
  *                                   never be served stale, AND the SW must
  *                                   not be in the request path so a SW
@@ -31,13 +31,13 @@
  *   • All Upstox API calls (api.upstox.com + same-origin /api/*) BYPASS
  *     the SW entirely (see the fetch handler below). A SW handover cannot
  *     drop them because they were never in the SW's request path.
- *   • Static assets are cached either way; a brief handover gap may pull
+ *   • Static assets are cached either way; a brief handover gap may pull 
  *     them from the new SW's cache instead of the old, which is fine.
  *   • The auto-reload runs AFTER the new SW is active, so the new HTML
  *     comes from a consistent SW instance.
  */
 
-const CACHE_VERSION = 'v96-2026-05-14-github-pages-index-redirect';
+const CACHE_VERSION = 'v955-2026-06-06-scanner-ctx-entry-fallback';
 const STATIC_CACHE = `trading-studio-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `trading-studio-runtime-${CACHE_VERSION}`;
 const FONT_CACHE = `trading-studio-fonts-${CACHE_VERSION}`;
@@ -45,9 +45,14 @@ const FONT_CACHE = `trading-studio-fonts-${CACHE_VERSION}`;
 // Files we want available immediately the first time the SW activates.
 // Keep this list small — favicons, social cards, and PNG fallbacks are NOT
 // precached; they're cached on first fetch via the runtime SWR strategy.
+// data/sectors.json is precached because the swing tab cannot render its
+// sector grid without it (small payload, ~6 KB) so making the first hit
+// instant is worth the install cost.
 const PRECACHE_URLS = [
   './candlestick-patterns.html',
   './manifest.webmanifest',
+  './data/sectors.json',
+  './data/verdict-rules.json',
   './pwa/icons/icon-192.svg',
   './pwa/icons/icon-512.svg',
   './pwa/icons/icon-maskable-512.svg',
@@ -162,6 +167,12 @@ self.addEventListener('fetch', (event) => {
 
   // 2) Lightweight Charts from unpkg — versioned URL, treat as immutable.
   if (url.hostname === 'unpkg.com') {
+    event.respondWith(cacheFirst(req, RUNTIME_CACHE));
+    return;
+  }
+
+  // 2b) protobufjs from jsdelivr — versioned URL, treat as immutable.
+  if (url.hostname === 'cdn.jsdelivr.net') {
     event.respondWith(cacheFirst(req, RUNTIME_CACHE));
     return;
   }

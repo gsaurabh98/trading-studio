@@ -1,0 +1,932 @@
+/* ═════════ LIVE OPTION CHAIN (Upstox API) ═════════ */
+.up-card {
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin: 14px 0;
+}
+
+.up-card h3 {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  margin: 0 0 12px;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
+.up-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.up-row .up-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 200px;
+}
+
+.up-row .up-field label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.up-row input,
+.up-row select {
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  color: var(--text);
+  border-radius: 5px;
+  padding: 0 13px;
+  height: 38px;
+  font-size: 13.5px;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.up-row input:focus,
+.up-row select:focus {
+  border-color: var(--info);
+}
+
+/* Token field — visually masked like a password (•••••) but type="text"
+   so Chrome's password manager DOESN'T engage. Putting type="password"
+   anywhere on this page made Chrome offer "Save password?" on every
+   other input (including SL/Target). CSS masking gives the same UX. */
+.up-token-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.up-token-wrap input {
+  flex: 1;
+  padding-right: 42px;
+  letter-spacing: 0.04em;
+}
+
+/* -webkit-text-security covers Chrome / Safari / Edge / Opera (everyone
+   except Firefox). Firefox users will see the token plain — acceptable
+   since the show/hide toggle is right there anyway. */
+.up-token-wrap input.masked {
+  -webkit-text-security: disc;
+}
+
+.up-token-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: background 0.12s, color 0.12s;
+  padding: 0;
+}
+
+.up-token-toggle:hover {
+  background: var(--s2);
+  color: var(--text);
+}
+
+.up-token-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.up-row .up-btn {
+  padding: 10px 20px;
+  min-width: 170px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  border: none;
+  box-sizing: border-box;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.up-row .up-btn.primary {
+  background: var(--info);
+  color: #fff;
+}
+
+.up-row .up-btn.primary:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.up-row .up-btn.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.up-row .up-btn.ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--bd);
+}
+
+.up-row .up-btn.ghost:hover {
+  background: var(--s2);
+  color: var(--text);
+}
+
+.up-row .up-btn.danger {
+  background: transparent;
+  color: var(--bear);
+  border: 1px solid var(--bear);
+}
+
+.up-row .up-btn.danger:hover {
+  background: rgba(201, 31, 58, 0.1);
+}
+
+.up-status {
+  margin-top: 12px;
+  padding: 9px 13px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  font-family: 'IBM Plex Mono', monospace;
+  line-height: 1.55;
+  display: none;
+}
+
+.up-status.up-status-info {
+  background: rgba(77, 184, 255, 0.08);
+  color: var(--info);
+  border-left: 3px solid var(--info);
+}
+
+.up-status.up-status-ok {
+  background: rgba(9, 168, 110, 0.08);
+  color: var(--bull);
+  border-left: 3px solid var(--bull);
+}
+
+.up-status.up-status-err {
+  background: rgba(201, 31, 58, 0.08);
+  color: var(--bear);
+  border-left: 3px solid var(--bear);
+}
+
+.up-status.up-status-neutral {
+  background: var(--s2);
+  color: var(--muted);
+  border-left: 3px solid var(--bd);
+}
+
+.up-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.up-stat {
+  background: var(--s2);
+  padding: 11px 13px 12px;
+  border-radius: 6px;
+  border-left: 3px solid var(--info);
+  position: relative;
+}
+
+.up-stat.is-bull { border-left-color: var(--bull); }
+.up-stat.is-bear { border-left-color: var(--bear); }
+.up-stat.is-neutral { border-left-color: var(--muted); }
+.up-stat.is-warn { border-left-color: #f59e0b; }
+
+.up-stat .up-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.up-stat .up-stat-lbl {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.up-stat .up-stat-val {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  line-height: 1.2;
+}
+
+.up-stat .up-stat-sub {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  margin-top: 2px;
+}
+
+.up-stat.is-bull .up-stat-sub { color: var(--bull); }
+.up-stat.is-bear .up-stat-sub { color: var(--bear); }
+.up-stat.is-warn .up-stat-sub { color: #f59e0b; }
+
+/* Info pill that anchors a hover/focus tooltip */
+.up-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bd);
+  color: var(--text-soft);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.up-info:hover, .up-info:focus {
+  background: var(--info);
+  color: #fff;
+  outline: none;
+}
+
+.up-info::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 200px;
+  max-width: 260px;
+  padding: 8px 10px;
+  background: var(--s3);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px var(--shadow-color);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 20;
+}
+
+.up-info:hover::after, .up-info:focus::after {
+  opacity: 1;
+}
+
+/* "What do these numbers mean" collapsible card */
+.up-explainer {
+  background: rgba(45, 122, 224, 0.06);
+  border: 1px solid rgba(45, 122, 224, 0.25);
+  border-radius: 6px;
+  padding: 0;
+  margin: 0 0 14px;
+  font-size: 13px;
+}
+
+.up-explainer > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--info);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.up-explainer > summary::-webkit-details-marker { display: none; }
+
+.up-explainer > summary::before {
+  content: 'i';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--info);
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+.up-explainer > summary::after {
+  content: '+';
+  margin-left: auto;
+  font-size: 16px;
+  color: var(--info);
+  font-weight: 600;
+}
+
+.up-explainer[open] > summary::after { content: '\2212'; }
+
+.up-explainer-body {
+  padding: 4px 16px 14px 16px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.up-explainer-body ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.up-explainer-body li { margin: 4px 0; }
+.up-explainer-body b { color: var(--text); }
+
+/* Mini "How to read this chart" tip strip under the OI bar chart */
+.up-chart-legend-tips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+  margin: 10px 0 16px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.up-chart-legend-tips .tip {
+  padding: 8px 11px;
+  border-radius: 5px;
+  background: var(--s2);
+  border-left: 3px solid var(--bd);
+  color: var(--text-soft);
+}
+
+.up-chart-legend-tips .tip b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.up-chart-legend-tips .tip.bull { border-left-color: var(--bull); }
+.up-chart-legend-tips .tip.bear { border-left-color: var(--bear); }
+.up-chart-legend-tips .tip.info { border-left-color: var(--info); }
+
+/* Walls section header with intro line */
+.up-walls-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 14px 0 8px;
+}
+
+.up-walls-head h3 {
+  margin: 0;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
+.up-walls-head .up-walls-sub {
+  font-size: 12px;
+  color: var(--text-soft);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+/* ── Live Option Chain table (Upstox-style: Calls | Strike | Puts) ──
+   Pinned strike column in the middle; Calls metrics flow left, Puts
+   flow right. Numbers monospaced for column alignment. ITM cells are
+   tinted. Spot row, PE-wall row, CE-wall row each get their own
+   coloured highlight so the user can scan the book at a glance. */
+.up-chain-table-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 6px 0 8px;
+}
+
+.up-chain-table-sub {
+  font-size: 12px;
+  color: var(--text-soft);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+.up-chain-table-wrap {
+  background: var(--s2);
+  border-radius: 6px;
+  padding: 0;
+  margin-bottom: 14px;
+  overflow: hidden;
+  border: 1px solid var(--bd);
+}
+
+/* The scroll viewport. Vertical cap so the table doesn't dominate
+   the page; horizontal scroll on narrow screens. Custom scrollbar
+   so the inner table doesn't visually fight with the page scroll. */
+.up-chain-table-scroll {
+  overflow: auto;
+  max-height: 540px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bd) transparent;
+}
+.up-chain-table-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+.up-chain-table-scroll::-webkit-scrollbar-thumb { background: var(--bd); border-radius: 4px; }
+.up-chain-table-scroll::-webkit-scrollbar-track { background: transparent; }
+
+.up-chain-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  min-width: 1100px;   /* triggers horizontal scroll on small viewports */
+}
+
+.up-chain-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--s1);
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--bd);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.up-chain-table thead .up-grp {
+  text-align: center;
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  padding: 7px 0;
+  background: var(--s0);
+  border-bottom: 1px solid var(--bd);
+}
+.up-chain-table thead .up-grp.is-call { color: var(--bear); }
+.up-chain-table thead .up-grp.is-put { color: var(--bull); }
+.up-chain-table thead .up-grp.is-strike { color: var(--text); background: var(--s1); border-left: 1px solid var(--bd); border-right: 1px solid var(--bd); }
+
+.up-chain-table thead .col-strike-h {
+  text-align: center;
+  color: var(--text);
+  background: var(--s1);
+  border-left: 1px solid var(--bd);
+  border-right: 1px solid var(--bd);
+}
+
+.up-chain-table tbody td {
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.07);
+  text-align: right;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+/* Strike column — sticky pinned middle column. */
+.up-chain-table tbody td.col-strike {
+  text-align: center;
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--text);
+  background: var(--s1);
+  border-left: 1px solid var(--bd);
+  border-right: 1px solid var(--bd);
+  letter-spacing: 0.02em;
+}
+
+/* ITM cells get a soft tinted background to mirror Upstox */
+.up-chain-table tbody td.is-itm-call { background: rgba(201, 31, 58, 0.06); }
+.up-chain-table tbody td.is-itm-put  { background: rgba(9, 168, 110, 0.06); }
+
+/* OI delta sign colour (matches +growing / -dropping convention) */
+.up-chain-table .oi-up   { color: var(--bull); }
+.up-chain-table .oi-down { color: var(--bear); }
+
+/* LTP cell emphasis */
+.up-chain-table .col-ltp { font-weight: 600; color: var(--text); }
+.up-chain-table .col-ltp.is-call { color: var(--bear); }
+.up-chain-table .col-ltp.is-put { color: var(--bull); }
+
+/* Row variants: ATM, PE wall, CE wall.
+   ATM beats wall highlights only on hover; otherwise wall colour wins
+   so the trader's eye is drawn to the magnets first. */
+.up-chain-table tbody tr.is-atm td.col-strike {
+  background: linear-gradient(180deg, rgba(45, 130, 246, 0.18), rgba(45, 130, 246, 0.10));
+  color: var(--info);
+  box-shadow: inset 0 0 0 1px rgba(45, 130, 246, 0.45);
+}
+.up-chain-table tbody tr.is-pe-wall td.col-strike {
+  background: linear-gradient(180deg, rgba(9, 168, 110, 0.22), rgba(9, 168, 110, 0.10));
+  color: var(--bull);
+  box-shadow: inset 0 0 0 1px rgba(9, 168, 110, 0.45);
+}
+.up-chain-table tbody tr.is-ce-wall td.col-strike {
+  background: linear-gradient(180deg, rgba(201, 31, 58, 0.22), rgba(201, 31, 58, 0.10));
+  color: var(--bear);
+  box-shadow: inset 0 0 0 1px rgba(201, 31, 58, 0.45);
+}
+
+.up-chain-table tbody tr:hover td:not(.col-strike) {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+/* Spot marker row — slim band that floats between two strikes when
+   spot lies between them, so the trader knows exactly where the
+   price is in the book. */
+.up-chain-table tbody tr.is-spot-marker td {
+  background: linear-gradient(90deg, transparent, rgba(45, 130, 246, 0.10), transparent);
+  padding: 4px 8px;
+  border-bottom: 1px dashed rgba(45, 130, 246, 0.55);
+  color: var(--info);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* Mini horizontal OI bar inside OI cells. Width = relative size to
+   max OI in the visible window. CE side flows right→left, PE side
+   flows left→right, so the strike column visually stitches them. */
+.up-oi-bar-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  justify-content: flex-end;
+}
+.up-oi-bar {
+  height: 5px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.up-oi-bar.is-call { background: rgba(201, 31, 58, 0.55); }
+.up-oi-bar.is-put  { background: rgba(9, 168, 110, 0.55); }
+
+/* PCR / spot summary row above the table */
+.up-chain-table-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 8px 12px;
+  background: var(--s1);
+  border-bottom: 1px solid var(--bd);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+.up-chain-table-summary b { color: var(--text); }
+.up-chain-table-summary .sep { color: var(--bd); }
+
+/* Pulsing "LIVE · 3s ago" pill on the chain summary header.
+   Dot pulses while LTPs are ticking (1Hz); freezes/dims after 5s of
+   silence so a stalled poll is visually obvious. */
+.up-chain-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 1px 0;
+}
+.up-chain-live .up-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bull);
+  box-shadow: 0 0 0 0 rgba(9, 168, 110, 0.55);
+  animation: upChainLivePulse 1.6s ease-out infinite;
+}
+.up-chain-live .up-live-dot.is-stale {
+  background: var(--muted);
+  animation: none;
+  box-shadow: none;
+}
+.up-chain-live .up-live-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--bull);
+  text-transform: uppercase;
+}
+.up-chain-live .up-live-dot.is-stale + .up-live-label {
+  color: var(--muted);
+}
+@keyframes upChainLivePulse {
+  0%   { box-shadow: 0 0 0 0 rgba(9, 168, 110, 0.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(9, 168, 110, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(9, 168, 110, 0); }
+}
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .up-chain-live .up-live-dot { animation: none; box-shadow: none; }
+}
+
+/* Card-grid layout for walls (replaces the dense table) */
+.up-walls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.up-wall-card {
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-left: 4px solid var(--info);
+  border-radius: 7px;
+  padding: 14px 16px;
+}
+
+.up-wall-card.is-floor { border-left-color: var(--bull); }
+.up-wall-card.is-ceiling { border-left-color: var(--bear); }
+
+.up-wall-card .up-wall-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.up-wall-card .up-wall-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.up-wall-card.is-floor .up-wall-title { color: var(--bull); }
+.up-wall-card.is-ceiling .up-wall-title { color: var(--bear); }
+
+.up-wall-card .up-wall-strike {
+  margin-left: auto;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.up-strength {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  background: var(--s1);
+  color: var(--text-soft);
+}
+
+.up-strength.s-mild {
+  background: rgba(128, 128, 128, 0.12);
+  color: var(--text-soft);
+}
+
+.up-strength.s-strong {
+  background: rgba(245, 158, 11, 0.18);
+  color: #f59e0b;
+}
+
+.up-strength.s-very {
+  background: rgba(45, 122, 224, 0.18);
+  color: var(--info);
+}
+
+.up-wall-card .up-wall-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 6px 14px;
+  margin-bottom: 10px;
+}
+
+.up-wall-card .up-wall-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.up-wall-card .up-wall-row .k {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.up-wall-card .up-wall-row .v {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.up-wall-card .up-wall-row .v small {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.up-wall-card .up-wall-translation {
+  position: relative;
+  margin-top: 6px;
+  padding: 10px 12px 10px 36px;
+  border-radius: 5px;
+  background: var(--bg);
+  border: 1px dashed var(--bd);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text);
+  text-align: left;
+}
+
+.up-wall-card .up-wall-translation::before {
+  content: '\1F4A1';
+  position: absolute;
+  left: 12px;
+  top: 9px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.up-wall-card .up-wall-translation b { font-weight: 600; color: var(--text); }
+.up-wall-card.is-floor .up-wall-translation b { color: var(--bull); }
+.up-wall-card.is-ceiling .up-wall-translation b { color: var(--bear); }
+
+.up-walls {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.up-walls th {
+  padding: 8px 10px;
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--bd);
+}
+
+.up-walls td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--bd);
+}
+
+.up-walls .up-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+}
+
+.up-walls .up-tag.grow {
+  background: rgba(201, 31, 58, 0.15);
+  color: var(--bear);
+}
+
+.up-walls .up-tag.shrink {
+  background: rgba(9, 168, 110, 0.15);
+  color: var(--bull);
+}
+
+.up-walls .up-tag.stable {
+  background: var(--s2);
+  color: var(--muted);
+}
+
+.up-verdict-card {
+  padding: 18px 20px;
+  background: linear-gradient(135deg, var(--s1), var(--s2));
+  border-radius: 8px;
+  margin-top: 14px;
+  border: 1px solid var(--bd);
+}
+
+.up-verdict-card .up-verdict-lbl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.up-verdict-card .up-verdict-text {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.up-verdict-card .up-verdict-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 5px 11px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.up-help {
+  margin-top: 10px;
+}
+
+.up-help summary {
+  cursor: pointer;
+  padding: 9px 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  color: var(--muted);
+  user-select: none;
+  background: var(--s2);
+  border-radius: 5px;
+}
+
+.up-help[open] summary {
+  margin-bottom: 8px;
+}
+
+.up-help ol {
+  padding-left: 22px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.up-help code {
+  background: var(--s2);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11.5px;
+}
+
+.up-help pre {
+  margin: 6px 0;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  font-size: 11px;
+  overflow-x: auto;
+}
+
+@media (max-width:720px) {
+  .up-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
