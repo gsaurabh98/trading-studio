@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "description": "Stock-scan rule book for the swing 'Scan stocks' option. Each rule is a single, well-defined screen the user can pick: it walks the stock universe (or the current sector), and for every stock checks whether the live price is currently sitting INSIDE a price zone of a given kind. The four kinds are: a CONFIRMED demand zone, a FORMING demand zone, a FORMING supply zone, and a CONFIRMED supply zone. Demand = a floor where buyers stepped in (bullish, a potential long entry). Supply = a ceiling where sellers stepped in (bearish, a place to AVOID buying / watch for rejection). 'Forming' = marked the instant a base candle closed, BEFORE a confirming move proved it — lower trust than confirmed (real money: a forming zone never backs a full-size BUY on its own). This file is a declarative SPEC consumed at runtime by scripts/swing-analyzer.js; the actual matching logic lives there.",
+
+  "appliesTo": "swing",
+
+  "engine": {
+    "defaultTimeframe": "1d",
+    "comment": "Zones are read off CONFIRMED (closed) daily candles only — never the live forming bar (no repainting). The universe scan already fetches each stock's daily candles, so the zone detectors run on that same data with no extra API calls.",
+
+    "candleFields": { "time": 0, "open": 1, "high": 2, "low": 3, "close": 4, "volume": 5 },
+
+    "priceInside": {
+      "definition": "A stock matches when its current price lies within the zone band, i.e. min(proximal, distal) - buffer <= price <= max(proximal, distal) + buffer. The proximal/distal orientation differs by zone type (see zoneGeometry), but the min/max form below is orientation-agnostic and is what implementation should use.",
+      "edgeBufferAtr": 0.15,
+      "edgeBufferComment": "Small outward tolerance (0.15x the 14-period ATR) so a price hugging or just lifting off an edge still counts as 'inside' rather than being missed by a rounding-thin miss. Set to 0 for a strict inside-only match.",
+      "atrPeriod": 14
+    },
+
+    "zoneGeometry": {
+      "DEMAND": "proximal = the UPPER edge (nearer the price, which approaches from above); distal = the LOWER edge (the deeper floor / stop side).",
+      "SUPPLY": "proximal = the LOWER edge (nearer the price, which approaches from below); distal = the UPPER edge (the higher ceiling / stop side)."
+    },
+
+    "detectors": {
+      "confirmed": {
+        "fn": "detectZones",
+        "produces": ["DEMAND", "SUPPLY"],
+        "status": "implemented",
+        "fields": ["type", "proximal", "distal", "freshness", "score", "testCount", "touches", "formationTs", "confirmedTs", "pattern"],
+        "note": "BROKEN zones (price later closed through them) are already dropped by the detector, so any zone returned is alive."
+      },
+      "forming": {
+        "fn": "detectFormingZones",
+        "produces": ["DEMAND"],
+        "status": "partial",
+        "fields": ["type", "flavour", "tier", "tradeable", "proximal", "distal", "formationTs", "turnKind", "score"],
+        "note": "Forming DEMAND is implemented today. Forming SUPPLY is NOT yet detected — rule 'price-in-forming-supply' is blocked on adding a mirrored bearish detector (a 'detectFormingZones' supply side: a bearish turn candle — shooting star / bearish-engulfing / long upper-wick rejection — at the top of a tight base after a rally up into the level). Build that before enabling rule #3."
+      },
+      "displayFilter": {
+        "fn": "formingZonesForDisplay",
+        "comment": "For forming zones, reuse this trim so a scan match is RECENT (formed within ~40 bars), UNBROKEN (price has not since closed past the distal edge), and not a duplicate of a confirmed zone."
+      }
+    }
+  },
+
+  "signals": {
+    "IN_DEMAND": { "color": "bull", "meaning": "Price is inside a confirmed demand floor — a potential long entry pending the usual gates (trend, R:R, freshness)." },
+    "IN_FORMING_DEMAND": { "color": "amber", "meaning": "Price is inside a still-forming demand floor — EARLY watch only, small-starter at most, never a full-size BUY." },
+    "IN_FORMING_SUPPLY": { "color": "amber", "meaning": "Price is inside a still-forming supply ceiling — early warning of overhead selling; do not chase longs here." },
+    "IN_SUPPLY": { "color": "bear", "meaning": "Price is inside a confirmed supply ceiling — strong overhead resistance; AVOID buying, watch for rejection." }
+  },
+
+  "rules": [
+    {
+      "id": "price-in-demand",
+      "order": 1,
+      "enabled": true,
+      "status": "ready",
+      "label": "Price inside demand zone",
+      "chip": "In Demand",
+      "color": "bull",
+      "direction": "bullish",
+      "conviction": "high",
+      "signal": "IN_DEMAND",
+      "match": {
+        "zoneSource": "confirmed",
+        "zoneType": "DEMAND",
+        "priceInside": true,
+        "filters": {
+          "excludeBroken": true,
+          "freshnessAllowed": ["FRESH", "TESTED"],
+          "maxTouches": 1,
+          "maxTouchesComment": "CHART PARITY (trust-critical): the chart RETIRES any zone with 2+ distinct re-entries (touches), so a scanned match must have touches <= 1 — otherwise the row says 'In Demand' but the chart draws no zone at price. 'touches' is the per-VISIT count; the per-bar 'testCount' below over-counts a fresh multi-candle base as 'tested 2x', so touches is the right gate.",
+          "maxTestCount": 2,
+          "maxTestCountComment": "Secondary, looser cap on the per-bar in-band count. Reject worn-out floors; the real worn-out gate is maxTouches.",
+          "minScore": 30
+        },
+        "selectBest": "highestScore"
+      },
+      "meaning": "Stocks whose price is currently resting inside a confirmed demand zone — the classic 'pulled back into the floor' swing buy location.",
+      "action": "Shortlist for a long. This is a LOCATION match only — confirm the higher-timeframe trend, a reversal trigger candle, and R:R before entering.",
+      "caveat": "Being inside a demand zone is necessary, not sufficient. A demand zone in a downtrend, or with poor R:R, is still a WAIT."
+    },
+
+    {
+      "id": "price-in-forming-demand",
+      "order": 2,
+      "enabled": true,
+      "status": "ready",
+      "label": "Price inside forming demand zone",
+      "chip": "In Forming Demand",
+      "color": "amber",
+      "direction": "bullish",
+      "conviction": "low",
+      "signal": "IN_FORMING_DEMAND",
+      "match": {
+        "zoneSource": "forming",
+        "zoneType": "DEMAND",
+        "priceInside": true,
+        "filters": {
+          "useDisplayFilter": true,
+          "recentBars": 40,
+          "requireUnbroken": true,
+          "preferTier": ["EARLY", "WATCH"]
+        },
+        "selectBest": "tradeableThenFreshest"
+      },
+      "meaning": "Stocks sitting inside a demand zone that has only just formed (no confirming rally yet) — the earliest, quietest look at a base before it moves.",
+      "action": "EARLY watchlist. At most a small, tight-stopped starter (stop just below the zone distal, 2R+ target); add full size only if the zone later CONFIRMS.",
+      "caveat": "Backtest reality: forming demand reversals win only ~40% of the time (+0.2R at 2R). Honest label — this is NOT a high-conviction BUY list."
+    },
+
+    {
+      "id": "price-in-forming-supply",
+      "order": 3,
+      "enabled": false,
+      "status": "deferred",
+      "deferredNote": "Deferred by user (2026-06-11): ship the two demand BUY-setup rules first; supply rules come later. Also still blocked on the forming-supply detector below.",
+      "blockedBy": "detectFormingZones currently produces DEMAND only; a mirrored forming-SUPPLY detector must be added first (see engine.detectors.forming.note).",
+      "label": "Price inside forming supply zone",
+      "chip": "In Forming Supply",
+      "color": "amber",
+      "direction": "bearish",
+      "conviction": "low",
+      "signal": "IN_FORMING_SUPPLY",
+      "match": {
+        "zoneSource": "forming",
+        "zoneType": "SUPPLY",
+        "priceInside": true,
+        "filters": {
+          "useDisplayFilter": true,
+          "recentBars": 40,
+          "requireUnbroken": true
+        },
+        "selectBest": "freshest"
+      },
+      "meaning": "Stocks sitting inside a supply zone that has only just formed — an early warning that sellers may be building a ceiling here.",
+      "action": "Do NOT buy into this. For a long-only book this is an AVOID / wait-for-breakout flag; for a short idea it is an EARLY watch only.",
+      "caveat": "Forming = unproven. Same low-trust honesty as forming demand — never act with size on a forming flag alone."
+    },
+
+    {
+      "id": "price-in-supply",
+      "order": 4,
+      "enabled": false,
+      "status": "deferred",
+      "deferredNote": "Deferred by user (2026-06-11): the detector is ready, but we ship the two demand BUY-setup rules first and add the supply (avoid/short-watch) rules in a later pass.",
+      "label": "Price inside supply zone",
+      "chip": "In Supply",
+      "color": "bear",
+      "direction": "bearish",
+      "conviction": "high",
+      "signal": "IN_SUPPLY",
+      "match": {
+        "zoneSource": "confirmed",
+        "zoneType": "SUPPLY",
+        "priceInside": true,
+        "filters": {
+          "excludeBroken": true,
+          "freshnessAllowed": ["FRESH", "TESTED"],
+          "maxTouches": 1,
+          "maxTouchesComment": "Chart parity — same as price-in-demand: only zones the chart still draws (touches <= 1).",
+          "minScore": 30
+        },
+        "selectBest": "highestScore"
+      },
+      "meaning": "Stocks whose price has risen into a confirmed supply zone — directly under overhead resistance.",
+      "action": "AVOID buying here. Useful as a 'do-not-chase' guard, a place to book longs into strength, or a short-watch (subject to its own gates).",
+      "caveat": "A long signal that fires while price is inside confirmed supply is a contradiction — this rule helps surface and suppress exactly that trap."
+    }
+  ],
+
+  "ui": {
+    "surface": "swing 'Scan stocks' option",
+    "comment": "Each enabled rule becomes a selectable scan target. The scan runs the chosen rule across the chosen scope (current sector first, whole universe later), and lists every matching stock with its zone band edges, freshness/tier, and the formation date. Bullish rules use the green (--bull) accent, bearish rules the red (--bear) accent, forming rules the amber/early accent — theme-driven tokens, no hardcoded hex.",
+    "defaultRule": "price-in-demand",
+    "scopeOptions": ["currentSector", "wholeUniverse"],
+    "defaultScope": "currentSector"
+  }
+}

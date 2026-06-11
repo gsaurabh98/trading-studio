@@ -306,6 +306,12 @@
               <div class="ia-hud-conf-block">
                 <span class="ia-hud-chip ia-hud-conf-chip" id="ia-hud-conf">&mdash;</span>
                 <span class="ia-hud-chip ia-hud-margin-chip" id="ia-hud-margin">&mdash;</span>
+                <!-- REGIME CHIP (2026-06-09) — higher-TF trend regime read.
+                     Green "TRENDING" when the 30m ADX>=18 (the regime these
+                     signals work in); amber "CHOPPY" when 30m ADX<18 and the
+                     engine is standing aside. Populated by renderDecisionHud()
+                     from plan.regime; self-hides when regime is UNKNOWN. -->
+                <span class="ia-hud-chip ia-regime-chip" id="ia-hud-regime" hidden></span>
                 <!-- SIGNAL FRESHNESS CHIP (P0-3, May 2026) — paints
                      the age of the active BUY signal (m:ss) plus a
                      health band (FRESH/ACTIVE/AGEING/STALE) and an

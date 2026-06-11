@@ -1,6 +1,6 @@
 # Chart + Candle + Fib + ZOI Verdict Scenarios (PCFZ)
 
-> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `data/verdict-rules.json`.**
+> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `rules/swing-rules.json`.**
 > The full four-factor confluence — the master rule that composes all of the
 > two/three-factor docs. `fibZoiCombined` (Fib×ZOI) is the only piece live today;
 > the candle + chart-pattern layers are the additions this spec defines.

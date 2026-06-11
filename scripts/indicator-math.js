@@ -1330,6 +1330,53 @@
   }
 
 
+  // ── Central Pivot Range (CPR) — Indian intraday-desk standard ──
+  // Subhadip-Nandy-style floor pivots + the central range. Computed ONCE from
+  // the PREVIOUS completed session's High / Low / Close, so the whole level set
+  // is static all day and is inherently NON-REPAINTING — callers MUST never
+  // feed today's still-forming bars in (anchor strictly on the prior session).
+  //   P  (Pivot)          = (H + L + C) / 3
+  //   BC (Bottom Central) = (H + L) / 2
+  //   TC (Top Central)    = 2*P - BC            (mirror of BC across P)
+  //   R1 = 2*P - L ; R2 = P + (H-L) ; R3 = R1 + (H-L)
+  //   S1 = 2*P - H ; S2 = P - (H-L) ; S3 = S1 - (H-L)
+  // TC can fall BELOW BC when the prior close sat under the H/L midpoint; by
+  // convention TC is always the UPPER boundary, so we swap to guarantee TC>=BC.
+  // Width is classified against the PREVIOUS day's range (the industry-standard
+  // self-scaling normalisation — keeps the heuristic valid across instruments
+  // and volatility regimes):
+  //   NARROW : width <= 25% of prev range  → trending-day signal (pick a side)
+  //   NORMAL : 25% < width <= 60%          → average day
+  //   WIDE   : width > 60%                 → range-day signal (mean-reversion)
+  // PURE + FAIL-SAFE: returns null on any non-finite / degenerate input rather
+  // than emitting a guessed level (real capital reads these — never fabricate).
+  function computeCPR(prevHigh, prevLow, prevClose) {
+    var H = +prevHigh, L = +prevLow, C = +prevClose;
+    if (!isFinite(H) || !isFinite(L) || !isFinite(C)) return null;
+    if (!(H >= L)) return null;
+    var range = H - L;
+    var P  = (H + L + C) / 3;
+    var BC = (H + L) / 2;
+    var TC = 2 * P - BC;
+    var top = Math.max(TC, BC), bot = Math.min(TC, BC);
+    var width = top - bot;
+    var widthPctOfRange = range > 0 ? (width / range) * 100 : null;
+    var classification = 'UNKNOWN';
+    if (widthPctOfRange != null) {
+      if (widthPctOfRange <= 25)      classification = 'NARROW';
+      else if (widthPctOfRange <= 60) classification = 'NORMAL';
+      else                            classification = 'WIDE';
+    }
+    return {
+      P: P, TC: top, BC: bot,
+      R1: 2 * P - L, R2: P + range, R3: (2 * P - L) + range,
+      S1: 2 * P - H, S2: P - range, S3: (2 * P - H) - range,
+      width: width, widthPctOfRange: widthPctOfRange,
+      classification: classification, prevClose: C
+    };
+  }
+
+
   // ── Namespace export (consumed by swing-analyzer.js alias block) ──
   window.IndicatorMath = {
     ema: ema,
@@ -1385,5 +1432,6 @@
     isNR4: isNR4,
     detectPatterns: detectPatterns,
     detectLookbackPattern: detectLookbackPattern,
+    computeCPR: computeCPR,
   };
 })();

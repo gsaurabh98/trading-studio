@@ -1,6 +1,6 @@
 # ZOI (Zone of Interest) Verdict Scenarios
 
-> **Source of truth**: `data/verdict-rules.json` — the code reads rules from this JSON file at runtime.
+> **Source of truth**: `rules/swing-rules.json` — the code reads rules from this JSON file at runtime.
 > Edit the JSON to change verdicts; this doc is a human-readable reference only.
 
 ## ZOI Only Scenarios

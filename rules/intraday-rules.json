@@ -1,0 +1,678 @@
+{
+  "name": "Intraday Trade — Rule Book",
+  "version": "2.1.0",
+  "updated": "2026-06-09",
+  "instrument": "NSE_INDEX|Nifty 50",
+  "style": "CE/PE option-buyer scalp, hold <= 30 minutes",
+  "timezone": "Asia/Kolkata (IST)",
+  "description": "Single source of truth for the Intraday Trade tab's Setup Plan + Trade Plan engine. Every rule is plain-English with its threshold, the verdict effect, and whether it is already implemented (LIVE) or agreed-but-not-yet-wired (PROPOSED). LIVE rules are mirrored in scripts/intraday-trade.js (buildIntradaySetup / itBuildDirPlan / classifyTfTrend / itCollectLevels / itHtfBias / itFreshBreakTrigger) and guarded by scripts/backtest/it-setup-smoke.mjs. v2.0.0 (2026-06-09) brings the spec in line with the current two-stage direction model (entry-TF alignment OR higher-TF bias + fresh 5m trigger OR 5m-led reversal) and adds the backtested REGIME gate (filter.regime) plus the now-active late-session gate.",
+  "timeframes": {
+    "entry": ["5m", "15m"],
+    "context": ["30m", "1h"],
+    "note": "Direction can come from THREE paths (in priority order): (1) 5m AND 15m both pointing the same way; (2) the higher timeframes (15m/30m/1h) giving a clean directional BIAS that a fresh 5m structure break then TRIGGERS; (3) a 5m-led reversal when the higher TFs are merely ranging and nothing higher opposes. The context timeframes' DIRECTION never hard-gates a counter-trend scalp — but the 30m's TREND STRENGTH does now act as a chop filter (filter.regime), and 30m/1h direction still shapes confidence and the explanation note."
+  },
+  "legend": {
+    "tier": {
+      "meta": "Foundational safety rules that protect every other rule.",
+      "direction": "Decide CE vs PE vs WAIT.",
+      "location": "Where price is — sets bias, does not trigger alone.",
+      "trigger": "What price does at a location — the actual entry.",
+      "confirmation": "Evidence the trigger is real — raises quality/confidence.",
+      "filter": "Environmental gates that can only demote a candidate.",
+      "risk": "Trade-plan geometry (entry zone / stop / targets).",
+      "confidence": "Label on the verdict, never a gate."
+    },
+    "effect": {
+      "META": "Cross-cutting safety constraint.",
+      "DIRECTION": "Selects the option type or forces WAIT.",
+      "LOCATION": "Provides a bias / candidate anchor.",
+      "TRIGGER": "Provides an entry event.",
+      "CONFIRMATION": "Adjusts confidence up.",
+      "GATE": "Hard veto -> WAIT.",
+      "DEMOTE": "Soft veto -> BUY becomes WATCH.",
+      "RISK": "Defines a price level in the plan.",
+      "CONFIDENCE": "Sets the HIGH/MEDIUM/LOW label."
+    },
+    "status": {
+      "LIVE": "Implemented in scripts/intraday-trade.js today.",
+      "PROPOSED": "Agreed in design, not yet wired into the verdict.",
+      "DISABLED_FOR_TESTING": "Logic exists but is temporarily neutralised (informational note only, no verdict effect) so the setup can be exercised in every session window during testing. Re-enable before live use."
+    }
+  },
+  "params": {
+    "tickSize": 0.05,
+    "atrPeriod": 14,
+    "atrSourceTf": "15m",
+    "atrFallbackPctOfSpot": 0.15,
+    "strongAdx": 25,
+    "weakAdx": 18,
+    "regimeAdx30Min": 18,
+    "regimeAdxSourceTf": "30m",
+    "minRR": 1.5,
+    "extensionAtrMult": 1.2,
+    "atZoneAtrMult": 0.5,
+    "entryBandAboveAtrMult": 0.10,
+    "entryBandBelowAtrMult": 0.20,
+    "stopAtrMult": 0.85,
+    "stopStructPadAtrMult": 0.10,
+    "targetTooCloseAtrMult": 0.3,
+    "targetSeparationAtrMult": 0.2,
+    "targetFallbackRR_T1": 1.8,
+    "targetFallbackRR_T2": 3.0,
+    "levelDedupeAtrMult": 0.1,
+    "session": {
+      "openSettleBeforeMin": 560,
+      "openSettleBeforeLabel": "09:20 IST",
+      "lunchStartMin": 720,
+      "lunchEndMin": 780,
+      "lunchLabel": "12:00-13:00 IST",
+      "lateScalpFromMin": 900,
+      "lateScalpLabel": "15:00 IST"
+    },
+    "cprWidthPct": {
+      "narrowMax": 25,
+      "normalMax": 60,
+      "note": "CPR width as a percentage of the previous day's range. <=25 NARROW (trend day), <=60 NORMAL, else WIDE (range/chop day)."
+    }
+  },
+  "verdicts": {
+    "BUY": "All gates pass for the chosen direction -> BUY CALL (CE) or BUY PUT (PE).",
+    "WATCH": "A valid plan exists but at least one demote gate fired -> wait for a cleaner entry.",
+    "WAIT": "No clean direction, no anchor, missing data, or a hard gate -> stand aside."
+  },
+  "rules": [
+    {
+      "id": "meta.closed_bar",
+      "tier": "meta",
+      "effect": "META",
+      "status": "LIVE",
+      "title": "Only judge closed candles",
+      "plain": "Evaluate signals only on a fully closed candle, never the live forming one.",
+      "rationale": "Anchoring on the still-forming bar repaints — the signal would change mid-bar and mislead.",
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "meta.fail_safe",
+      "tier": "meta",
+      "effect": "META",
+      "status": "LIVE",
+      "title": "Fail safe on bad data",
+      "plain": "If data is missing, stale, partial, or unclear, do nothing (WAIT) — never guess a signal.",
+      "rationale": "A wrong BUY costs real money; suppressing a marginal one is free.",
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "meta.scalp_horizon",
+      "tier": "meta",
+      "effect": "META",
+      "status": "LIVE",
+      "title": "Scalp horizon <= 30 min",
+      "plain": "This is a CE/PE option-buyer scalp held at most ~30 minutes; all thresholds are tuned for that horizon, not swing holds.",
+      "rationale": "Time-of-day, theta, and momentum gates only make sense relative to the holding period.",
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "meta.spot_levels",
+      "tier": "meta",
+      "effect": "META",
+      "status": "LIVE",
+      "title": "Levels are Nifty spot points",
+      "plain": "All entry/stop/target levels are Nifty spot (index) points; the buyer tracks them to time the CE/PE entry and exit.",
+      "rationale": "You can't place orders on the index directly — spot levels are the timing reference; execution is via options.",
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "meta.prefer_wait",
+      "tier": "meta",
+      "effect": "META",
+      "status": "LIVE",
+      "title": "Prefer WAIT over a marginal BUY",
+      "plain": "When in doubt, downgrade to WATCH/WAIT. Accuracy beats coverage; false-negatives are safe, false-positives are not.",
+      "rationale": "Core trading-safety principle for the whole app.",
+      "appliesTo": ["CE", "PE"]
+    },
+
+    {
+      "id": "dir.how_trend_is_read",
+      "tier": "direction",
+      "effect": "META",
+      "status": "LIVE",
+      "title": "How each timeframe's trend (UP / DOWN / FLAT) is read",
+      "plain": "On every timeframe the trend is UP only when price is making higher highs AND higher lows on confirmed (closed) bars, the fast EMA is above the slow EMA, AND price holds the right side of the session VWAP. DOWN is the exact mirror (lower highs + lower lows, fast EMA below slow, price below VWAP). Anything else is FLAT/ranging. The VWAP check is a veto: a bounce that is still on the wrong side of fair value is demoted to FLAT, not called a trend.",
+      "rationale": "Structure (HH/HL vs LH/LL) is the truth of trend; EMA stack and VWAP are confirmation that filters out lower-quality, mean-reverting reads. Reading only confirmed bars prevents repainting.",
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "dir.path1_entry_alignment",
+      "tier": "direction",
+      "effect": "DIRECTION",
+      "status": "LIVE",
+      "title": "Path 1 — 5m + 15m aligned (the cleanest entry)",
+      "plain": "If the 5-minute AND 15-minute trends are BOTH up, the trade is a CALL (CE). If BOTH are down, it is a PUT (PE). This is the highest-quality, most direct path.",
+      "rationale": "When the two held timeframes for a <=30-min scalp agree, direction is unambiguous.",
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "dir.path2_htf_bias_plus_trigger",
+      "tier": "direction",
+      "effect": "DIRECTION",
+      "status": "LIVE",
+      "title": "Path 2 — higher-TF bias armed, fresh 5m break triggers it",
+      "plain": "If 5m and 15m are not strictly aligned, look at the higher timeframes (15m/30m/1h). If they lean cleanly one way (a 'bias') AND the 5m is not actively fighting that lean, the side is ARMED (shown as a get-ready bias, still WAIT). It becomes a real BUY only when a fresh 5m break of structure (BOS) or change of character (CHoCH) prints in the bias direction. CE if the bias is up, PE if down.",
+      "rationale": "Separates the slow 'which way' decision (bias) from the fast 'when' decision (trigger) so the user is armed and watching instead of staring at a blank WAIT, but no entry fires until the 5m confirms the turn.",
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "dir.path3_reversal_5m",
+      "tier": "direction",
+      "effect": "DIRECTION",
+      "status": "LIVE",
+      "title": "Path 3 — 5m-led reversal (the turn shows on the fast TF first)",
+      "plain": "If neither alignment nor a higher-TF bias exists (the higher TFs are merely ranging), allow an early entry led by the 5m — but only under hard gates: the 5m must have a clean UP/DOWN read (which already passed the VWAP veto), a fresh 5m BOS/CHoCH must confirm the turn, and NO higher timeframe may point the opposite way (never catch a falling knife against a still-trending higher TF). Capped to MEDIUM confidence until the higher TFs confirm.",
+      "rationale": "A V-bottom or fresh trend always prints on the 5m before the slow charts make higher-highs; this path catches it early while the hard gates keep it from being noise.",
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "dir.wait_when_no_path",
+      "tier": "direction",
+      "effect": "GATE",
+      "status": "LIVE",
+      "title": "No path qualifies -> WAIT",
+      "plain": "If none of the three direction paths qualifies — 5m and 15m disagree/range, no clean higher-TF bias, and no gated 5m reversal — there is no clean scalp direction, so WAIT.",
+      "rationale": "Mixed, rangebound entry timeframes are the definition of chop; option buyers lose there. Prefer a missed trade over a bad one.",
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "dir.htf_direction_is_context",
+      "tier": "direction",
+      "effect": "CONFIDENCE",
+      "status": "LIVE",
+      "title": "1H / 30m DIRECTION is context, not a hard gate",
+      "plain": "The 1-hour and 30-minute trend DIRECTION shapes confidence and the explanation note; it does not by itself block a trade, and a quick <=30-min scalp against the broader 1H trend is allowed (kept tight). NOTE: this is about direction only — the 30m's trend STRENGTH is a separate chop filter (see filter.regime).",
+      "rationale": "A <=30-min trade can run counter to the broader trend; hard-gating on direction would suppress valid scalps. An option buyer can take either side, so direction-bias is informational — but a rangebound (low-strength) 30m is a genuine no-trade environment, which is why strength is filtered separately.",
+      "appliesTo": ["CE", "PE"]
+    },
+
+    {
+      "id": "loc.vwap",
+      "tier": "location",
+      "effect": "LOCATION",
+      "status": "PROPOSED",
+      "title": "VWAP bias + reclaim/reject",
+      "plain": "Above VWAP favours CE, below favours PE. A reclaim of VWAP (crossing back through) or a clean rejection at VWAP is itself a signal.",
+      "rationale": "VWAP is the dominant intraday fair-value reference institutions trade around.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "loc.cpr_position",
+      "tier": "location",
+      "effect": "LOCATION",
+      "status": "PROPOSED",
+      "title": "Price vs CPR",
+      "plain": "Price above the top-central (TC) is bullish, below the bottom-central (BC) is bearish, inside the CPR is neutral/chop.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "loc.cpr_daytype",
+      "tier": "location",
+      "effect": "LOCATION",
+      "status": "LIVE",
+      "title": "CPR day-type",
+      "plain": "A narrow CPR signals a trend day (favour directional scalps); a wide CPR signals a range day (whippy — fade edges or stand aside).",
+      "params": { "narrowMaxPct": 25, "normalMaxPct": 60 },
+      "note": "Also used as a demote gate (filter.wide_cpr).",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "loc.pdh_pdl",
+      "tier": "location",
+      "effect": "LOCATION",
+      "status": "PROPOSED",
+      "title": "Previous-day high / low",
+      "plain": "A break through, or a rejection at, the prior-day high (PDH) or low (PDL) is a signal.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "loc.zones",
+      "tier": "location",
+      "effect": "LOCATION",
+      "status": "LIVE",
+      "title": "Demand / supply zones",
+      "plain": "Bullish near a fresh demand zone (CE), bearish near a fresh supply zone (PE).",
+      "note": "Currently used as a plan entry anchor (itCollectLevels), not yet as a scored confluence.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "loc.fib_pocket",
+      "tier": "location",
+      "effect": "LOCATION",
+      "status": "LIVE",
+      "title": "Fib pocket (38.2-61.8%)",
+      "plain": "In an up-leg the pocket is support (CE dip-buy); in a down-leg it is resistance (PE sell-the-bounce).",
+      "note": "Used as a plan entry anchor (itCollectLevels), not yet as a scored confluence.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "loc.opening_range",
+      "tier": "location",
+      "effect": "LOCATION",
+      "status": "PROPOSED",
+      "title": "Opening Range (ORH/ORL)",
+      "plain": "A break of the first 15-30 minute high/low (ORB) is a classic intraday trigger/level.",
+      "dataReady": false,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "loc.oi_walls",
+      "tier": "location",
+      "effect": "LOCATION",
+      "status": "PROPOSED",
+      "title": "Option walls / Max Pain",
+      "plain": "The heaviest call-OI strike acts as a resistance ceiling; the heaviest put-OI strike as a support floor; price tends to drift toward Max Pain near expiry.",
+      "note": "Max Pain & PCR are shown as context cards; walls are not yet wired into the verdict.",
+      "dataReady": false,
+      "appliesTo": ["CE", "PE"]
+    },
+
+    {
+      "id": "conf.candle_at_zone",
+      "tier": "confirmation",
+      "effect": "CONFIDENCE",
+      "status": "LIVE",
+      "title": "Candle pattern at the demand/supply zone",
+      "plain": "A reversal candle at the entry zone strengthens the read: a bullish pattern (engulfing / hammer / pin-bar) at the demand zone backs a CALL; a bearish pattern at the supply zone backs a PUT. A confirming candle boosts confidence and is called out in the reasoning; a candle AGAINST the trade is flagged as caution.",
+      "rationale": "Location + a confirmed reversal candle is real confluence. It is wired as CONFIDENCE only, NOT a hard gate: backtesting a 'require a confirming candle, else skip' rule on Mar→Jun LOST money — it suppressed valid momentum entries and worsened the out-of-sample result (see scripts/backtest/it-candle-confirm.mjs, RESULT: REJECTED). So the candle colours confidence + the why-note and never removes a trade, which keeps the validated regime engine's numbers intact (+1154 net / PF 1.51).",
+      "note": "Live in buildIntradaySetup via itCandleAtZone; uses the same IndicatorMath.detectPatterns library as the on-chart pattern cards. Non-repainting (judged on the last confirmed 5m bar).",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "trig.chart_at_level",
+      "tier": "trigger",
+      "effect": "TRIGGER",
+      "status": "PROPOSED",
+      "title": "Chart pattern at a level",
+      "plain": "A chart pattern (flag, triangle, double-bottom/top) breaking out at a level is a trigger.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "trig.bos_choch",
+      "tier": "trigger",
+      "effect": "TRIGGER",
+      "status": "PROPOSED",
+      "title": "BOS / CHoCH in trade direction",
+      "plain": "A break of structure or change of character on 5m/15m in the trade direction confirms the turn.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "trig.reaction_hold",
+      "tier": "trigger",
+      "effect": "TRIGGER",
+      "status": "PROPOSED",
+      "title": "Confirmed reaction / hold",
+      "plain": "A wick rejection that closes back inside the zone or pocket — a real bounce, not just a touch.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "trig.liquidity_sweep",
+      "tier": "trigger",
+      "effect": "TRIGGER",
+      "status": "PROPOSED",
+      "title": "Liquidity sweep + reversal",
+      "plain": "Price runs stops below PDL / a swing low (or above PDH / a swing high) and reclaims — a high-quality reversal trigger.",
+      "dataReady": false,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "trig.fvg_reaction",
+      "tier": "trigger",
+      "effect": "TRIGGER",
+      "status": "PROPOSED",
+      "title": "FVG fill + reaction",
+      "plain": "Price fills a fair-value gap (imbalance) and reacts off it.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+
+    {
+      "id": "conf.volume",
+      "tier": "confirmation",
+      "effect": "DEMOTE",
+      "status": "LIVE",
+      "title": "Volume on the breakout (genuine vs fake)",
+      "plain": "A breakout must carry real participation. Using front-month Nifty-futures volume (the index itself reports none): a break on thin volume (RVOL < 1.0×) is the classic trap → BUY is demoted to WATCH; a high-volume push that gets rejected back inside is exhaustion → demoted; a break on strong volume (≥ 1.5×) is confirmed and noted. Fail-safe: when no futures volume is available the gate does NOT block.",
+      "rationale": "Volume separates a real break from a fakeout — the single most common false signal for option buyers paying premium. Live in buildIntradaySetup via itVolumeGate (the fake-breakout/RVOL radar). Dormant in the historical backtest because we lack archived futures volume — harvest with scripts/backtest/harvest-futures-volume.mjs to validate/tune on history.",
+      "params": { "rvolGenuine": 1.5, "rvolWeak": 1.0, "source": "front-month NIFTY futures (proxy for index)" },
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "conf.momentum",
+      "tier": "confirmation",
+      "effect": "CONFIRMATION",
+      "status": "LIVE",
+      "title": "Momentum present",
+      "plain": "RSI pointing the right way and not exhausted; MACD agreeing; ADX showing real push (flat ADX = chop).",
+      "note": "Currently only ADX is used (via the weak-momentum gate); RSI/MACD confirmation is proposed.",
+      "params": { "weakAdx": 18 },
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "conf.rsi_divergence",
+      "tier": "confirmation",
+      "effect": "CONFIRMATION",
+      "status": "PROPOSED",
+      "title": "RSI divergence",
+      "plain": "RSI divergence at a level strengthens a reversal trigger.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "conf.entry_tf_strength",
+      "tier": "confirmation",
+      "effect": "CONFIDENCE",
+      "status": "LIVE",
+      "title": "Entry-timeframe strength",
+      "plain": "A STRONG read (ADX >= 25) on the 5m or 15m raises confidence.",
+      "params": { "strongAdx": 25 },
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "conf.htf_agreement",
+      "tier": "confirmation",
+      "effect": "CONFIDENCE",
+      "status": "LIVE",
+      "title": "Higher-timeframe agreement",
+      "plain": "When 1H/30m align with the scalp direction, confidence is higher; when they don't, it is still tradeable but flagged as a quick counter-trend scalp.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+
+    {
+      "id": "filter.market_open",
+      "tier": "filter",
+      "effect": "GATE",
+      "status": "DISABLED_FOR_TESTING",
+      "title": "Market must be open",
+      "plain": "If the market is closed, show the plan but the verdict is WAIT (plan is for the next session).",
+      "note": "Testing mode: closed-market no longer forces WAIT — it only adds a 'market closed / preview' note so the engine can be tested on weekends/off-hours. Re-enable the WAIT before live use.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "filter.open_settle",
+      "tier": "filter",
+      "effect": "DEMOTE",
+      "status": "DISABLED_FOR_TESTING",
+      "title": "No fresh entry in the first ~5 min",
+      "plain": "Before 09:20 IST, demote to WATCH — let the opening range settle.",
+      "params": { "beforeMin": 560, "label": "09:20 IST" },
+      "note": "Testing mode: no longer demotes — adds an informational note only.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "filter.lunch_lull",
+      "tier": "filter",
+      "effect": "DEMOTE",
+      "status": "DISABLED_FOR_TESTING",
+      "title": "No fresh entry during lunch",
+      "plain": "Between 12:00 and 13:00 IST, demote to WATCH — momentum thins and option premium bleeds.",
+      "params": { "startMin": 720, "endMin": 780, "label": "12:00-13:00 IST" },
+      "note": "Testing mode: no longer demotes — adds an informational note only.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "filter.late_scalp",
+      "tier": "filter",
+      "effect": "DEMOTE",
+      "status": "LIVE",
+      "title": "No fresh entry after 15:00",
+      "plain": "From 15:00 IST onward, demote any BUY to WATCH — a fresh <=30-min scalp would run into the 15:25 square-off / 15:30 close before it could reach target. Manage open positions only; take no new entries this late.",
+      "params": { "fromMin": 900, "label": "15:00 IST" },
+      "note": "Re-enabled as an ACTIVE demote on 2026-06-09 (was annotation-only during testing) — a late entry hitting the square-off is a real loss-maker. The opening-noise (filter.open_settle) and lunch (filter.lunch_lull) gates remain annotation-only for now.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "filter.weak_momentum",
+      "tier": "filter",
+      "effect": "DEMOTE",
+      "status": "LIVE",
+      "title": "Weak-momentum (chop) gate",
+      "plain": "If ADX is below 18 on BOTH 5m and 15m (and the CPR isn't narrow), demote — choppy tape bleeds option premium via theta.",
+      "params": { "weakAdx": 18, "exemptIfCpr": "NARROW" },
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "filter.regime",
+      "tier": "filter",
+      "effect": "DEMOTE",
+      "status": "LIVE",
+      "title": "Choppy-regime gate (30m ADX < 18)",
+      "plain": "If the 30-minute trend strength (ADX) is below 18, the bigger picture is rangebound — not trending. Demote any BUY to WATCH (HUD shows WAIT) and flag the regime as CHOPPY. Above 18 the regime is TRENDING and the trade is allowed to stand. This is a strength filter, not a direction call — it never changes CE vs PE, it only stands the engine down when the tape has no trend to ride.",
+      "rationale": "Backtested on Mar-Jun data: intraday trend signals lose money in choppy regimes (premium bleeds to theta) and the 30m ADX<18 cut cleanly separated the losing choppy stretches (May-Jun) from the profitable trending ones (Mar-Apr) and improved out-of-sample results without hurting trending months. Mirrored in BOTH engines — buildIntradaySetup (auto-trade + journal) and generateVerdict (on-screen HUD) — and surfaced as the REGIME chip on the HUD.",
+      "params": { "regimeAdx30Min": 18, "sourceTf": "30m", "states": ["TRENDING", "CHOPPY", "UNKNOWN"] },
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "filter.wide_cpr",
+      "tier": "filter",
+      "effect": "DEMOTE",
+      "status": "LIVE",
+      "title": "Wide-CPR (range day) gate",
+      "plain": "On a wide-CPR range day, demote — option buyers whipsaw; only decisive breaks should trade.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "filter.no_chase",
+      "tier": "filter",
+      "effect": "DEMOTE",
+      "status": "LIVE",
+      "title": "Don't chase an extended price",
+      "plain": "If price is more than ~1.2x ATR away from the entry zone, demote and wait for the retrace.",
+      "params": { "extensionAtrMult": 1.2 },
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "filter.vix_regime",
+      "tier": "filter",
+      "effect": "DEMOTE",
+      "status": "PROPOSED",
+      "title": "India VIX regime",
+      "plain": "Very high VIX = whippy and expensive premium (size down / avoid); very low VIX = moves too small to beat theta.",
+      "note": "VIX is shown as a context card; not yet wired into the verdict.",
+      "dataReady": false,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "filter.strike_liquidity",
+      "tier": "filter",
+      "effect": "DEMOTE",
+      "status": "PROPOSED",
+      "title": "Option-strike liquidity",
+      "plain": "Avoid strikes with wide bid/ask spreads — they kill a scalp on slippage.",
+      "dataReady": false,
+      "appliesTo": ["CE", "PE"]
+    },
+
+    {
+      "id": "risk.min_rr",
+      "tier": "risk",
+      "effect": "DEMOTE",
+      "status": "LIVE",
+      "title": "Minimum reward:risk 1.5:1",
+      "plain": "Reward:risk to Target 1 must be at least 1.5:1, or demote to WATCH.",
+      "params": { "minRR": 1.5 },
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "risk.entry_zone",
+      "tier": "risk",
+      "effect": "RISK",
+      "status": "LIVE",
+      "title": "Entry zone anchored on nearest level",
+      "plain": "The entry zone is a small band around the nearest valid level on the correct side of price — a support for CE, a resistance for PE.",
+      "params": { "bandAboveAtrMult": 0.10, "bandBelowAtrMult": 0.20 },
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "risk.stop_beyond_structure",
+      "tier": "risk",
+      "effect": "RISK",
+      "status": "LIVE",
+      "title": "Stop just beyond the anchor",
+      "plain": "The stop sits beyond the anchor — below the swing low (CE) or above the swing high (PE), about 0.85x ATR away, whichever is safer.",
+      "params": { "stopAtrMult": 0.85, "structPadAtrMult": 0.10 },
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "risk.targets",
+      "tier": "risk",
+      "effect": "RISK",
+      "status": "LIVE",
+      "title": "Targets at the next opposing levels",
+      "plain": "Target 1 is the nearest opposing level that clears the 1.5R floor; Target 2 is the next level beyond it, falling back to ~1.8R and ~3R if no clean level exists.",
+      "params": { "minRR": 1.5, "fallbackRR_T1": 1.8, "fallbackRR_T2": 3.0, "tooCloseAtrMult": 0.3, "separationAtrMult": 0.2 },
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "risk.tick_round",
+      "tier": "risk",
+      "effect": "RISK",
+      "status": "LIVE",
+      "title": "Round levels to the tick",
+      "plain": "All displayed levels are rounded to the 0.05 tick; calculations keep full precision.",
+      "params": { "tickSize": 0.05 },
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "risk.ordered_geometry",
+      "tier": "risk",
+      "effect": "RISK",
+      "status": "LIVE",
+      "title": "Plan must be internally ordered",
+      "plain": "For CE: stop < entry < T1 < T2. For PE the exact mirror: T2 < T1 < entry < stop. Verified by the smoke test.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+
+    {
+      "id": "confidence.high",
+      "tier": "confidence",
+      "effect": "CONFIDENCE",
+      "status": "LIVE",
+      "title": "HIGH confidence",
+      "plain": "HIGH when the higher-timeframe context agrees AND an entry timeframe is strong (ADX >= 25) AND the CPR isn't wide.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "confidence.medium",
+      "tier": "confidence",
+      "effect": "CONFIDENCE",
+      "status": "LIVE",
+      "title": "MEDIUM confidence",
+      "plain": "MEDIUM when either the higher-timeframe context agrees OR an entry timeframe is strong.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "confidence.low",
+      "tier": "confidence",
+      "effect": "CONFIDENCE",
+      "status": "LIVE",
+      "title": "LOW confidence",
+      "plain": "LOW otherwise.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "confidence.reversal_capped",
+      "tier": "confidence",
+      "effect": "CONFIDENCE",
+      "status": "LIVE",
+      "title": "5m-led reversal capped at MEDIUM",
+      "plain": "An entry taken via the 5m-led reversal path (dir.path3_reversal_5m) is capped at MEDIUM confidence — never HIGH — until the higher timeframes confirm the new direction.",
+      "rationale": "Catching the turn early is worth doing, but it is lower-evidence than a fully aligned trend, so the confidence label must say so.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "confidence.confluence_stacking",
+      "tier": "confidence",
+      "effect": "CONFIDENCE",
+      "status": "PROPOSED",
+      "title": "Confidence rises with stacked confluences",
+      "plain": "Confidence should increase with the number of confluences stacking at the entry — e.g. 'engulfing at VWAP at a demand zone with volume' reads higher than any one alone.",
+      "rationale": "This is the main not-yet-built piece: scoring Location + Trigger + Confirmation together (the original four rules).",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "autotrade.execute_on_buy",
+      "tier": "execution",
+      "effect": "AUTO_TRADE",
+      "status": "LIVE",
+      "title": "Auto-trade a fresh BUY (independent virtual spot trade)",
+      "plain": "When the AUTO-TRADE switch is ON, every fresh BUY (CE or PE) opens a virtual SPOT trade in the Signal Journal only. It fills at the plan's entry level, labels the nearest-50 ATM strike, and is INDEPENDENT of the paper-trading desk — it never places into the paper book or reads it.",
+      "rationale": "A clean forward-test of signal quality, free of option IV/theta noise. Only opens while the market is open (needs live ticks to manage the exit). SIMULATED — no real order. Default OFF for safety.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "autotrade.one_per_signal",
+      "tier": "execution",
+      "effect": "GATE",
+      "status": "LIVE",
+      "title": "One auto-trade per signal, never stack a side",
+      "plain": "A BUY is fingerprinted by side + day + rounded entry + rounded SL. The same fingerprint never opens twice, and a new BUY for a side that already has an OPEN virtual trade is skipped — so the journal can't pile up duplicate trades on every refresh tick. The dedupe map is rebuilt from the journal on load, so it survives a page reload.",
+      "rationale": "loadSetup re-runs on open, manual refresh and the 60s armed re-eval; without the dedupe + no-stack guard a single signal would re-enter repeatedly.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "autotrade.spot_exit",
+      "tier": "execution",
+      "effect": "AUTO_TRADE",
+      "status": "LIVE",
+      "title": "Score the virtual trade on a spot SL/T1/EOD cross",
+      "plain": "Each OPEN virtual trade is closed by the live Nifty spot: T1 cross = WIN, SL cross = LOSS (direction-aware for CE vs PE), or square-off at 15:25 IST. P&L is measured in INDEX POINTS. An OPEN trade left over from a previous day is expired on load (excluded from the win-rate) rather than closed at a wrong, much-later price.",
+      "rationale": "Spot points are the honest unit for a pure signal-quality test — no option premium, IV or theta is involved, so nothing to fabricate.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    },
+    {
+      "id": "autotrade.journal_persistence",
+      "tier": "execution",
+      "effect": "JOURNAL",
+      "status": "LIVE",
+      "title": "Signal journal in its own durable JSON",
+      "plain": "Every logged signal records When, Side, Strike, Conf, Entry, SL, T1, R and Status/Outcome (with points P&L). Saved to data/intraday-signal-journal.json — fully separate from the paper book's data/intraday-paper-trades.json — so it survives a browser storage clear.",
+      "rationale": "Mirrored in localStorage for instant load; the server JSON is the durable source of truth on localhost. Independent of the paper-trading desk.",
+      "dataReady": true,
+      "appliesTo": ["CE", "PE"]
+    }
+  ]
+}

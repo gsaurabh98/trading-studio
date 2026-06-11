@@ -381,9 +381,23 @@
    Structure Plan grid. */
 .sw-bias-bar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* 6 cells: MONTHLY · WEEKLY · DAILY · 4-HOUR · 1-HOUR · RECOMMENDATION
+     (2026-06-09: MONTHLY re-added as the strategic backdrop column so the
+     full slow→fast→decision top-down read is visible in the SETUP PLAN strip). */
+  grid-template-columns: repeat(6, 1fr);
   gap: 1px;
   background: var(--bd);
+}
+/* On narrow viewports 5 columns crush the basis text, so reflow into a
+   2-up grid and let the RECOMMENDATION cell span the full width below the
+   four timeframe reads. */
+@media (max-width: 720px) {
+  .sw-bias-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .sw-bias-bar .sw-bias-cell-final {
+    grid-column: 1 / -1;
+  }
 }
 .sw-bias-bar .sw-bias-cell {
   border-right: none;
@@ -451,6 +465,63 @@
   font-size: 11px;
   color: var(--muted);
   font-family: 'IBM Plex Mono', monospace;
+}
+
+/* ─── Decision hierarchy (2026-06-10) ───────────────────────────────────
+   Make the eye land on the call first. A clear size ladder runs across the
+   SETUP PLAN strip: the context TFs (Monthly / 4-Hour / 1-Hour) read smallest,
+   the decision TFs (Weekly + Daily — where a 1-2 week swing call is made) read
+   larger with un-muted labels, and the final RECOMMENDATION cell is the hero.
+   Pure presentation — no verdict/score logic is touched. */
+/* Weekly + Daily — the decision timeframes, emphasised */
+.sw-bias-cell[data-tf="1w"] .sw-bias-v,
+.sw-bias-cell[data-tf="1d"] .sw-bias-v {
+  font-size: 16px;
+}
+.sw-bias-cell[data-tf="1w"] .sw-bias-k,
+.sw-bias-cell[data-tf="1d"] .sw-bias-k {
+  color: var(--text);
+  font-weight: 700;
+}
+/* Context timeframes — quieter so they don't compete with the decision */
+.sw-bias-cell[data-tf="1mo"] .sw-bias-v,
+.sw-bias-cell[data-tf="4h"] .sw-bias-v,
+.sw-bias-cell[data-tf="1h"] .sw-bias-v {
+  font-size: 13px;
+}
+/* The RECOMMENDATION cell — the loudest thing in the strip */
+.sw-bias-cell-final #sw-final-bias {
+  font-size: 19px;
+  letter-spacing: 0.05em;
+}
+.sw-bias-bar .sw-bias-cell-final {
+  background: var(--s2);
+  box-shadow: inset 0 0 0 1px var(--bd);
+}
+/* Lift the whole SETUP PLAN block (subtle elevation, not a second border) so
+   the decision frame reads as the most important panel on the page. */
+.sw-setup-row {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
+}
+/* Let the supporting panels (per-TF detail cards + pattern cards) recede a
+   touch so the eye lands on the decision first. Scoped to #swing because these
+   class names are SHARED with the intraday analyzer (AGENTS.md §17) — we must
+   not dim the intraday cards. Kept fully legible (the trader relies on these
+   for transparency); a light resting opacity that snaps back on hover/focus is
+   enough to set the hierarchy without hiding anything. */
+#swing .sw-tfs-grid-4,
+#swing .sw-pattern-cards,
+#swing .sw-cp-cards {
+  opacity: 0.9;
+  transition: opacity 0.15s ease;
+}
+#swing .sw-tfs-grid-4:hover,
+#swing .sw-tfs-grid-4:focus-within,
+#swing .sw-pattern-cards:hover,
+#swing .sw-pattern-cards:focus-within,
+#swing .sw-cp-cards:hover,
+#swing .sw-cp-cards:focus-within {
+  opacity: 1;
 }
 
 /* ─── Titled card-row frame (2026-06-04) ─── */
@@ -580,118 +651,331 @@
 }
 .sw-risk-note strong { color: var(--text); }
 
-/* ── Expected Move card (probability cone) ──
-   Mirrors the Risk Context card chrome so the Zone & Signal Analysis section
-   reads as one cohesive panel. Two bands per horizon (68% / 95%), each with a
-   ± magnitude and the absolute price range it implies. Deliberately neutral
-   colour (info-blue) — it is a RANGE, not a bullish/bearish call. */
-.sw-expected-move {
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  border: 1px solid var(--border, rgba(148,163,184,0.18));
-  border-radius: 10px;
-  background: var(--card, rgba(255,255,255,0.02));
+/* ── 4H + 1H alignment banner (confidence layer under the Daily reco) ──
+   Sits inside the SETUP PLAN card, directly beneath the RECOMMENDATION cell.
+   A single per-state accent token (--mtf-accent) drives the rail, icon, and
+   tinted surface so all four states share one chrome and only the colour
+   changes. Fully theme-token driven (no hardcoded hex) → adapts to light/dark. */
+.sw-mtf-align {
+  --mtf-accent: var(--info);
+  margin-top: 12px;
+  border: 1px solid color-mix(in srgb, var(--mtf-accent) 32%, transparent);
+  border-left: 3px solid var(--mtf-accent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--mtf-accent) 10%, transparent);
 }
-.sw-em-head {
+.sw-mtf-aligned { --mtf-accent: var(--bull); }
+.sw-mtf-partial { --mtf-accent: var(--info); }
+.sw-mtf-against { --mtf-accent: var(--warn, #f59e0b); }
+.sw-mtf-neutral { --mtf-accent: var(--muted); }
+/* Compact single-line summary (2026-06-10) — the directive + facts on one row,
+   the full explanation hidden until the row is clicked. */
+.sw-mtf-summary {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  color: var(--text);
-  margin-bottom: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
 }
-.sw-em-head-tf {
+.sw-mtf-summary::-webkit-details-marker { display: none; }
+.sw-mtf-icon {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
   font-size: 11px;
   font-weight: 700;
-  padding: 1px 8px;
-  border-radius: 999px;
-  background: rgba(56,139,253,0.16);
-  color: #6ea8fe;
-  letter-spacing: 0.3px;
+  color: var(--mtf-accent);
+  background: color-mix(in srgb, var(--mtf-accent) 18%, transparent);
 }
-.sw-em-head-note {
+.sw-mtf-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+/* Facts inline at the right of the summary row; collapse out on narrow widths. */
+.sw-mtf-facts-inline {
+  flex: 0 0 auto;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.2px;
-  text-transform: none;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.sw-mtf-facts-inline strong { color: var(--text); font-weight: 700; }
+.sw-mtf-why {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--mtf-accent);
+  opacity: 0.85;
+}
+.sw-mtf-why::after {
+  content: '\25B8';
+  font-size: 9px;
+  transition: transform 0.15s ease;
+}
+.sw-mtf-details[open] .sw-mtf-why::after { transform: rotate(90deg); }
+.sw-mtf-body {
+  padding: 0 12px 11px 12px;
+  font-size: 12px;
+  line-height: 1.55;
   color: var(--muted);
 }
-.sw-em-sub {
-  font-size: 11.5px;
-  color: var(--muted);
-  margin-bottom: 10px;
+@media (max-width: 560px) {
+  .sw-mtf-facts-inline { display: none; }
 }
-.sw-em-sub strong { color: var(--text); }
-.sw-em-rows {
+
+/* ── Weekly Context strip (read-only backdrop below the chart) ──
+   Four tiles mirroring the classic weekly-bias checklist (Trend & Structure /
+   price vs weekly 20-EMA / weekly RSI) plus a roll-up BIAS tile. Purely
+   informational — it never drives the verdict (that stays in SETUP PLAN).
+   State classes (pass / warn / fail) tint the left edge, the status dot, and
+   the headline value through the theme tokens, so it reads in colour at a
+   glance and stays correct in both light and dark themes. */
+.sw-wctx {
+  margin: 14px 0 0;
+}
+.sw-wctx-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.sw-wctx-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.sw-wctx-note {
+  font-family: 'Inter', sans-serif;
+  font-size: 10.5px;
+  font-style: italic;
+  color: var(--muted);
+  opacity: 0.75;
+}
+.sw-wctx-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.sw-wctx-card {
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-left: 3px solid var(--muted);
+  border-radius: 10px;
+  padding: 11px 13px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
-.sw-em-row {
+/* The roll-up BIAS tile reads as the conclusion of the three to its left —
+   a slightly heavier surface so it stands apart, mirroring how the
+   RECOMMENDATION cell is set off in the SETUP PLAN bar. */
+.sw-wctx-card-bias {
+  background: var(--s2);
+}
+.sw-wctx-pass { border-left-color: var(--bull); }
+.sw-wctx-warn { border-left-color: var(--amber, #f59e0b); }
+.sw-wctx-fail { border-left-color: var(--bear); }
+.sw-wctx-card-top {
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  gap: 7px;
+}
+.sw-wctx-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: 0 0 auto;
+}
+.sw-wctx-pass .sw-wctx-dot { background: var(--bull); }
+.sw-wctx-warn .sw-wctx-dot { background: var(--amber, #f59e0b); }
+.sw-wctx-fail .sw-wctx-dot { background: var(--bear); }
+.sw-wctx-k {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.sw-wctx-v {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text);
+}
+.sw-wctx-pass .sw-wctx-v { color: var(--bull); }
+.sw-wctx-warn .sw-wctx-v { color: var(--amber, #f59e0b); }
+.sw-wctx-fail .sw-wctx-v { color: var(--bear); }
+.sw-wctx-sub {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.sw-wctx-tally {
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  opacity: 0.85;
+}
+/* On narrow viewports the four tiles reflow to a 2×2 grid. */
+@media (max-width: 720px) {
+  .sw-wctx-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Daily Setup Check (read-only scorecard below the weekly strip) ──
+   Eight tiles that translate the classic 7-point daily entry checklist
+   (+ the daily trend for context) into plain language, plus a full-width
+   SETUP summary bar. Same state language as the weekly strip — pass / warn /
+   fail / na tint the left edge, the status dot and the headline value via the
+   theme tokens. Purely informational: it never issues a BUY. */
+.sw-dsc { margin: 12px 0 0; }
+.sw-dsc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.sw-dsc-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.sw-dsc-note {
+  font-family: 'Inter', sans-serif;
+  font-size: 10.5px;
+  font-style: italic;
+  color: var(--muted);
+  opacity: 0.75;
+}
+.sw-dsc-count {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.sw-dsc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.sw-dsc-card {
+  background: var(--s1);
+  border: 1px solid var(--bd);
+  border-left: 3px solid var(--muted);
+  border-radius: 10px;
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sw-dsc-pass { border-left-color: var(--bull); }
+.sw-dsc-warn { border-left-color: var(--amber, #f59e0b); }
+.sw-dsc-fail { border-left-color: var(--bear); }
+.sw-dsc-na   { border-left-color: var(--muted); }
+/* The mandatory Risk-vs-Reward tile gets a subtle full outline so it reads as
+   the must-pass gate, not just another tile. */
+.sw-dsc-card-rr {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--muted) 28%, transparent);
+}
+.sw-dsc-card-top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.sw-dsc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: 0 0 auto;
+}
+.sw-dsc-pass .sw-dsc-dot { background: var(--bull); }
+.sw-dsc-warn .sw-dsc-dot { background: var(--amber, #f59e0b); }
+.sw-dsc-fail .sw-dsc-dot { background: var(--bear); }
+.sw-dsc-k {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.sw-dsc-term {
+  font-weight: 600;
+  opacity: 0.65;
+  letter-spacing: 0;
+}
+.sw-dsc-mand {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--amber, #f59e0b);
+  border: 1px solid color-mix(in srgb, var(--amber, #f59e0b) 45%, transparent);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.sw-dsc-v {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--text);
+}
+.sw-dsc-pass .sw-dsc-v { color: var(--bull); }
+.sw-dsc-warn .sw-dsc-v { color: var(--amber, #f59e0b); }
+.sw-dsc-fail .sw-dsc-v { color: var(--bear); }
+.sw-dsc-sub {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.sw-dsc-summary {
+  margin-top: 10px;
+  padding: 10px 13px;
+  border-radius: 10px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-left: 3px solid var(--muted);
+  display: flex;
+  align-items: baseline;
   gap: 10px;
   flex-wrap: wrap;
 }
-.sw-em-horizon {
-  flex: 0 0 96px;
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: capitalize;
-  color: var(--text);
-}
-.sw-em-bands {
-  display: flex;
-  flex: 1 1 auto;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.sw-em-band {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1 1 140px;
-  min-width: 130px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(56,139,253,0.28);
-  background: rgba(56,139,253,0.07);
-  cursor: pointer;
-}
-.sw-em-band-95 {
-  border-color: var(--border, rgba(148,163,184,0.22));
-  background: rgba(148,163,184,0.06);
-}
-.sw-em-band-k {
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.sw-em-band-v {
-  font-size: 15px;
+.sw-dsc-summary.sw-dsc-pass { border-left-color: var(--bull); }
+.sw-dsc-summary.sw-dsc-warn { border-left-color: var(--amber, #f59e0b); }
+.sw-dsc-summary.sw-dsc-fail { border-left-color: var(--bear); }
+.sw-dsc-sum-v {
+  font-size: 14px;
   font-weight: 800;
   color: var(--text);
 }
-.sw-em-band-range {
-  font-size: 11px;
-  font-weight: 600;
+.sw-dsc-summary.sw-dsc-pass .sw-dsc-sum-v { color: var(--bull); }
+.sw-dsc-summary.sw-dsc-warn .sw-dsc-sum-v { color: var(--amber, #f59e0b); }
+.sw-dsc-summary.sw-dsc-fail .sw-dsc-sum-v { color: var(--bear); }
+.sw-dsc-sum-sub {
+  font-size: 11.5px;
   color: var(--muted);
 }
-.sw-em-foot {
-  margin-top: 10px;
-  font-size: 11px;
-  line-height: 1.5;
-  color: var(--muted);
+/* On narrow viewports the eight tiles reflow to a 2-wide grid. */
+@media (max-width: 720px) {
+  .sw-dsc-grid { grid-template-columns: repeat(2, 1fr); }
 }
-.sw-em-foot strong { color: var(--text); }
 
 /* "Risks to weigh" sub-header in the Risk Context card (swRiskContextHtml).
    The other .sw-risk-detail-* rules were removed with the Full Signal Detail
@@ -1693,6 +1977,15 @@
   max-width: 60%;
   min-width: 0;
 }
+/* BOS structure-regime pill in the toolbar (next to the symbol). Reuses the
+   global .sw-trend-badge classes for color; this just aligns the container. */
+.sw-chart-trend {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  white-space: nowrap;
+}
+.sw-chart-trend[hidden] { display: none; }
 
 /* Ticker symbol — large, bold, monospace, matches the look of the
    symbol shown in the stock strip below. The chart toolbar's title
@@ -1872,6 +2165,49 @@
 }
 .sw-ind-toggle:not(.active) .sw-chart-dot {
   opacity: 0.35;
+}
+
+/* "Advanced (SMC)" collapsed legend group (2026-06-10) — FVG / OB / BOS / LIQ
+   tuck behind this toggle so the default chart read stays de-noised. */
+.sw-adv-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 2px 8px;
+  border: 1px solid var(--bd);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: 0.02em;
+  user-select: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.sw-adv-toggle:hover {
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+}
+[data-theme="light"] .sw-adv-toggle:hover {
+  background: rgba(0,0,0,0.05);
+}
+.sw-adv-caret {
+  display: inline-block;
+  font-size: 8px;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+.sw-adv-toggle--open .sw-adv-caret {
+  transform: rotate(90deg);
+}
+.sw-adv-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+.sw-adv-group[hidden] {
+  display: none;
 }
 
 .sw-chart-dot {
@@ -4313,9 +4649,81 @@
   background: #b45309;
   border-color: #b45309;
 }
+/* Right-side action group inside the API bar: the connection/manage pill +
+   the Pause/Resume button, kept together so "API connected" and "pause" are
+   one control (the pill used to live in the section header). */
+.sw-api-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* Section title now lives INSIDE the API bar (left edge) so the bar doubles
+   as the section header \u2014 no separate <h2> above it. */
+.sw-api-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+  white-space: nowrap;
+}
+/* On/off toggle \u2014 replaces the status text + Pause button. Colour + knob
+   position + label all carry the state, so it self-documents:
+     [data-on="true"]  \u2192 green track, knob right,  "Live"
+     [data-on="false"] \u2192 amber track, knob left,   "Paused" */
+.sw-api-switch {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 13px 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+.sw-api-switch:hover { border-color: var(--muted); }
+.sw-api-switch-track {
+  position: relative;
+  width: 34px;
+  height: 19px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--bull);
+  transition: background 0.18s;
+}
+.sw-api-switch[data-on="false"] .sw-api-switch-track { background: #d97706; }
+.sw-api-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: transform 0.18s;
+}
+.sw-api-switch[data-on="true"] .sw-api-switch-knob { transform: translateX(15px); }
+.sw-api-switch-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bull);
+  min-width: 44px;
+  text-align: left;
+}
+.sw-api-switch[data-on="false"] .sw-api-switch-label { color: #d97706; }
 @media (max-width: 640px) {
-  .sw-api-pause-banner { flex-direction: column; align-items: stretch; }
-  .sw-api-pause-btn    { align-self: stretch; text-align: center; }
+  .sw-api-pause-banner { flex-wrap: wrap; }
+  .sw-api-pause-meta   { flex: 1 1 100%; }
+  .sw-api-actions      { width: 100%; justify-content: space-between; }
+  .sw-api-pause-btn    { flex: 0 0 auto; text-align: center; }
 }
 
 /* \u2500\u2500\u2500 Today's Setups tile (Phase 0 discovery loop) \u2500\u2500\u2500
@@ -4493,6 +4901,163 @@
 }
 .sw-universe-stat:empty {
   display: none;
+}
+
+/* ── Editable scan price band (Min / Max) ───────────────────────────────
+   Lives under the universe stat. Saved to localStorage; overrides config. */
+.sw-band-ctl {
+  margin: 8px 2px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sw-band-ctl-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.sw-band-enable-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  user-select: none;
+}
+/* Sliding toggle switch — the checkbox itself is visually hidden but stays
+   in the DOM for the click target, keyboard focus, and the change handler. */
+.sw-band-switch {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+.sw-band-enable {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.sw-band-switch-track {
+  display: inline-block;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 22%, transparent);
+  border: 1px solid var(--border);
+  transition: background 0.15s ease;
+  position: relative;
+}
+.sw-band-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease;
+}
+.sw-band-enable:checked ~ .sw-band-switch-track {
+  background: var(--info);
+  border-color: var(--info);
+}
+.sw-band-enable:checked ~ .sw-band-switch-track .sw-band-switch-thumb {
+  transform: translateX(16px);
+}
+.sw-band-enable:focus-visible ~ .sw-band-switch-track {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--info) 35%, transparent);
+}
+/* When the band is off, dim the inputs row to signal it's inactive. */
+.sw-band-ctl.sw-band-off .sw-band-ctl-row {
+  opacity: 0.5;
+}
+.sw-band-input:disabled {
+  cursor: not-allowed;
+}
+.sw-band-apply:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.sw-band-ctl-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sw-band-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+}
+.sw-band-field:focus-within {
+  border-color: var(--info);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--info) 25%, transparent);
+}
+.sw-band-cur {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.sw-band-input {
+  width: 72px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  padding: 0;
+}
+.sw-band-dash {
+  color: var(--muted);
+}
+.sw-band-apply,
+.sw-band-reset {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.sw-band-apply {
+  border-color: color-mix(in srgb, var(--info) 50%, var(--border));
+  color: var(--info);
+}
+.sw-band-apply:hover {
+  background: color-mix(in srgb, var(--info) 14%, transparent);
+}
+.sw-band-reset:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+.sw-band-default {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.sw-band-err {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--bear);
+}
+.sw-band-err[hidden] {
+  display: none;
+}
+@media (hover: none) and (pointer: coarse) {
+  .sw-band-input { width: 84px; font-size: 16px; }
+  .sw-band-apply,
+  .sw-band-reset { padding: 8px 14px; }
 }
 .sw-today-mode-label {
   font-size: 0.8rem;
@@ -4734,16 +5299,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  min-width: 210px;
-  padding: 6px 10px 6px 12px;
+  gap: 10px;
+  min-width: 220px;
+  padding: 7px 11px 7px 13px;
   font-size: 0.78rem;
   font-weight: 600;
   font-family: inherit;
   color: var(--text);
   background-color: var(--card);
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: 9px;
   cursor: pointer;
   transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
 }
@@ -4754,10 +5319,11 @@
 .sw-scope-dd-btn:focus-visible {
   outline: none;
   border-color: var(--info);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--info) 24%, transparent);
 }
 .sw-scope-dd-btn[aria-expanded="true"] {
   border-color: var(--info);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--info) 16%, transparent);
 }
 .sw-scope-dd-cur {
   overflow: hidden;
@@ -4769,51 +5335,74 @@
   font-size: 0.7rem;
   line-height: 1;
   flex: 0 0 auto;
+  transition: transform 0.18s ease, color 0.15s;
+}
+.sw-scope-dd-btn[aria-expanded="true"] .sw-scope-dd-chev {
+  transform: rotate(180deg);
+  color: var(--info);
 }
 .sw-scope-dd-menu {
   flex: 1 1 100%;
-  margin-top: 4px;
-  max-height: 300px;
+  margin-top: 6px;
+  max-height: 320px;
   overflow-y: auto;
-  padding: 4px;
+  padding: 6px;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 6px 20px var(--shadow-color);
+  border-radius: 11px;
+  box-shadow: 0 12px 32px var(--shadow-color);
 }
 .sw-scope-dd-menu[hidden] {
   display: none;
 }
 .sw-scope-dd-group {
-  padding: 8px 10px 4px;
-  font-size: 0.66rem;
+  padding: 9px 10px 5px;
+  margin-top: 2px;
+  font-size: 0.64rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
+  border-top: 1px solid var(--border);
 }
 .sw-scope-dd-opt {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   width: 100%;
-  padding: 7px 10px;
+  padding: 8px 10px 8px 13px;
   border: none;
-  border-radius: 6px;
+  border-radius: 7px;
   background: transparent;
   color: var(--text);
   font-size: 0.8rem;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
+  transition: background-color 0.12s, color 0.12s;
 }
 .sw-scope-dd-opt:hover {
   background: var(--hover-bg);
 }
 .sw-scope-dd-opt.is-sel {
   background: var(--sub-active-bg);
+  color: var(--bull);
   font-weight: 600;
+}
+/* Accent bar on the active scope so the selection reads at a glance,
+   matching the left-edge accent used elsewhere in the app. */
+.sw-scope-dd-opt.is-sel::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 58%;
+  border-radius: 2px;
+  background: var(--bull);
 }
 .sw-scope-dd-opt-n {
   color: var(--muted);
@@ -4821,7 +5410,7 @@
 }
 .sw-scope-dd-opt-check {
   flex: 0 0 auto;
-  color: var(--info);
+  color: var(--bull);
   font-weight: 700;
 }
 .sw-today-header-meta {
@@ -7173,6 +7762,65 @@ code.sw-add-preview-val {
   border-radius: 8px;
 }
 
+/* Wrapper for the result-area paused message (same calm card, with breathing
+   room so it doesn't sit flush against the picker above). */
+.sw-paused-state {
+  margin-top: 14px;
+}
+
+/* Paused is a calm state, not a failure — info-toned, never red. */
+.sw-sector-panel-paused {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  background: color-mix(in srgb, var(--info) 8%, transparent);
+  border-radius: 8px;
+}
+/* "Go live" CTA inside the paused stub — mirrors the intraday tab's
+   .it-chart-nav-btn (dark, bordered, neutral) so both tabs share one look. */
+.sw-golive-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  padding: 5px 14px;
+  background: var(--card, #1e1e2e);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: var(--muted, #aaa);
+  font-size: 18px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.sw-golive-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text, #eee);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.sw-golive-btn:active {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(0.96);
+}
+[data-theme="light"] .sw-golive-btn {
+  background: #f4f4f5;
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #666;
+}
+[data-theme="light"] .sw-golive-btn:hover {
+  background: #e8e8ea;
+  color: #222;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
 /* Table-style wrapper around the stock list. Rounded outer border with
    horizontal dividers between rows (no row gaps) so the panel reads as
    a single scannable table, not floating cards. */
@@ -8962,6 +9610,21 @@ code.sw-add-preview-val {
   padding: 0 12px 6px; font-size: 13px; font-weight: 600;
   color: var(--text); letter-spacing: 0.2px;
 }
+.sw-zoi-card-formed {
+  padding: 0 12px 6px; font-size: 11px; font-weight: 600;
+  color: var(--muted); letter-spacing: 0.2px;
+  display: flex; align-items: center; gap: 4px;
+}
+.sw-zoi-formed-icon { font-size: 10px; opacity: 0.85; }
+/* "Confirmed <date> (+Nd)" row — the proving-leg date + the head-start an
+   early read would have given. Greenish tint to read as the confirmation. */
+.sw-zoi-card-confirmed {
+  padding: 0 12px 6px; font-size: 11px; font-weight: 600;
+  color: #15803d; letter-spacing: 0.2px;
+  display: flex; align-items: center; gap: 4px;
+}
+[data-theme="light"] .sw-zoi-card-confirmed { color: #166534; }
+.sw-zoi-confirmed-icon { font-size: 10px; opacity: 0.9; font-weight: 800; }
 .sw-zoi-card-pattern {
   padding: 0 12px 8px; display: flex; align-items: center;
   flex-wrap: wrap; gap: 5px;
@@ -9339,6 +10002,85 @@ code.sw-add-preview-val {
   .sw-fvg-cards, .sw-ob-cards, .sw-bos-cards, .sw-liq-cards { gap: 8px; padding: 8px 0; }
   .sw-smc-card { max-width: 100%; flex-basis: 100%; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   FORMING demand zones — early, unconfirmed reads (amber, dashed)
+   Lower-trust sibling of the confirmed ZOI cards. EARLY = small-starter
+   candidate; WATCH = context only. Never drives a full-size BUY.
+   ═══════════════════════════════════════════════════════════════════ */
+.sw-forming-cards {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  padding: 0; margin-top: 12px;
+}
+/* The intro note + group head should span the full row above the cards. */
+.sw-forming-cards .sw-smc-grouphead,
+.sw-forming-cards .sw-forming-note { flex-basis: 100%; }
+.sw-forming-note {
+  font-size: 11.5px; line-height: 1.5; color: var(--muted);
+  background: rgba(245,158,11,0.07);
+  border: 1px dashed rgba(245,158,11,0.45);
+  border-radius: 8px; padding: 8px 10px;
+}
+.sw-forming-note b { color: #d97706; font-weight: 700; }
+[data-theme="light"] .sw-forming-note b { color: #b45309; }
+
+.sw-forming-card {
+  flex: 1 1 240px; max-width: 360px;
+  background: var(--card); border-radius: 10px;
+  border: 1px solid var(--border);
+  border-left: 3px dashed #f59e0b;
+  overflow: hidden; font-size: 12px;
+  display: flex; flex-direction: column;
+}
+.sw-forming-card--watch { opacity: 0.92; border-left-color: rgba(245,158,11,0.55); }
+
+.sw-forming-card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px 4px; gap: 8px;
+}
+.sw-forming-card-type {
+  font-weight: 700; font-size: 11px; letter-spacing: 0.6px;
+  text-transform: uppercase; color: #d97706;
+}
+[data-theme="light"] .sw-forming-card-type { color: #b45309; }
+.sw-forming-badge {
+  min-width: 30px; text-align: center; cursor: help;
+  font-weight: 800; font-size: 11px; letter-spacing: 0.5px;
+  padding: 2px 8px; border-radius: 6px;
+}
+.sw-forming-badge--early { background: rgba(245,158,11,0.20); color: #d97706; }
+.sw-forming-badge--watch { background: rgba(148,163,184,0.18); color: var(--muted); }
+[data-theme="light"] .sw-forming-badge--early { background: rgba(245,158,11,0.22); color: #b45309; }
+
+.sw-forming-card-range {
+  padding: 0 12px 6px; font-size: 13px; font-weight: 600;
+  color: var(--text); letter-spacing: 0.2px;
+}
+.sw-forming-card-formed {
+  padding: 0 12px 6px; font-size: 11px; font-weight: 600;
+  color: var(--muted); letter-spacing: 0.2px;
+  display: flex; align-items: center; gap: 4px;
+}
+.sw-forming-card-evidence {
+  padding: 0 12px 10px; display: flex; flex-wrap: wrap; gap: 5px;
+  margin-top: auto;
+}
+.sw-forming-chip {
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.2px;
+  padding: 2px 7px; border-radius: 999px;
+  background: rgba(148,163,184,0.14); color: var(--muted);
+  border: 1px solid var(--border);
+}
+.sw-forming-chip--vol { background: rgba(245,158,11,0.12); color: #d97706; border-color: rgba(245,158,11,0.30); }
+[data-theme="light"] .sw-forming-chip--vol { color: #b45309; }
+
+@media (max-width: 640px) {
+  .sw-forming-cards { gap: 8px; }
+  .sw-forming-card { max-width: 100%; flex-basis: 100%; }
+}
+
+/* Legend chip active state — amber dot to match the forming overlay. */
+.sw-ind-forming.active .sw-chart-dot { box-shadow: 0 0 0 2px rgba(245,158,11,0.35); }
 
 /* ═══════════════════════════════════════════════════════════════════
    SMC Confluence Guide — collapsible reference card
@@ -9938,3 +10680,205 @@ code.sw-add-preview-val {
   line-height: 1.45;
   color: var(--muted);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ZONE SCAN — "Scan stocks by zone" tile (rules/scan-rule.json)
+   ═══════════════════════════════════════════════════════════════ */
+.sw-zonescan { margin-top: 14px; }
+.sw-zonescan-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 14px 12px;
+}
+.sw-zonescan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.sw-zonescan-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.sw-zonescan-run,
+.sw-zonescan-cancel {
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  color: #fff;
+}
+.sw-zonescan-run { background: var(--bull); }
+.sw-zonescan-run:hover { background: var(--bull-hover, var(--bull)); }
+.sw-zonescan-cancel { background: var(--bear); }
+.sw-zonescan-cancel:hover { background: var(--bear-hover, var(--bear)); }
+
+.sw-zonescan-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sw-zonescan-rule-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--s2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.sw-zonescan-rule-btn:hover { color: var(--text); border-color: var(--card-hover-bd); }
+.sw-zonescan-rule-btn:disabled { opacity: 0.55; cursor: default; }
+.sw-zonescan-rule-btn--bull.active {
+  background: var(--bull-tint, rgba(9, 168, 110, 0.14));
+  color: var(--bull);
+  border-color: var(--bull);
+}
+.sw-zonescan-rule-btn--amber.active {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--amber);
+  border-color: var(--amber);
+}
+/* "All" pill — neutral/info accent (runs every demand rule in one pass). */
+.sw-zonescan-rule-btn--all.active {
+  background: var(--info-tint, rgba(59, 130, 246, 0.14));
+  color: var(--info, #3b82f6);
+  border-color: var(--info, #3b82f6);
+}
+.sw-zonescan-scope {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sw-zonescan-scope-lbl {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.sw-zonescan-band-hint {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+}
+.sw-zonescan-sub {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.sw-zonescan-empty {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  padding: 8px 2px;
+}
+
+.sw-zonescan-progress { padding: 4px 0 2px; }
+.sw-zonescan-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--s2);
+  overflow: hidden;
+}
+.sw-zonescan-bar {
+  height: 100%;
+  width: 0;
+  background: var(--bull);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+.sw-zonescan-count {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.sw-zonescan-meta {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.sw-zonescan-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.sw-zonescan-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--s2);
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.sw-zonescan-row:hover { border-color: var(--card-hover-bd); }
+.sw-zonescan-row:focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
+.sw-zonescan-row-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.sw-zonescan-sym { font-size: 13px; font-weight: 700; color: var(--text); }
+.sw-zonescan-name {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+/* Per-row rule label — which screen matched (green=demand, amber=forming). */
+.sw-zonescan-rulebadge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  margin-left: auto;
+}
+.sw-zonescan-rulebadge--bull { color: var(--bull); background: var(--bull-tint, rgba(9, 168, 110, 0.14)); }
+.sw-zonescan-rulebadge--amber { color: var(--amber); background: rgba(245, 158, 11, 0.14); }
+.sw-zonescan-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sw-zonescan-px { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.sw-zonescan-band { font-size: 11px; color: var(--muted); }
+.sw-zonescan-date { font-size: 10.5px; color: var(--muted); }
+.sw-zonescan-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+.sw-zonescan-badge--fresh { color: var(--bull); background: var(--bull-tint, rgba(9, 168, 110, 0.14)); }
+.sw-zonescan-badge--tested { color: var(--amber); background: rgba(245, 158, 11, 0.14); }
+.sw-zonescan-badge--early { color: var(--bull); background: var(--bull-tint, rgba(9, 168, 110, 0.14)); }
+.sw-zonescan-badge--watch { color: var(--muted); background: var(--s2); border: 1px solid var(--border); }

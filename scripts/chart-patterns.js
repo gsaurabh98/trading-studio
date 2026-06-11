@@ -98,6 +98,94 @@
   // (breakout/confirmation bar — unique per pattern on a given render).
   var focusKey = null;
 
+  // ── DOM level-label registry (entry / target / invalidation names) ──
+  // The pattern level NAMES used to be Lightweight-Charts price-line TITLES,
+  // which render right-aligned and vertically CENTRED on the level line. When a
+  // level coincided in price with a fib retracement line (the common case — a
+  // pattern's entry/invalidation sit at the swing high/low = fib 0%/100%), the
+  // coloured fib line struck straight through the title text. We now draw the
+  // names as our OWN DOM labels lifted ABOVE the line (the axis price box stays
+  // on the line for the exact level), and stack them above the fib label when
+  // they coincide so the two never overlap. Nodes are tracked here and removed
+  // at the start of every render — host-agnostic cleanup (intraday's
+  // clearOverlays only knows its own layers; swing wipes `inner` — but we never
+  // rely on either, so neither host can leak our labels).
+  var _cpDomTags = [];     // raw nodes (for removal)
+  var _cpDomItems = [];    // [{ el, price, w }] for per-frame positioning
+  var _cpFibPrices = [];   // fib level prices this render (coincidence test)
+  // Teardown thunks for the CHART-NATIVE objects this render added (skeleton/
+  // marker LineSeries via chart.addSeries + axis-tag price lines via
+  // series.createPriceLine). clearDomTags() only removes DOM labels; these
+  // chart objects used to be cleaned up ONLY by the host recreating the whole
+  // chart on every render. That assumption breaks when a host wants to refresh
+  // the overlay on a PERSISTENT chart (e.g. the intraday bar-close refresh),
+  // where re-calling onChartRender would otherwise STACK duplicate skeletons +
+  // price lines. Running these thunks at the top of onChartRender makes a
+  // repeated render idempotent. Stale handles (host DID recreate the chart) just
+  // throw and are swallowed — so this is safe for the recreate-every-render path
+  // too (swing + the normal intraday full render).
+  var _cpChartUndo = [];   // [function] removeSeries / removePriceLine thunks
+
+  function clearChartObjects() {
+    for (var i = 0; i < _cpChartUndo.length; i++) { try { _cpChartUndo[i](); } catch (_) {} }
+    _cpChartUndo = [];
+  }
+
+  function clearDomTags() {
+    for (var i = 0; i < _cpDomTags.length; i++) { try { _cpDomTags[i].remove(); } catch (_) {} }
+    _cpDomTags = [];
+    _cpDomItems = [];
+  }
+
+  // Build the per-frame positioner for the DOM level labels. Recomputed Y every
+  // frame (price→pixel changes with zoom/pan). A label whose line sits within a
+  // few pixels of a fib line is lifted higher so it stacks ABOVE the fib label
+  // (which sits ~9px above its own line); otherwise it sits ~9px above its line,
+  // matching the fib-label offset. Right-aligned just inside the series edge.
+  function makeRepositionFn(chart, series) {
+    return function () {
+      var ts, cw;
+      try { ts = chart.timeScale(); cw = ts.width(); } catch (_) { return; }
+      var fibYs = [];
+      for (var k = 0; k < _cpFibPrices.length; k++) {
+        var fy = null;
+        try { fy = series.priceToCoordinate(_cpFibPrices[k]); } catch (_) {}
+        if (fy != null) fibYs.push(fy);
+      }
+      for (var i = 0; i < _cpDomItems.length; i++) {
+        var it = _cpDomItems[i];
+        var py = null;
+        try { py = series.priceToCoordinate(it.price); } catch (_) {}
+        if (py == null) {
+          // Only touch the DOM when the hidden state actually changes — the rAF
+          // driver below calls this every frame, so a no-op frame must stay free.
+          if (it._cpDisp !== 'none') { it.el.style.display = 'none'; it._cpDisp = 'none'; }
+          continue;
+        }
+        // DEFAULT: sit the name VERTICALLY CENTRED on its exact price line, so it
+        // lines up with the coloured axis price box at the same height ("matches
+        // the price"). Only when the line coincides (≤11px) with a VISIBLE fib
+        // label do we lift the name ABOVE the line so the fib text doesn't strike
+        // through it — the original overlap fix, but now the exception, not the
+        // rule (fib is off by default, so the common case is the clean centred one).
+        var coincides = false;
+        for (var j = 0; j < fibYs.length; j++) {
+          if (Math.abs(fibYs[j] - py) <= 11) { coincides = true; break; }
+        }
+        var top = coincides ? (py - 14) : py;            // lift above only on coincidence
+        var tform = coincides ? 'translateY(-100%)' : 'translateY(-50%)';
+        var lx = cw - (it.w || 80) - 4;
+        if (lx < 2) lx = 2;
+        // Skip redundant writes — keeps the per-frame loop layout-free when the
+        // price→pixel mapping (and thus the label position) hasn't moved.
+        if (it._cpDisp !== '') { it.el.style.display = ''; it._cpDisp = ''; }
+        if (it._cpForm !== tform) { it.el.style.transform = tform; it._cpForm = tform; }
+        if (it._cpLeft !== lx) { it.el.style.left = lx + 'px'; it._cpLeft = lx; }
+        if (it._cpTop !== top) { it.el.style.top = top + 'px'; it._cpTop = top; }
+      }
+    };
+  }
+
   var TF_LABEL = {
     '5m': '5 min', '15m': '15 min', '30m': '30 min', '1h': '1 hour',
     '4h': '4 hour', '1d': 'Daily', '1w': 'Weekly', '1mo': 'Monthly'
@@ -726,12 +814,32 @@
     function axisTag(price, color, title) {
       if (!isFinite(price) || !ctx.series) return;
       try {
-        ctx.series.createPriceLine({
+        // Axis price BOX only (no in-pane title). The exact level still reads
+        // off the price axis; the NAME is drawn as a DOM label lifted above the
+        // line by makeRepositionFn(), so a coincident fib line never strikes
+        // through it and it never sits centred on the level line.
+        var _pl = ctx.series.createPriceLine({
           price: price, color: color,
           lineVisible: false, axisLabelVisible: true,
-          title: title || ''
+          title: ''
         });
+        var _plSeries = ctx.series;
+        _cpChartUndo.push(function () { try { _plSeries.removePriceLine(_pl); } catch (_) {} });
       } catch (e) { console.warn('[chart-patterns] axis tag failed', e); }
+      // DOM name label (positioned later). Skipped when there is no host
+      // container or no title to show.
+      if (!ctx.inner || !title) return;
+      try {
+        var lbl = document.createElement('div');
+        lbl.className = 'cp-level-lbl';
+        lbl.textContent = title;
+        lbl.style.cssText = 'position:absolute;pointer-events:none;z-index:3;font-size:9px;'
+          + 'font-weight:700;white-space:nowrap;display:none;color:' + color + ';'
+          + 'text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 3px var(--bg);';
+        ctx.inner.appendChild(lbl);
+        _cpDomTags.push(lbl);
+        _cpDomItems.push({ el: lbl, price: price, w: Math.ceil(title.length * 5.4) + 10 });
+      } catch (e) { console.warn('[chart-patterns] level label failed', e); }
     }
     // ENTRY blue / TARGET green / INVALIDATION red (same convention as the
     // Entry/SL/T1/T2 trade-plan tags), greyed when the pattern FAILED so a dead
@@ -756,6 +864,7 @@
           lastValueVisible: false, priceLineVisible: false,
           crosshairMarkerVisible: false, pointMarkersVisible: false
         });
+        (function (_chart, _s) { _cpChartUndo.push(function () { try { _chart.removeSeries(_s); } catch (_) {} }); })(ctx.chart, mk);
         mk.setData([{ time: b.candleTime(asc[mIdx][0], tf), value: asc[mIdx][4] }]);
         LWC.createSeriesMarkers(mk, [{
           time: b.candleTime(asc[mIdx][0], tf),
@@ -776,6 +885,7 @@
         lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false,
         pointMarkersVisible: true, pointMarkersRadius: 3
       });
+      (function (_chart, _s) { _cpChartUndo.push(function () { try { _chart.removeSeries(_s); } catch (_) {} }); })(ctx.chart, skel);
       var pts = r.pivots
         .slice()
         .sort(function (a, c) { return a.idx - c.idx; })
@@ -933,6 +1043,11 @@
   }
 
   function clearCards() {
+    // Also drop any DOM level labels — when the chart-pattern layer is toggled
+    // OFF the host won't call onChartRender (where clearDomTags normally runs),
+    // and the intraday host doesn't know about our nodes, so they'd otherwise
+    // orphan over the next chart.
+    clearDomTags();
     var host = document.getElementById('sw-chart-pattern-cards');
     if (host) { host.hidden = true; host.innerHTML = ''; }
   }
@@ -941,12 +1056,87 @@
   //    render, AFTER the candle series + candlestick markers are drawn.
   function onChartRender(ctx) {
     // ctx = { chart, series, inner, raw, tf }
+    // Remove the previous render's CHART-NATIVE objects (skeleton/marker series
+    // + axis-tag price lines) AND DOM level labels BEFORE drawing new ones, so
+    // re-rendering on a persistent chart (intraday bar-close refresh) can't
+    // stack duplicates. On the recreate-every-render path the chart-object
+    // thunks reference the now-disposed chart and harmlessly no-op.
+    clearChartObjects();
+    clearDomTags();
     var tf = ctx.tf, raw = ctx.raw;
+    // Precompute the fib retracement level prices with the SAME engine the
+    // chart's fib overlay uses (single source of truth — window._swCP), so a
+    // level label that lands on a fib line can stack above the fib label.
+    _cpFibPrices = [];
+    try {
+      var _b = window._swCP;
+      if (_b && typeof _b.computeFibZone === 'function' && _b.FIB_BAND_LEVELS) {
+        var _fz = _b.computeFibZone(raw);
+        if (_fz && isFinite(_fz.swHigh) && isFinite(_fz.swLow) && _fz.swHigh > _fz.swLow) {
+          var _leg = _fz.swHigh - _fz.swLow;
+          _b.FIB_BAND_LEVELS.forEach(function (lvl) {
+            _cpFibPrices.push(_fz.swHigh - lvl.ratio * _leg);   // 0% = high (swing convention)
+          });
+        }
+      }
+    } catch (_) {}
     var asc = raw.slice().sort(function (a, b) {
       return new Date(a[0]).getTime() - new Date(b[0]).getTime();
     });
     var rows = detect(raw, tf);
     drawOverlays({ chart: ctx.chart, series: ctx.series, inner: ctx.inner, asc: asc, rows: rows, tf: tf });
+    // Position the DOM level labels now and on every zoom/pan/scroll. On the
+    // recreate-every-render path the subscription dies with the old chart; on a
+    // PERSISTENT chart (intraday bar-close refresh) it would otherwise pile up,
+    // so we register an undo thunk (run by clearChartObjects on the next render)
+    // that unsubscribes the handler and drops it from the shared updater list.
+    // Swing's post-fit settle pass also re-runs registered updaters.
+    if (_cpDomItems.length && ctx.chart && ctx.series) {
+      var reposition = makeRepositionFn(ctx.chart, ctx.series);
+      reposition();
+      try { ctx.chart.timeScale().subscribeVisibleLogicalRangeChange(reposition); } catch (_) {}
+      try { if (ctx.inner && ctx.inner._swOverlayUpdaters) ctx.inner._swOverlayUpdaters.push(reposition); } catch (_) {}
+      // subscribeVisibleLogicalRangeChange is a TIME-axis event — it fires on
+      // horizontal pan/zoom but NOT on vertical price-axis zoom or autoscale,
+      // both of which change the price→pixel mapping. Without this the labels
+      // drift off their lines the moment you zoom the price scale (the reported
+      // bug). A lightweight rAF loop re-runs the positioner every frame so the
+      // labels always track their lines; reposition() only writes the DOM when a
+      // value actually moved, so an idle chart costs a few priceToCoordinate
+      // reads and no layout. The loop self-stops when the chart is gone (e.g.
+      // navigated away with no re-render to fire the undo) and is also cancelled
+      // by the undo thunk on the next render / teardown.
+      var _cpRafOn = true;
+      var _cpRafId = null;
+      var _cpRaf = (typeof window !== 'undefined' && window.requestAnimationFrame)
+        ? window.requestAnimationFrame.bind(window) : null;
+      var _cpCaf = (typeof window !== 'undefined' && window.cancelAnimationFrame)
+        ? window.cancelAnimationFrame.bind(window) : null;
+      if (_cpRaf) {
+        var _cpTick = function () {
+          if (!_cpRafOn) return;
+          var alive = true;
+          try { ctx.chart.timeScale().width(); } catch (_) { alive = false; }
+          if (!alive) { _cpRafOn = false; return; }   // chart destroyed — stop looping
+          reposition();
+          _cpRafId = _cpRaf(_cpTick);
+        };
+        _cpRafId = _cpRaf(_cpTick);
+      }
+      (function (_chart, _inner, _fn) {
+        _cpChartUndo.push(function () {
+          _cpRafOn = false;
+          if (_cpCaf && _cpRafId != null) { try { _cpCaf(_cpRafId); } catch (_) {} }
+          try { _chart.timeScale().unsubscribeVisibleLogicalRangeChange(_fn); } catch (_) {}
+          try {
+            if (_inner && _inner._swOverlayUpdaters) {
+              var ix = _inner._swOverlayUpdaters.indexOf(_fn);
+              if (ix >= 0) _inner._swOverlayUpdaters.splice(ix, 1);
+            }
+          } catch (_) {}
+        });
+      })(ctx.chart, ctx.inner, reposition);
+    }
     // Cards follow the RECOMMENDATION TF (window.swGetRecoTf), exactly like the
     // candlestick cards — the chart OVERLAY follows the chart TF (same split as
     // candle arrows-on-chart vs cards-on-reco-TF). When the two TFs match
@@ -1047,6 +1237,10 @@
     detect: detect,
     onChartRender: onChartRender,
     paintCards: paintCards,
-    clearCards: clearCards
+    clearCards: clearCards,
+    // Remove only the on-chart DOM level labels (NOT the cards). Hosts that
+    // tear the chart down themselves (intraday's clearOverlays) call this so
+    // our labels never orphan when the layer is toggled off.
+    clearOverlayLabels: clearDomTags
   };
 })();

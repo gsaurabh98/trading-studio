@@ -145,9 +145,15 @@
   // user explicitly re-enables when they're ready to refresh.
   var SW_API_PAUSED_KEY = 'sw_api_paused_v1';
 
+  // DEFAULT = PAUSED. On a first-ever visit (key absent) the swing tab stays
+  // paused so it never auto-spends the user's Upstox quota \u2014 they explicitly flip
+  // to LIVE. Once toggled, the explicit choice ('0' live / '1' paused) persists
+  // across reloads. Private mode (no storage) also defaults to paused, fail-safe.
   function swIsApiPaused() {
-    try { return localStorage.getItem(SW_API_PAUSED_KEY) === '1'; }
-    catch (_) { return false; }
+    try {
+      var v = localStorage.getItem(SW_API_PAUSED_KEY);
+      return v === null ? true : v === '1';
+    } catch (_) { return true; }
   }
 
   function swSetApiPaused(flag) {
@@ -244,6 +250,10 @@
     try { window.swingPickGlobalStock(saved.isin); } catch (_) {}
     STATE.selected = stock;
     try { _swApplyScanModeOverlays(); } catch (_) {}
+    // Paused: the pick above already surfaced the paused stub in the sector
+    // panel (single message). Skip the analyze + scroll so we don't also jump
+    // the user to a blocked result area. swGoLive re-runs analyze on resume.
+    if (swIsApiPaused()) return;
     analyze().then(function () {
       // Bring the restored chart into view, mirroring a sector-row pick
       // so the reload lands the user where they left off.
@@ -278,6 +288,38 @@
     return now;
   };
 
+  // Full "Go live" used by the paused-stub button: flips to LIVE and then
+  // actually repopulates everything the pause was blocking — the toggle alone
+  // only repaints the banner, which is why a bare swToggleApiPause looked like
+  // it "did nothing" (stale paused content lingered). Idempotent; safe no-op
+  // when already live.
+  window.swGoLive = function () {
+    if (!swIsApiPaused()) return;
+    swSetApiPaused(false);
+    try { renderApiPauseBanner(); } catch (_) {}
+    try { renderTodaySetups(); } catch (_) {}
+    // Refresh the OPEN sector's quotes while PRESERVING the current view —
+    // solo pin / page / filters. We deliberately do NOT call swingPickSector
+    // here: that resets soloIsin + paging and would drop the user's pinned
+    // stock (the "selection disappears" bug). renderSectorPanel re-paints with
+    // the existing state (replacing any paused stub with rows); fetchSector
+    // Quotes then fills prices. soloIsin is left untouched.
+    var sid = SECTOR_STATE.activeSector;
+    if (sid) {
+      try { renderSectorPanel(); } catch (_) {}
+      try {
+        var p = fetchSectorQuotes(sid);
+        if (p && typeof p.then === 'function') {
+          p.then(function () {
+            if (SECTOR_STATE.activeSector === sid) { try { renderSectorPanel(); } catch (_) {} }
+          }, function () {});
+        }
+      } catch (_) {}
+    }
+    // Load the picked stock's analysis (replaces the paused result card).
+    if (STATE.selected) { try { analyze(true); } catch (_) {} }
+  };
+
   // ── Module state ──
   var STATE = {
     selected: null,        // {sym, isin, name} — the stock currently being analyzed
@@ -307,7 +349,14 @@
     chartTf: '1d',         // currently displayed timeframe ('1mo'|'1w'|'1d'|'4h'|'1h'|'5m')
     chartFetching: {},     // { tfKey: Promise } — dedupes parallel fetches
     lwcLoading: null,      // Promise — dedupes parallel loadLwcLib calls
-    indVisible: { ema20: false, ema50: false, ema200: false, sma44: false, zoi: true, fvg: false, ob: false, bos: false, liq: false, fib: true, chartpatterns: true },
+    // Default chart layers tuned for the 1D–2W swing read (2026-06-09): TREND
+    // (EMA 20 + EMA 50) and the demand/supply ZONES and actionable CHART
+    // PATTERNS are on — that's "trend + level + setup", the three things that
+    // pay for this horizon. FIB now defaults OFF (its 7 lines were the main
+    // chart clutter; toggle it on per-stock when you want the pocket). The
+    // smart-money layers (FVG / OB / BOS / LIQ) stay off — garnish for a swing
+    // hold. EMA 200 + SMA 44 stay off to keep the trend read to two clean lines.
+    indVisible: { ema20: true, ema50: true, ema200: false, sma44: false, zoi: true, forming: false, fvg: false, ob: false, bos: false, liq: false, fib: false, chartpatterns: true },
     livePoll: {
       timer: null,
       intervalMs: 2000,
@@ -970,6 +1019,20 @@
     return null;
   }
 
+  // Two-way bind between the top sector grid and the Today's-Setups
+  // "Scan scope" dropdown. `_swScopeBindBusy` guards the round-trip so a
+  // pick on one control mirrors onto the other without re-triggering it.
+  var _swScopeBindBusy = false;
+  // True only for ids that are a real scan scope: a curated sector or index
+  // (incl. the band screens like High Liquidity) the dropdown lists AND the
+  // scanner can resolve. 'my-stocks' is a local watchlist, not a universe
+  // slice, and '__all__' has no card — so neither is a bindable scope here.
+  function _swIsScopeGroup(id) {
+    if (!id || id === 'my-stocks' || id === '__all__') return false;
+    var g = _swGetGroup(id);
+    return !!(g && (g.kind === 'sector' || g.kind === 'index'));
+  }
+
   // ─────────────────────────────────────────────────────────
   // PER-GROUP PRICE BAND
   //
@@ -981,14 +1044,28 @@
   // malformed band — never widening on bad data (per trading-context.mdc).
   // ─────────────────────────────────────────────────────────
   function _swBandFor(id) {
-    var def = { min: SW_MIN_PRICE, max: SW_MAX_PRICE };
-    if (!id || id === '__all__' || id === 'my-stocks') return def;
-    var g = _swGetGroup(id);
-    var b = g && g.band;
-    if (b && isFinite(+b.min) && isFinite(+b.max) && +b.min > 0 && +b.min < +b.max) {
-      return { min: +b.min, max: +b.max };
+    // A curated screen may carry its OWN band (High Liquidity → its configured
+    // range). That band is intrinsic to the screen and always applies.
+    var own = null;
+    if (id && id !== '__all__' && id !== 'my-stocks') {
+      var g = _swGetGroup(id);
+      var b = g && g.band;
+      if (b && isFinite(+b.min) && isFinite(+b.max) && +b.min > 0 && +b.min < +b.max) {
+        own = { min: +b.min, max: +b.max };
+      }
     }
-    return def;
+    // Global band OFF: the screen's own band still applies (intrinsic); a
+    // regular scope gets null = "no price filter" so it scans every name.
+    if (!SW_BAND_ENABLED) return own;
+    // Global band ON: it applies on TOP of the scope. For a screen with its own
+    // band we INTERSECT (the user's band only ever narrows further, never
+    // widens past the screen's curation). If the two ranges don't overlap the
+    // result is an empty band (min > max) ⇒ nothing passes, which is honest:
+    // the user's band excludes this screen entirely.
+    if (own) {
+      return { min: Math.max(own.min, SW_MIN_PRICE), max: Math.min(own.max, SW_MAX_PRICE) };
+    }
+    return { min: SW_MIN_PRICE, max: SW_MAX_PRICE };
   }
 
   // ─────────────────────────────────────────────────────────
@@ -1893,6 +1970,13 @@
       SECTOR_STATE.soloIsin      = null;   // collapsing exits solo mode
       renderSectorGrid();
       renderSectorPanel();
+      // Two-way bind: collapsing a scope-backed card clears the scan scope
+      // back to the full universe so the dropdown mirrors the now-empty
+      // selection. Collapsing 'my-stocks' (not a scope) leaves it untouched.
+      if (!_swScopeBindBusy && _swIsScopeGroup(sectorId) && swingGetScanScope() === sectorId) {
+        swingSetScanScope('__all__');
+        if (typeof renderTodaySetups === 'function') renderTodaySetups();
+      }
       return;
     }
     SECTOR_STATE.activeSector = sectorId;
@@ -1919,6 +2003,15 @@
       _swFibAutoState.signalFilter  = null;
     }
     renderSectorGrid();
+    // Two-way bind: opening a scope-backed card selects it as the scan
+    // scope so the Today's-Setups dropdown mirrors the top card. 'my-stocks'
+    // is a local watchlist with no scope equivalent, so the scope is left
+    // untouched there. Only sets the value + repaints the tile — it never
+    // auto-runs a scan (matches swingPickScope), so no API budget is spent.
+    if (!_swScopeBindBusy && _swIsScopeGroup(sectorId) && swingGetScanScope() !== sectorId) {
+      swingSetScanScope(sectorId);
+      if (typeof renderTodaySetups === 'function') renderTodaySetups();
+    }
     renderSectorPanel(); // loading state
     // The detail panel now lives BELOW the Today's Setups table, so a
     // plain sector-card click would otherwise render off-screen. Bring
@@ -2068,8 +2161,10 @@
     // per stock, so a stale snapshot never leaks a bad signal.
     function _swBandMeta(stocks, band) {
       var arr = stocks || [];
-      var bMin = (band && isFinite(+band.min)) ? +band.min : SW_MIN_PRICE;
-      var bMax = (band && isFinite(+band.max)) ? +band.max : SW_MAX_PRICE;
+      // band null = no price filter ⇒ every priced name counts as in-band.
+      var hasBand = !!(band && isFinite(+band.min) && isFinite(+band.max));
+      var bMin = hasBand ? +band.min : -Infinity;
+      var bMax = hasBand ? +band.max : Infinity;
       var total = arr.length, priced = 0, inBand = 0;
       for (var i = 0; i < total; i++) {
         var p = arr[i] ? +arr[i].price : NaN;
@@ -2085,25 +2180,38 @@
       var active = (act === id) ? ' sw-sector-card-active' : '';
       var slugClass = accentClass || (' sw-sector-card-' + id);
       var icon = _swSectorIcon(id);
-      // A group may narrow to its own band (High Liquidity → ₹500–₹2,000);
-      // everything else uses the global band. The card counts + labels match
-      // whatever band that card actually scans against.
+      // A group may narrow to its own band (High Liquidity); regular sectors use
+      // the global band ONLY when the toggle is on. _swBandFor returns null when
+      // the global band is off ⇒ every name is scannable (total / total).
       var band = _swBandFor(id);
-      var bandNarrowed = (band.min !== SW_MIN_PRICE || band.max !== SW_MAX_PRICE);
-      var bandTxt = '\u20B9' + band.min.toLocaleString('en-IN')
-                  + '\u2013\u20B9' + band.max.toLocaleString('en-IN');
       var meta = _swBandMeta(stocks, band);
       var metaTxt, metaTitle = '';
-      if (meta.priced > 0) {
-        metaTxt = (bandNarrowed ? meta.inBand + ' stocks \u00b7 ' + bandTxt
-                                : meta.inBand + ' / ' + meta.total + ' stocks');
-        metaTitle = meta.inBand + ' of ' + meta.total + ' priced within '
-                  + bandTxt + (bandNarrowed ? ' (this screen\u2019s band)' : ' (the swing scan band)')
-                  + (meta.total - meta.priced > 0
-                      ? ' \u00b7 ' + (meta.total - meta.priced) + ' have no price snapshot'
-                      : '') + '.';
+      if (!band) {
+        // Price-band filter OFF — the whole group is scannable.
+        metaTxt = meta.total + ' / ' + meta.total + ' stocks';
+        metaTitle = 'All ' + meta.total + ' names are scannable \u2014 the price-band filter is off.';
+      } else if (band.min > band.max) {
+        // Empty intersection — the user's band sits entirely outside this
+        // screen's own band, so nothing qualifies.
+        metaTxt = '0 / ' + meta.total + ' stocks';
+        metaTitle = 'Your \u20B9' + SW_MIN_PRICE.toLocaleString('en-IN') + '\u2013\u20B9'
+                  + SW_MAX_PRICE.toLocaleString('en-IN') + ' band doesn\u2019t overlap this '
+                  + 'screen\u2019s price range \u2014 nothing to scan. Widen your band or turn it off.';
       } else {
-        metaTxt = meta.total + ' stocks' + (bandNarrowed ? ' \u00b7 ' + bandTxt : '');
+        var bandNarrowed = (band.min !== SW_MIN_PRICE || band.max !== SW_MAX_PRICE);
+        var bandTxt = '\u20B9' + band.min.toLocaleString('en-IN')
+                    + '\u2013\u20B9' + band.max.toLocaleString('en-IN');
+        if (meta.priced > 0) {
+          metaTxt = (bandNarrowed ? meta.inBand + ' stocks \u00b7 ' + bandTxt
+                                  : meta.inBand + ' / ' + meta.total + ' stocks');
+          metaTitle = meta.inBand + ' of ' + meta.total + ' priced within '
+                    + bandTxt + (bandNarrowed ? ' (this screen\u2019s band)' : ' (the swing scan band)')
+                    + (meta.total - meta.priced > 0
+                        ? ' \u00b7 ' + (meta.total - meta.priced) + ' have no price snapshot'
+                        : '') + '.';
+        } else {
+          metaTxt = meta.total + ' stocks' + (bandNarrowed ? ' \u00b7 ' + bandTxt : '');
+        }
       }
       return '<button type="button" class="sw-sector-card' + slugClass + active + '"'
            +   ' onclick="swingPickSector(\'' + id + '\')"'
@@ -2521,10 +2629,13 @@
     // ₹500–₹2,000 band; every other card uses the global default.
     if (!isSolo) {
       var _browseBand = _swBandFor(SECTOR_STATE.activeSector);
-      rows = rows.filter(function (r) {
-        if (r.ltp == null) return true;
-        return r.ltp >= _browseBand.min && r.ltp <= _browseBand.max;
-      });
+      // null = band filter off ⇒ show every name in the group.
+      if (_browseBand) {
+        rows = rows.filter(function (r) {
+          if (r.ltp == null) return true;
+          return r.ltp >= _browseBand.min && r.ltp <= _browseBand.max;
+        });
+      }
     }
     total = rows.length;
     var loadedCount = rows.filter(function (r) { return r.ltp != null; }).length;
@@ -3181,6 +3292,24 @@
       var anyLoaded = sec.stocks.some(function (st) { return SECTOR_STATE.quoteCache[st.isin] != null; });
       if (anyLoaded) { renderSectorPanel(); return; }
     }
+    // Paused isn't a failure — render a calm "paused" stub (not a red error
+    // banner) with a Go-live action. Resuming flips the toggle AND re-runs the
+    // sector load so quotes populate immediately (swToggleApiPause itself only
+    // re-paints the banner + setups tile, not this panel).
+    if (err && err.swPaused) {
+      host.innerHTML = ''
+        + '<div class="sw-sector-panel">'
+        +   '<div class="sw-sector-panel-header">'
+        +     '<span class="sw-sector-panel-name">' + escapeHtml(sec ? sec.name : 'Sector') + '</span>'
+        +     '<span class="sw-sector-panel-meta">paused</span>'
+        +   '</div>'
+        +   '<div class="sw-sector-panel-paused">'
+        +     '<div>Swing API is paused to protect your Upstox quota.</div>'
+        +     '<button type="button" class="sw-golive-btn" onclick="window.swGoLive()">Go live</button>'
+        +   '</div>'
+        + '</div>';
+      return;
+    }
     host.innerHTML = ''
       + '<div class="sw-sector-panel">'
       +   '<div class="sw-sector-panel-header">'
@@ -3200,6 +3329,9 @@
     // round-trip \u2014 load them up front so the My Stocks card
     // shows the correct count from the very first paint.
     _swLoadCustomStocks();
+    // Restore the user's chart-overlay choices (e.g. Forming ON) so they apply
+    // to the very first stock opened this session — including manual picks.
+    _swRestoreIndVis();
     // Paint the API-pause banner first \u2014 if the user previously
     // paused, this MUST be visible before any auto-fetching code
     // runs so they can resume or stay paused.
@@ -3209,6 +3341,12 @@
     // rows otherwise. Independent of the sector grid load (and not
     // gated by network) so the user always sees the panel.
     try { renderTodaySetups(); } catch (_) {}
+    // Paint the Zone Scan tile + load its rule book (rules/scan-rule.json).
+    // Independent of the sector grid; renders an idle picker immediately.
+    try { swZoneScanInit(); } catch (_) {}
+    // Paint the editable price-band control up front (independent of the
+    // network) so the inputs reflect the live band even if sectors fail.
+    try { _swRenderPriceBandControl(); } catch (_) {}
     try {
       await loadSectors();
       renderSectorGrid();
@@ -3231,23 +3369,41 @@
     if (!host) return;
     var paused = swIsApiPaused();
     host.dataset.state = paused ? 'paused' : 'active';
-    var dotCls = paused ? 'sw-api-pause-dot-paused' : 'sw-api-pause-dot-active';
-    var statusTxt = paused ? 'Swing API: PAUSED' : 'Swing API: ACTIVE';
-    var hintTxt = paused
-      ? 'Cached recommendations + last-known prices only. No live fetches. Fresh analysis is blocked until you resume.'
-      : 'Analyzer can fetch fresh candles, LTPs, and run the bulk scan. Pause to protect your Upstox quota for Options Trading.';
-    var btnTxt = paused ? 'Resume' : 'Pause';
+    // Gear glyph reused from the old header pill — keeps the "manage token"
+    // affordance inside this bar so connection + pause live in one control.
+    var GEAR = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none"'
+      + ' stroke="currentColor" stroke-width="2" aria-hidden="true">'
+      + '<circle cx="12" cy="12" r="3"></circle>'
+      + '<path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"></path>'
+      + '</svg>';
+    // The banner IS the section header now: title left, manage pill + a
+    // single on/off toggle right. The toggle replaces the old status text +
+    // Pause button — its colour (green = live, amber = paused), knob position
+    // and label carry the state, so there's no redundant "API: ACTIVE" line.
+    var switchTitle = paused
+      ? 'API paused — click to resume live candle / LTP / scan fetches'
+      : 'API live — click to pause and protect your Upstox quota for Options Trading';
     host.innerHTML = ''
       + '<div class="sw-api-pause-meta">'
-      +   '<span class="sw-api-pause-dot ' + dotCls + '" aria-hidden="true"></span>'
-      +   '<span class="sw-api-pause-status">' + statusTxt + '</span>'
-      +   '<span class="sw-api-pause-hint">' + hintTxt + '</span>'
+      +   '<h2 class="sw-api-title">SWING TRADE</h2>'
+      +   '<button type="button" class="sw-api-switch" role="switch"'
+      +     ' data-on="' + (paused ? 'false' : 'true') + '"'
+      +     ' aria-checked="' + (paused ? 'false' : 'true') + '"'
+      +     ' onclick="swToggleApiPause()" title="' + switchTitle + '">'
+      +     '<span class="sw-api-switch-track"><span class="sw-api-switch-knob"></span></span>'
+      +     '<span class="sw-api-switch-label">' + (paused ? 'Paused' : 'Live') + '</span>'
+      +   '</button>'
       + '</div>'
-      + '<button type="button" class="sw-api-pause-btn"'
-      +   ' onclick="swToggleApiPause()"'
-      +   ' aria-pressed="' + (paused ? 'true' : 'false') + '">'
-      +   btnTxt
-      + '</button>';
+      + '<div class="sw-api-actions">'
+      +   '<button type="button" class="sw-api-pill" id="sw-api-pill"'
+      +     ' onclick="show(\'api-setup\')" title="Manage Upstox API token">'
+      +     '<span class="sw-api-dot" id="sw-api-dot"></span>'
+      +     '<span id="sw-api-pill-label">Connect API</span>'
+      +     GEAR
+      +   '</button>'
+      + '</div>';
+    // Refresh the connection dot/label now that the pill lives in this bar.
+    try { _swUpdateApiPill(); } catch (_) {}
   }
   // (escapeHtml is defined further down in the same module
   // \u2014 function-declaration hoisting makes it available here.)
@@ -3725,9 +3881,71 @@
   };
 
   // ═══════════════════════════════════════════════════════════════
+  // MULTI-TIMEFRAME ALIGNMENT — 4H structure + 1H trigger overlay
+  // ═══════════════════════════════════════════════════════════════
+  // A confidence LAYER for the single-stock deep-dive. The daily
+  // engine (generatePlan) still decides BUY / WAIT / AVOID entirely on
+  // its own; this helper only READS the two faster timeframes and
+  // returns a verdict the way a discretionary trader confirms an entry:
+  // "is the 4H structure with me, and has the 1H actually turned up to
+  // trigger?" generatePlan then applies it conservatively — it can only
+  // DEMOTE a Daily BUY to WAIT, or NUDGE a BUY up one confidence band;
+  // it can never invent a BUY out of a WAIT/AVOID.
+  //
+  // States:
+  //   AGAINST — 4H is making LOWER highs/lows (4H downtrend). A daily
+  //             BUY here is buying straight into near-term supply →
+  //             generatePlan demotes it to WAIT (fail-safe).
+  //   ALIGNED — 4H is making HIGHER highs/lows AND the 1H has triggered
+  //             (bullish 1H momentum + price back at/above its 1H 20-EMA,
+  //             or a fresh 1H bull MACD cross ≤3 bars old) → +1 band.
+  //   PARTIAL — 4H agrees but the 1H has not triggered yet → no change
+  //             (the trader waits for the 1H to confirm timing).
+  //   NEUTRAL — 4H structure is mixed/sideways → no opinion, no change.
+  //   NODATA  — 4H analysis missing (bulk scan / backtest / thin or new
+  //             listing / failed fetch) → overlay does nothing.
+  //
+  // Anchors only on analyzeTf's CONFIRMED-bar trend + indicators, so it
+  // never repaints off the live, still-forming candle.
+  function swMtfAlignment(fourH, oneH) {
+    if (!fourH || !fourH.trend) {
+      return { available: false, state: 'NODATA', boosted: false, demoted: false };
+    }
+    var fBull = (fourH.trend === 'BULL' || fourH.trend === 'STRONG_BULL');
+    var fBear = (fourH.trend === 'BEAR' || fourH.trend === 'STRONG_BEAR');
+    // 1H "trigger fired" — bullish 1H momentum that has actually turned
+    // up: price holds/reclaims its 1H 20-EMA, OR a fresh bull MACD cross
+    // within the last 3 bars. A missing 1H means we can't confirm the
+    // trigger, so the trigger leg reads false (PARTIAL at best).
+    var oneHHas = !!(oneH && oneH.trend);
+    var oneHTrig = false;
+    if (oneHHas) {
+      var moBull  = (oneH.momentum === 'BULL' || oneH.momentum === 'STRONG_BULL');
+      var reclaim = (oneH.ema20 != null && oneH.lastClose != null && oneH.lastClose >= oneH.ema20);
+      var fresh   = !!(oneH.macdCross && oneH.macdCross.dir === 'bull' && oneH.macdCross.barsAgo <= 3);
+      oneHTrig = moBull && (reclaim || fresh);
+    }
+    var state;
+    if (fBear)                  state = 'AGAINST';
+    else if (fBull && oneHTrig) state = 'ALIGNED';
+    else if (fBull)             state = 'PARTIAL';
+    else                        state = 'NEUTRAL';
+    return {
+      available: true,
+      state: state,
+      fourTrend: fourH.trend,
+      fourBasis: fourH.trendBasis || null,
+      oneHHas: oneHHas,
+      oneHTrigger: oneHTrig,
+      boosted: false,
+      demoted: false
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════
   // TRADE PLAN GENERATOR — multi-trigger screener with style tagging
   // ═══════════════════════════════════════════════════════════════
-  function generatePlan(monthly, weekly, daily, hourly, marketRegime) {
+  function generatePlan(monthly, weekly, daily, hourly, marketRegime, fourH) {
     // ── Multi-trigger screener (Option A) ──
     // Instead of a single "pullback to support" rule (which
     // generates ≤1 BUY per 100 scans on most days), we evaluate
@@ -3747,8 +3965,28 @@
     // happens when Upstox returns < 6 months of history for a new
     // listing) or hourly (backtest beyond the 60-day 1H window)
     // just shifts the verdict by at most one confidence band.
-    if (!weekly || !daily) {
-      return { ok: false, reason: 'Not enough historical data for one or more timeframes.' };
+    if (!daily) {
+      return { ok: false, reason: 'Not enough daily history to analyze yet.' };
+    }
+    // New listing: not enough weekly history for a higher-timeframe trend
+    // (a swing read leans on the weekly trend, which needs ~30 weekly bars).
+    // Don't fail — return a SAFE no-trade plan so the chart + per-TF cards
+    // still render. We never emit a swing BUY without a weekly trend, so the
+    // setup card stays WAIT with a plain-language "too new" explanation.
+    if (!weekly) {
+      return {
+        ok: true, limited: true, action: 'WAIT',
+        setupName: 'Too new for a weekly trend',
+        setupShort: 'NEW LISTING',
+        entry: null, sl: null, t1: null, t2: null, rr: null,
+        why: 'This stock is too new to have a weekly trend yet \u2014 a 1\u20132 week swing read '
+           + 'leans on the higher-timeframe trend, which needs about 30 weeks of history. '
+           + 'The daily and hourly read below is shown for context, but hold off on a swing '
+           + 'entry until a weekly trend has formed.',
+        skipIf: [], triggers: [], bull: [], bear: [],
+        score: 0, confidence: 'LOW', confidencePct: null,
+        holding: null, monthlyStage: null, rsPp: null, gateReason: null
+      };
     }
 
     // ── Monthly Stage detector (Weinstein-style 4-stage). ──
@@ -3843,9 +4081,36 @@
       if (sups.length === 0) return null;
       var weeklyBull = w.trend && w.trend.indexOf('BULL') >= 0;
       var dailyBull  = d.trend && d.trend.indexOf('BULL') >= 0;
-      if (!weeklyBull && !dailyBull) return null;
+      // ── Fix #1 (2026-06-11): soften the weekly-trend backdrop ──
+      // A stock turning up out of a multi-month base has a FLAT weekly,
+      // not a bullish one. The old `weeklyBull || dailyBull` backdrop
+      // vetoed that entire Stage-1 -> Stage-2 class at this trigger.
+      // Treat a NEUTRAL-but-turning-up weekly as a constructive backdrop
+      // too: weekly trend NEUTRAL + 20-week EMA flat-or-rising (slope >= 0)
+      // + weekly RSI reclaimed above the 50 midline. This is the textbook
+      // "weekly is at least not against us while the daily leads" case.
+      //
+      // Why this stays safe (the hard rules still hold):
+      //   - A clearly-DOWN weekly is still excluded (NEUTRAL + non-falling
+      //     EMA + RSI >= 50 can never be a BEAR/STRONG_BEAR weekly).
+      //   - detectSupports() only returns a RISING 50 EMA / RISING weekly
+      //     20 EMA / a swing low sitting above a RISING 50 EMA, so the
+      //     support is a real base, never a falling knife.
+      //   - When we lean on the turning-up weekly WITHOUT a bullish daily,
+      //     we additionally refuse the setup if the daily itself is in a
+      //     downtrend (BEAR / STRONG_BEAR) -- the support must be a base,
+      //     not a pause inside a fall.
+      //   - The BUY still flows through the same _swStandardRR machinery,
+      //     so SL + R:R remain defined on every signal.
+      var weeklyTurningUp = (w.trend === 'NEUTRAL')
+        && (w.ema20Slope === 'rising' || w.ema20Slope === 'flat')
+        && (w.rsi != null && isFinite(w.rsi) && w.rsi >= 50);
+      var weeklyConstructive = weeklyBull || weeklyTurningUp;
+      if (!weeklyConstructive && !dailyBull) return null;
+      var dailyDown = (d.trend === 'BEAR' || d.trend === 'STRONG_BEAR');
+      if (!dailyBull && !weeklyBull && dailyDown) return null;
       var conflBonus = (sups.length - 1) * 2; // 0 / +2 / +4
-      var trendBonus = (weeklyBull && dailyBull) ? 2 : 1;
+      var trendBonus = (weeklyConstructive && dailyBull) ? 2 : 1;
       return {
         type: 'AT_SUPPORT',
         style: 'SWING',
@@ -4312,6 +4577,38 @@
       }
     }
 
+    // ── Multi-timeframe alignment overlay (4H structure + 1H trigger) ──
+    // Refines an EXISTING Daily BUY using the two faster timeframes (see
+    // swMtfAlignment above). Strictly bounded: it can only DEMOTE a BUY
+    // to WAIT (fail-safe, false-negative) or NUDGE a BUY up one
+    // confidence band; it never creates a BUY from a WAIT/AVOID. When 4H
+    // is absent (bulk scan, backtest, thin/new listing, failed fetch) it
+    // is a complete no-op — the daily verdict stands exactly as computed.
+    var mtfAlign = swMtfAlignment(fourH, hourly);
+    if (action === 'BUY' && mtfAlign.available) {
+      if (mtfAlign.state === 'AGAINST') {
+        // 4H making lower highs/lows → buying into near-term supply.
+        // Demote to WAIT; the WAIT return below explains it via gateReason.
+        action = 'WAIT';
+        bias = 'NEUTRAL';
+        confidence = 'LOW';
+        confidencePct = null;
+        gateReason = 'MTF_4H_AGAINST';
+        mtfAlign.demoted = true;
+      } else if (mtfAlign.state === 'ALIGNED') {
+        // 4H higher highs/lows AND 1H triggered → real multi-TF
+        // confluence. Bump one band, capped at HIGH (refine, not invent).
+        var _mtfBandUp = { LOW: 'MEDIUM', MEDIUM: 'HIGH', HIGH: 'HIGH' };
+        var _mtfNewBand = _mtfBandUp[confidence] || confidence;
+        if (_mtfNewBand !== confidence) {
+          confidence = _mtfNewBand;
+          confidencePct = confidencePctFor(confidence, compositeScore, triggers.length, regimeStr);
+          mtfAlign.boosted = true;
+        }
+      }
+      // PARTIAL / NEUTRAL leave the verdict untouched (UI context only).
+    }
+
     // Legacy `score` field — many UI surfaces still display
     // "score +N". We expose the composite trigger score (BUY) or
     // a tf-based proxy (WAIT/AVOID) so existing renderers keep
@@ -4337,6 +4634,24 @@
         skipIf = [
           'Buying this stock now \u2014 you\'d be fighting a confirmed downtrend',
           'Trying to "catch the bottom" \u2014 wait until at least the Daily flips back to UP, then re-analyze'
+        ];
+      } else if (gateReason === 'MTF_4H_AGAINST') {
+        // The Daily setup was a valid BUY, but the 4H is still making
+        // lower highs/lows. We demoted to WAIT rather than buy straight
+        // into the shorter-term supply. Explain it in plain terms.
+        var _4hTrendTxt = mtfAlign && mtfAlign.fourTrend
+          ? mtfAlign.fourTrend.replace('STRONG_', 'strong ').toLowerCase().replace('_', ' ')
+          : 'down';
+        headline = 'WAIT \u2014 Daily setup is valid, but the 4-hour chart is still falling';
+        msg = 'The Daily timeframe fired a genuine BUY trigger, but the 4-hour chart is still making '
+          + 'lower highs and lower lows (4H trend: ' + _4hTrendTxt + '). Buying now means stepping in '
+          + 'front of near-term selling \u2014 the higher-probability move is to WAIT for the 4-hour to '
+          + 'stop falling and start making higher highs, then re-analyze. This is the 4H+1H alignment '
+          + 'layer doing its job: it holds you back from an otherwise-clean Daily BUY until the faster '
+          + 'timeframe agrees.';
+        skipIf = [
+          'Buying on the Daily signal alone while the 4-hour is still dropping \u2014 wait for the 4H to turn up',
+          'Forcing the trade because "the Daily says BUY" \u2014 the 4H disagreeing is exactly when these setups fail early'
         ];
       } else if (gateReason === 'LOW_QUALITY') {
         // Build dynamic context bits so the user knows WHY the
@@ -4412,7 +4727,8 @@
         bullSignals: bullSignals,
         bearSignals: bearSignals,
         tfScore: tfScore,
-        tfSignals: tfSignals
+        tfSignals: tfSignals,
+        mtfAlign: mtfAlign
       };
     }
 
@@ -4834,7 +5150,8 @@
       bullSignals: bullSignals,
       bearSignals: bearSignals,
       tfScore: tfScore,
-      tfSignals: tfSignals
+      tfSignals: tfSignals,
+      mtfAlign: mtfAlign
     };
   }
 
@@ -5804,12 +6121,10 @@
     if (STATE.analyzingIsin && STATE.analyzingIsin === STATE.selected.isin
         && _inflightAgeMs < 25000) return;
     if (swIsApiPaused()) {
-      showError(
-        'Swing API is paused',
-        'You\'ve paused the swing module\u2019s API access (banner at the top of this tab). '
-        + 'Click \u201cResume\u201d to fetch fresh analysis for ' + STATE.selected.sym + '. '
-        + 'The pause is in place to protect your Upstox quota for Options Trading.'
-      );
+      // Paused: show ONE calm, actionable message in the result area (not a
+      // red error). Its Go-live button resumes AND loads this exact stock,
+      // preserving the sector selection. The stock stays picked the whole time.
+      showPaused(STATE.selected && STATE.selected.sym);
       return;
     }
     var token = getToken();
@@ -5834,7 +6149,7 @@
     var myIsin = STATE.selected.isin;
     STATE.analyzingIsin = myIsin;
     STATE.analyzingStartTs = Date.now();   // staleness guard for the de-dupe above
-    showLoading('Fetching weekly, daily and hourly candles for ' + STATE.selected.sym + '…');
+    showLoading('Fetching weekly, daily, 4-hour and hourly candles for ' + STATE.selected.sym + '…');
     try {
       var isin = STATE.selected.isin;
       // Fan-out: stock W/D/H candles + LTP + Nifty regime (5 parallel
@@ -5846,11 +6161,17 @@
       // context layer (Stage 1/2/3/4) that gates the verdict's
       // multi-year sanity check. Independent endpoint so it joins
       // the same parallel fan-out without adding latency.
+      // 4H is the OPTIONAL alignment-overlay timeframe — wrapped so a
+      // failed/empty 4H fetch yields null instead of rejecting the whole
+      // Promise.all (the M/W/D/H verdict must still render; the overlay
+      // simply no-ops when 4H is missing). One extra call per deep-dive
+      // click only — the bulk scan never fetches it (rate-budget safe).
       var results = await Promise.all([
         fetchTf(isin, '1mo'),
         fetchTf(isin, '1w'),
         fetchTf(isin, '1d'),
         fetchTf(isin, '1h'),
+        fetchTf(isin, '4h').catch(function () { return null; }),
         fetchLtp(isin),
         fetchMarketRegime()
       ]);
@@ -5859,7 +6180,7 @@
       // run's loading overlay.
       if (mySeq !== STATE.analyzeSeq) return;
       var rawM = results[0], rawW = results[1], rawD = results[2], rawH = results[3],
-          ltp  = results[4], regime = results[5];
+          raw4H = results[4], ltp = results[5], regime = results[6];
 
       // Upstox's DEEP daily window can lag the just-closed session (see
       // _swFillDailyGapFromShortWindow). Recover it from the short recent
@@ -5875,23 +6196,33 @@
       var anW = analyzeTf(rawW, '1w');
       var anD = analyzeTf(rawD, '1d');
       var anH = analyzeTf(rawH, '1h');
-      if (!anW || !anD || !anH) {
-        throw new Error('Insufficient historical data for one or more timeframes (W=' + (rawW || []).length + ', D=' + (rawD || []).length + ', H=' + (rawH || []).length + ' candles)');
+      // an4H is OPTIONAL (like anM): null when the 4H window is thin /
+      // new listing / fetch failed. generatePlan's alignment overlay
+      // no-ops on a null 4H, so the verdict is unchanged in that case.
+      var an4H = analyzeTf(raw4H, '4h');
+      // Only DAILY is truly required — without ~30 daily bars there isn't
+      // enough to chart or read the stock at all. Weekly / hourly / monthly /
+      // 4H are all OPTIONAL: a newly-listed stock simply renders those cards as
+      // "not enough history" and the verdict stays safe (no swing BUY without a
+      // weekly trend — generatePlan returns a WAIT "too new" plan). This means
+      // we no longer dead-end new stocks on a thin weekly/hourly window.
+      if (!anD) {
+        throw new Error('This stock looks newly listed \u2014 it doesn\u2019t have enough daily history yet (' + (rawD || []).length + ' of 30 bars needed). Try again once it has a few more weeks of trading.');
       }
       // anM is allowed to be null (new listings with < 6 months of
       // monthly history) — generatePlan handles a missing monthly
       // gracefully (skips the stage bullet + score modifier).
-      var plan = generatePlan(anM, anW, anD, anH, regime);
+      var plan = generatePlan(anM, anW, anD, anH, regime, an4H);
       STATE.result = {
         plan: plan,
         regime: regime,
-        monthly: anM, weekly: anW, daily: anD, hourly: anH,
+        monthly: anM, weekly: anW, daily: anD, hourly: anH, fourHour: an4H,
         // Per-TF raw candle cache keyed by TF spec. The Monthly /
         // Weekly / Daily / Hourly buffers are populated immediately
         // (we just fetched them for the analysis); 5-min (5m) is
         // added lazily when the user clicks that TF button on the
         // chart toolbar.
-        candles: { '1mo': rawM, '1w': rawW, '1d': rawD, '1h': rawH },
+        candles: { '1mo': rawM, '1w': rawW, '1d': rawD, '1h': rawH, '4h': raw4H },
         ltp: ltp,
         when: new Date()
       };
@@ -5951,13 +6282,33 @@
   // via `swing_price_band: { min, max }` (applied by _swApplyPriceBand once
   // the config fetch resolves). If config is missing or malformed we keep
   // these defaults (fail safe — never widen the band on bad data).
-  var SW_MIN_PRICE = 400;
-  // Upper price band. Stocks closing above this are skipped (not failed)
-  // the same way the floor works — the user trades a ₹400–₹2,200 band, so
-  // very high-priced names (MRF, Page, Bosch, Shree Cement, etc.) are
-  // filtered out of the scan to cut noise + rate-limit pressure. Both
-  // bounds are inclusive of the band: keep ₹400 ≤ close ≤ ₹2,200.
-  var SW_MAX_PRICE = 2200;
+  // Hard-coded fallback defaults — used when neither a user UI override
+  // (localStorage SW_PRICE_BAND_KEY) nor data/config.json supplies a band, and
+  // as the target of the "Reset" button. Precedence (highest wins):
+  //   user UI override  >  data/config.json  >  these defaults.
+  var SW_DEFAULT_MIN_PRICE = 400;
+  // Upper price band. Stocks closing above this are skipped (not failed) the
+  // same way the floor works — very high-priced names (MRF, Page, Bosch, Shree
+  // Cement, etc.) are filtered out of the scan to cut noise + rate-limit
+  // pressure. Both bounds are inclusive: keep SW_MIN_PRICE ≤ close ≤ SW_MAX_PRICE.
+  var SW_DEFAULT_MAX_PRICE = 2200;
+  // LIVE band (mutated by _swSetPriceBand from the UI / config). Start at the
+  // defaults; the user override (if any) is applied at module init below.
+  var SW_MIN_PRICE = SW_DEFAULT_MIN_PRICE;
+  var SW_MAX_PRICE = SW_DEFAULT_MAX_PRICE;
+  // localStorage key for the user's UI-chosen band ({min,max,enabled}). When
+  // present it OVERRIDES config.json so the trader's explicit choice always wins
+  // and survives reloads without editing any file.
+  var SW_PRICE_BAND_KEY = 'sw_price_band_v1';
+  // Is the price band actually APPLIED? Default ON (2026-06-11, by request) —
+  // most scans want to skip ultra-cheap + ultra-expensive names, so the band
+  // filters from the very first load. The trader can still turn it OFF via the
+  // Swing-tab toggle; that explicit choice is persisted (SW_PRICE_BAND_KEY) and
+  // OVERRIDES this default on the next load (see _swInitUserBand). SW_MIN_PRICE /
+  // SW_MAX_PRICE above are the band values; this flag just decides whether they
+  // filter. A curated SCREEN that carries its OWN band in sectors.json (High
+  // Liquidity) ALWAYS applies its band regardless of this flag — intrinsic.
+  var SW_BAND_ENABLED = true;
 
   // ── Scan timeframe (2026-05-30 multi-TF + pure-rules redesign) ──
   // The bulk scan + verdict engine run on ONE timeframe at a time,
@@ -5975,17 +6326,15 @@
   // still runs on 1M/1W/1D only; these two are detail-view reads the
   // user inspects manually for multi-TF confluence.
   var SW_TF_LABEL    = { '1mo': 'Monthly', '1w': 'Weekly', '1d': 'Daily', '4h': '4 Hour', '1h': '1 Hour' };
-  // Timeframes the Reco-TF picker is allowed to select. This is a SUPERSET
-  // of SW_TF_LABEL: the signalled TFs (1mo/1w/1d/4h/1h) produce a real
-  // BUY/WAIT verdict, while the sub-hourly TFs (30m/15m/5m) are
-  // CARDS-ONLY informational lenses — they render the Fib + ZOI analysis
-  // cards from their own candles but NEVER emit a buy/sell signal
-  // (swComputeVerdictForTf routes any TF outside SW_TF_LABEL to the
-  // echo/intraday path). Sub-hourly is too fast to frame a reliable swing
-  // leg, so surfacing structure without a signal is the safe contract.
-  // KEEP these two lists separate — adding 30m/15m/5m to SW_TF_LABEL would
-  // (wrongly) turn them into signal-generating TFs.
-  var SW_RECO_TF_SELECTABLE = { '1mo': 1, '1w': 1, '1d': 1, '4h': 1, '1h': 1, '30m': 1, '15m': 1, '5m': 1 };
+  // Timeframes the Reco-TF picker is allowed to select — the swing horizon only.
+  // Sub-hour lenses (30m/15m/5m) were removed 2026-06-10: they were
+  // CARDS-ONLY (never emitted a buy/sell signal) and are noise/temptation
+  // for a 1-2 week swing read. Dropping them here means a previously-saved
+  // sub-hour reco TF safely falls back to '1d' (see swGetRecoTf), so the
+  // chart never loads a sub-hour view that no longer has a toolbar button.
+  // KEEP this list aligned with SW_TF_LABEL's signalled set + the toolbar /
+  // reco-TF buttons in content/swing.html.
+  var SW_RECO_TF_SELECTABLE = { '1mo': 1, '1w': 1, '1d': 1, '4h': 1, '1h': 1 };
   // Minimum candle count to attempt a verdict on each TF. A swing
   // structure needs a completed leg: monthly/weekly are slow so 8
   // bars is enough; daily needs more bars to frame a comparable leg.
@@ -6004,8 +6353,18 @@
   // object we hold, and a sound bigger-picture context line for an
   // intraday read. Surfaces the "Daily bias" chip in the Risk Context grid.
   var SW_HIGHER_TF   = { '1d': '1w', '1w': '1mo', '1mo': null, '4h': '1d', '1h': '1d', '30m': '1d', '15m': '1d', '5m': '1d' };
+  // Scan timeframes the bulk screener can run on. 1M/1W/1D are "free" —
+  // all three derive from ONE shared deep daily fetch per stock. 4H/1H
+  // (added 2026-06-08) each need a SEPARATE intraday fetch per stock, so
+  // they are gated to a single sector/index/screen scope at scan launch
+  // (see swingStartComputeAll) to protect the Upstox rate budget. Anything
+  // outside this set fails safe back to Daily — never a guessed TF.
   function swingNormalizeTf(tf) {
-    return (tf === '1mo' || tf === '1w' || tf === '1d') ? tf : '1d';
+    return (tf === '1mo' || tf === '1w' || tf === '1d' || tf === '4h' || tf === '1h') ? tf : '1d';
+  }
+  // True for the per-stock intraday scan TFs (each costs its own fetch).
+  function swingScanTfIsIntraday(tf) {
+    return tf === '4h' || tf === '1h';
   }
   function swingGetScanTf() {
     try { return swingNormalizeTf(localStorage.getItem(SW_SCAN_TF_KEY)); }
@@ -6077,9 +6436,11 @@
   }
 
   async function analyzeStockPure(isin, regime, band) {
-    // `band` (optional) overrides the global price gate for the active scan
-    // scope — the High Liquidity screen passes its ₹500–₹2,000 band. Falls
-    // safe to the global default when omitted (backtest + default scans).
+    // `band` controls the per-stock price gate for this scan scope:
+    //   • object {min,max} → gate to that band (e.g. a High Liquidity screen).
+    //   • null            → NO gate (user turned the global band off — scan all).
+    //   • undefined       → fall safe to the global default (backtest + legacy).
+    var noGate = (band === null);
     var bMin = (band && isFinite(+band.min)) ? +band.min : SW_MIN_PRICE;
     var bMax = (band && isFinite(+band.max)) ? +band.max : SW_MAX_PRICE;
     var rawD = await fetchTf(isin, '1d');
@@ -6087,7 +6448,7 @@
       return { ok: false, insufficientHistory: true, reason: 'No daily candles \u2014 likely newly listed or bad instrument' };
     }
     var lastClose = +rawD[0][4];
-    if (isFinite(lastClose) && (lastClose < bMin || lastClose > bMax)) {
+    if (!noGate && isFinite(lastClose) && (lastClose < bMin || lastClose > bMax)) {
       var _side = lastClose < bMin ? 'below' : 'above';
       return {
         ok: false,
@@ -6259,11 +6620,21 @@
       smcLastBreak: (sb && sb.breaks && sb.breaks.length) ? sb.breaks[sb.breaks.length - 1] : null,
       zoneFreshness: zone ? zone.freshness : null,
       zoneTestCount: zone ? (zone.testCount || 0) : 0,
+      // DISTINCT retests (price left the band and came back), NOT per-bar dwell.
+      // testCount above counts every bar inside the band, so a fresh first touch
+      // that simply consolidates for 2+ candles inflates it — wrong yardstick for
+      // a "tested twice" gate. `touches` increments once per re-entry, which is
+      // what a trader means by "the level was tested N times". `zoneType` lets
+      // the fresh-zone gate confirm it is demoting a DEMAND-zone BUY (defensive).
+      zoneTouches: zone ? (zone.touches || 0) : 0,
+      zoneType: zone ? (zone.type || null) : null,
       volConfirm: fibResForGate ? fibResForGate.volConfirm : null,
       volRatio: fibResForGate ? fibResForGate.volRatio : null,
       bullFvgSupport: _bullFvgSupport(fvgs, currentPx),
       pocketFvg: fibResForGate ? _fvgInPocket(fvgs, fibResForGate.fib786, fibResForGate.fib618) : false,
-      liqSweepSupport: _liqSweepSupport(liq, currentPx)
+      liqSweepSupport: _liqSweepSupport(liq, currentPx),
+      // Phase 2 #2 — demand-zone × golden-pocket confluence grade (HIGH/MEDIUM).
+      pocketZoneTier: _pocketZoneTier(hasFib, hasZoi, fibResForGate, zoiPos, currentPx)
     };
     var pocketVsZone = _pocketVsZone(hasFib, hasZoi, fibResForGate, zoiPos);
     var patternCtx = _buildPatternContext(an, raw, tf, withChart);
@@ -6278,6 +6649,111 @@
       gate: gate, pocketVsZone: pocketVsZone, patternCtx: patternCtx,
       ownTrend: ownTrend, vr: vr
     };
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // FIX #2 (2026-06-11) — forming-zone EARLY verdict overlay
+  // ═══════════════════════════════════════════════════════════════
+  // A forming DEMAND REVERSAL zone (detectFormingZones → tier 'EARLY',
+  // tradeable) that the CURRENT price is sitting at/near earns a small-
+  // starter EARLY signal — explicitly NOT a BUY. This catches the bottom
+  // 1–2 days before the confirmed-zone path can (the leg-out hasn't printed
+  // yet). The measured edge is real but THIN (~40% hit at 2R, +0.18R; see
+  // scripts/backtest/forming-zones.mjs), so the RISK MODEL is what makes it
+  // safe, not conviction — that is why this is a separate, gated tier.
+  //
+  // Strict, documented risk model (plan §3 Fix #2 — do NOT deviate):
+  //   • Entry  : a buy-stop just above the base top (zone proximal) — the
+  //              reclaim is the continuation proof (safer than the bare close).
+  //   • Stop   : just below the zone distal, with a 0.25×ATR buffer.
+  //   • Target : 2R minimum (t1 = entry + 2R, by construction). Lower targets
+  //              break the math at a ~40% hit-rate.
+  //   • Size   : 0.35× starter only — MANDATORY. A fake EARLY at full size is
+  //              exactly the speculative BUY the trading rules forbid.
+  //   • Scale  : full size is added ONLY when the zone upgrades to CONFIRMED
+  //              by a real leg-out (the existing detectZones lifecycle).
+  //
+  // Hard-rule compliance (.cursor/rules/trading-context.mdc):
+  //   • Closed-bar only — detectFormingZones scores each zone off c[0..i]
+  //     with zero look-ahead; the screener runs on closed candles.
+  //   • Every signal carries a defined SL + R:R — returns null unless a VALID
+  //     (sl < entry, finite, R > 0) 2R plan can be built, so a malformed
+  //     EARLY can never leak through.
+  //   • Never upgrades a non-BUY → BUY via patterns alone — this is a NEW
+  //     tier strictly BELOW BUY; it only fills cases the confirmed path left
+  //     as WAIT/WATCH and never overrides a real BUY.
+  //   • Forming CONTINUATIONS stay WATCH (display only) — the backtest did
+  //     not isolate a tradeable edge for them, so only flavour === 'REVERSAL'
+  //     with tier 'EARLY' + tradeable qualifies here.
+  //   • The CONFIRMED fib/zoi path (swComputeVerdictInputs / _resolveVerdict,
+  //     guarded by the 25,395-assertion regression guard) is UNTOUCHED — this
+  //     overlay only re-labels an already-non-BUY scan result.
+  var FORMING_EARLY_LABEL = 'EARLY \u2014 unconfirmed, ~40% hit, trade small, hard stop, 2R+.';
+  function _formingEarlyVerdict(raw, currentPx, tf, baseAction) {
+    // Never override a real BUY — EARLY is strictly a below-BUY tier.
+    if (baseAction === 'BUY' || baseAction === 'STRONG BUY') return null;
+    if (!raw || raw.length < 30) return null;
+    var px = (isFinite(currentPx) && currentPx > 0) ? currentPx : +raw[0][4];
+    if (!isFinite(px) || px <= 0) return null;
+    // Pass confirmed zones so a forming band overlapping a CONFIRMED zone is
+    // dropped (the confirmed signal owns that level — same as the chart).
+    var confirmed = [];
+    try { confirmed = detectZones(raw) || []; } catch (_) { confirmed = []; }
+    var fz = [];
+    try {
+      // Tight near-price gate (nearAtr 3, recent 20) — for a TRADE we want the
+      // base genuinely under current price, not merely on-screen.
+      fz = formingZonesForDisplay(raw, confirmed, px, { recentBars: 20, nearAtr: 3, cap: 5 }) || [];
+    } catch (_) { return null; }
+    // Only a TRADEABLE forming DEMAND REVERSAL (tier EARLY) qualifies.
+    var z = null;
+    for (var i = 0; i < fz.length; i++) {
+      var q = fz[i];
+      if (q && q.type === 'DEMAND' && q.flavour === 'REVERSAL' && q.tier === 'EARLY' && q.tradeable) { z = q; break; }
+    }
+    if (!z) return null;
+    var a = (isFinite(z.formationAtr) && z.formationAtr > 0) ? z.formationAtr : 0;
+    if (!a) return null;
+    var entry = z.proximal;                 // buy-stop above the base top
+    var sl    = z.distal - 0.25 * a;         // just below the zone floor + buffer
+    if (!(isFinite(entry) && isFinite(sl) && entry > sl)) return null;
+    var R = entry - sl;
+    if (!(R > 0)) return null;
+    var t1 = entry + 2 * R;                   // 2R minimum, by construction
+    var t2 = entry + 3 * R;
+    // Must be a LIVE setup right now: price above the stop and below the 2R
+    // target (not already stopped, not already run past the target).
+    if (!(px > sl && px < t1)) return null;
+    var rnd = function (v) { return Math.round(v * 100) / 100; };
+    entry = rnd(entry); sl = rnd(sl); t1 = rnd(t1); t2 = rnd(t2);
+    var turn = (z.turnKind || 'turn').toLowerCase().replace('_', ' ');
+    return {
+      entry: entry, sl: sl, t1: t1, t2: t2, rr: 2, sizeMult: 0.35,
+      reasoning: 'forming demand reversal (' + turn + ') \u2014 price at an unconfirmed base; '
+        + 'small starter only, scale up only on a confirmed leg-out',
+      tooltip: FORMING_EARLY_LABEL + '\n'
+        + 'Entry \u20B9' + entry + ' (buy-stop above the base) \u00B7 SL \u20B9' + sl
+        + ' (below the zone floor) \u00B7 T1 \u20B9' + t1 + ' (2R) \u00B7 size 0.35\u00D7.\n'
+        + 'This is an UNCONFIRMED early read \u2014 ~40% hit-rate. The tight stop + small '
+        + 'size carry the 60% miss-rate, NOT conviction. Add full size only when the '
+        + 'zone upgrades to CONFIRMED by a real leg-out.'
+    };
+  }
+  // Re-label an already-computed (non-BUY) scan verdict object to EARLY when a
+  // tradeable forming reversal qualifies. Pure mutation of the return payload;
+  // the confirmed verdict engine is never consulted or changed.
+  function _applyFormingEarly(ret, raw, tf) {
+    if (!ret || ret.ok !== true) return ret;
+    if (ret.action === 'BUY' || ret.action === 'STRONG BUY' || ret.action === 'EARLY') return ret;
+    var ov = _formingEarlyVerdict(raw, ret.price, tf, ret.action);
+    if (!ov) return ret;
+    ret.action = 'EARLY';
+    ret.verdictClass = 'sw-warn';
+    ret.reasoning = ov.reasoning;
+    ret.tooltip = ov.tooltip;
+    ret.early = true;
+    ret.earlyPlan = { entry: ov.entry, sl: ov.sl, t1: ov.t1, t2: ov.t2, rr: ov.rr, sizeMult: ov.sizeMult };
+    return ret;
   }
 
   // Pure Fib/ZOI scan verdict computed from already-fetched candles.
@@ -6304,19 +6780,24 @@
     // shared verdict helper (which derives gate.weeklyTrend + the pattern
     // context from it), so we don't recompute the trend twice.
     var _anOwn = analyzeTf(raw, tf);
-    // Per-scope price gate. `band` (optional) lets the High Liquidity screen
-    // narrow to ₹500–₹2,000; omitted (default scans + backtest) ⇒ global band.
+    // Per-scope price gate. `band`: object ⇒ gate to it (High Liquidity etc.);
+    // null ⇒ NO gate (global band off — scan all); undefined ⇒ global default
+    // (backtest + legacy). A non-finite close is ALWAYS rejected (fail safe).
+    var _noGate = (band === null);
     var _bMin = (band && isFinite(+band.min)) ? +band.min : SW_MIN_PRICE;
     var _bMax = (band && isFinite(+band.max)) ? +band.max : SW_MAX_PRICE;
     var lastClose = +raw[0][4];
-    if (!isFinite(lastClose) || lastClose < _bMin || lastClose > _bMax) {
+    var _outOfBand = !_noGate && (lastClose < _bMin || lastClose > _bMax);
+    if (!isFinite(lastClose) || _outOfBand) {
       var _side = (isFinite(lastClose) && lastClose < _bMin) ? 'below' : 'above';
       return {
         ok: false,
         skipped: true,
         price: isFinite(lastClose) ? lastClose : null,
-        reason: 'Price \u20B9' + (isFinite(lastClose) ? lastClose.toFixed(2) : '?')
-              + ' is ' + _side + ' the \u20B9' + _bMin + '\u2013\u20B9' + _bMax + ' band'
+        reason: !isFinite(lastClose)
+              ? 'No valid close price \u2014 cannot scan'
+              : 'Price \u20B9' + lastClose.toFixed(2)
+                + ' is ' + _side + ' the \u20B9' + _bMin + '\u2013\u20B9' + _bMax + ' band'
       };
     }
 
@@ -6343,7 +6824,10 @@
     // !hasFib here, the helper never overwrote the seed, so currentPx === last
     // close — identical to the pre-refactor payload.
     if (mode === 'FIB' && !_inputs.hasFib) {
-      return {
+      // A base can form with no fib structure (a coiling bottom has no clean
+      // swing leg to retrace) — so the forming-EARLY overlay still applies to
+      // this WAIT before we hand it back.
+      return _applyFormingEarly({
         ok: true, action: 'WAIT',
         reasoning: 'no valid fib structure \u2014 stock has no completed swing low \u2192 high move to retrace',
         tooltip: 'FIB requires a clear swing low \u2192 swing high structure.\nThis stock either:\n  \u2022 Listed recently without enough history\n  \u2022 Has been in a continuous downtrend since its high\n  \u2022 Made its high at the start of available data\n\nNo fib retracement is possible. Use ZOI mode for zone-based analysis.',
@@ -6354,7 +6838,7 @@
         tf: tf,
         basis: basis,
         mode: mode
-      };
+      }, raw, tf);
     }
 
     var vr = _inputs.vr;
@@ -6363,7 +6847,10 @@
     // only — vr is untouched). "3% above demand · 6% below supply (≈1½ days
     // off the floor)": the % the trader reads, the ATR sense in plain words.
     var _zoiReadout = _inputs.hasZoi ? _zoiTwoSidedReadout(_inputs.zones, currentPx, _inputs.zoiPos.position, _inputs.zoiAtrPct, tf) : '';
-    return {
+    // Forming-EARLY overlay: applied LAST, and only when vr.text is a non-BUY
+    // (the helper bails on BUY/STRONG BUY). The confirmed verdict `vr` is
+    // produced by the guarded path above and is never altered here.
+    return _applyFormingEarly({
       ok: true,
       action: vr.text,
       reasoning: _zoiReadout ? (_zoiReadout + ' \u2014 ' + vr.sub) : vr.sub,
@@ -6379,7 +6866,7 @@
       tf: tf,
       basis: basis,
       mode: mode
-    };
+    }, raw, tf);
   }
 
   // Guards against overlapping bulk runs: a full scan and a "retry
@@ -6390,6 +6877,17 @@
   // duration of either run, cleared in their finally blocks.
   var _swBulkScanInFlight = false;
 
+  // Live-scan in-memory payload. While a bulk scan is running we want the
+  // Today's Setups table to fill in as each stock completes (instead of
+  // staring at the PREVIOUS scan's stale rows until the whole run finishes).
+  // The worker pool can't safely re-write localStorage ~once/sec (a ~1 MB
+  // JSON.stringify on every tick is wasteful and can hit quota mid-scan), so
+  // the partial results are held here in memory and `renderTodaySetups()`
+  // prefers this over the saved payload whenever it's set. Cleared the moment
+  // the scan finishes (success OR error) so the table reverts to the saved,
+  // ranked, regime-stamped final payload. null = no live scan in progress.
+  var _swLiveScanPayload = null;
+
   // ── Shared verdict ordering + tallying ──
   // Extracted so the bulk scan AND the "retry failed" merge order/count
   // rows identically (no drift). Sort: BUY → WAIT/WATCH → AVOID/etc →
@@ -6398,6 +6896,7 @@
     function _bandRank(v) {
       if (!v.ok) return 4;
       if (v.action === 'BUY') return 1;
+      if (v.action === 'EARLY') return 1.5; // tradeable small-starter — below BUY, above WAIT
       if (v.action === 'WAIT' || v.action === 'WATCH') return 2;
       return 3; // AVOID / CAUTION / SKIP
     }
@@ -6423,6 +6922,10 @@
       // Transient failures only (rate-limited / network) — what Retry re-runs.
       failed:     verdicts.filter(function (v) { return !v.ok && !v.skipped && !v.insufficientHistory; }).length,
       buyCount:   verdicts.filter(function (v) { return v.ok && v.action === 'BUY'; }).length,
+      // Forming-zone small-starter signals (Fix #2) — tradeable but explicitly
+      // below BUY; counted separately so a thin EARLY is never mistaken for a
+      // full-conviction BUY in the scan summary.
+      earlyCount: verdicts.filter(function (v) { return v.ok && v.action === 'EARLY'; }).length,
       waitCount:  verdicts.filter(function (v) { return v.ok && (v.action === 'WAIT' || v.action === 'WATCH'); }).length,
       avoidCount: verdicts.filter(function (v) { return v.ok && (v.action === 'AVOID' || v.action === 'CAUTION' || v.action === 'SKIP'); }).length
     };
@@ -6922,7 +7425,7 @@
     // compute to apply" hint) — the saved scan is left intact until the
     // user explicitly re-computes, so a stray click never wipes results.
     var savedTf = swingGetScanTf();
-    var tfBtns = ['1mo', '1w', '1d'].map(function (t) {
+    var tfBtns = ['1mo', '1w', '1d', '4h', '1h'].map(function (t) {
       var isAct = savedTf === t;
       return '<button type="button" class="sw-today-mode-btn'
         + (isAct ? ' active' : '') + '"'
@@ -6930,6 +7433,13 @@
         + ' aria-checked="' + (isAct ? 'true' : 'false') + '">'
         + SW_TF_LABEL[t] + '</button>';
     }).join('');
+    // Intraday scan TFs (4H/1H) cost one extra fetch per stock, so they are
+    // restricted to a single sector/index/screen scope. Surface that up front
+    // so the user picks a scope before hitting Compute (the launch guard in
+    // swingStartComputeAll enforces it regardless).
+    var scanTfDesc = swingScanTfIsIntraday(savedTf)
+      ? '<strong>' + SW_TF_LABEL[savedTf] + '</strong> is an intraday scan \u2014 it runs on a single <strong>sector / index / screen</strong> only (pick one in Scan scope above). An intraday scan of the whole market would exhaust the Upstox rate budget.'
+      : 'Signal, trend, structure &amp; R:R are computed on this timeframe \u2014 change it, then <strong>Compute</strong> to apply.';
     return '<div class="sw-today-mode-row">'
       + '<span class="sw-today-mode-label">Scan scope:</span>'
       + swingScopeSelectHtml()
@@ -6948,7 +7458,7 @@
       + '<div class="sw-today-mode-toggle" role="radiogroup" aria-label="Scan timeframe">'
       + tfBtns
       + '</div>'
-      + '<div class="sw-today-mode-desc">Signal, trend, structure &amp; R:R are computed on this timeframe \u2014 change it, then <strong>Compute</strong> to apply.</div>'
+      + '<div class="sw-today-mode-desc">' + scanTfDesc + '</div>'
       + '</div>';
   }
 
@@ -7019,7 +7529,7 @@
   ];
 
   // ── ZOI position → display label (DISPLAY ONLY) ─────────────────────────
-  // The classifier enum names are the matching keys for verdict-rules.json,
+  // The classifier enum names are the matching keys for swing-rules.json,
   // the conviction maps (_CONV_ZOI) and the per-rule matcher — so they are
   // NEVER renamed here. A couple read misleadingly when shown verbatim:
   // FAR_BELOW_SUPPLY_ABOVE_DEMAND is emitted ONLY when NO demand zone
@@ -7463,6 +7973,518 @@
     return out;
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // ZONE SCAN — the "Scan stocks" option (rules/scan-rule.json)
+  // ═══════════════════════════════════════════════════════════════
+  // A focused, rule-driven screen: pick a rule ("Price inside demand zone" /
+  // "Price inside forming demand zone"), run it across the curated universe,
+  // and list every stock whose LIVE price is currently sitting inside a zone of
+  // that kind. Fully ISOLATED from the verdict/Today's-Setups path — it reads
+  // the pure scanMatchForStock() matcher on freshly-fetched daily candles and
+  // never touches signal logic. A match is a LOCATION watchlist candidate, not
+  // a BUY (the per-stock card's verdict + gates still decide that).
+  // One-shot chart-open overrides, CONSUMED in renderResult right before the
+  // chart draws (so nothing in the pick → sector-bind → analyze chain can clob-
+  // ber them — swingPickSector nulls requestedChartTf mid-flight, which used to
+  // drop the Zone Scan's forced daily TF and leave the forming overlay drawing
+  // on the wrong timeframe = nothing visible). null = no override.
+  var _swForceChartTf = null;     // e.g. '1d' — wins over requestedChartTf
+  var _swForceOverlays = null;    // e.g. { forming:true, zoi:true }
+
+  var _swZoneScanState = {
+    ruleId: null,      // active rule id
+    rules: [],         // [{id,label,chip,color,direction,conviction,...}] ready rules
+    scope: '__all__',  // universe slice — independent of the recommendation scope
+    running: false,
+    cancelled: false,
+    total: 0,
+    scanned: 0,
+    skippedBand: 0,    // names dropped because they fell outside the price band
+    matched: [],       // [{isin,sym,name,top,bottom,currentPx,freshness,tier,score,...}]
+    doneAt: null,
+    scopeName: 'All NSE/BSE'
+  };
+
+  // ── Zone-scan result persistence ──
+  // The match list is expensive to produce (a full universe sweep), so persist
+  // it like Today's Setups: a refresh restores the last result instead of
+  // wiping the table. Cleared the moment the rule/scope changes (stale).
+  var SW_ZONESCAN_KEY = 'sw_zonescan_v1';
+  function _swSaveZoneScan() {
+    var S = _swZoneScanState;
+    try {
+      if (!S.doneAt) { localStorage.removeItem(SW_ZONESCAN_KEY); return; }
+      localStorage.setItem(SW_ZONESCAN_KEY, JSON.stringify({
+        ruleId: S.ruleId, scope: S.scope, scopeName: S.scopeName,
+        doneAt: S.doneAt, total: S.total, skippedBand: S.skippedBand,
+        matched: S.matched
+      }));
+    } catch (_) { /* private mode / quota — non-fatal */ }
+  }
+  function _swRestoreZoneScan() {
+    try {
+      var raw = localStorage.getItem(SW_ZONESCAN_KEY);
+      if (!raw) return;
+      var p = JSON.parse(raw);
+      if (!p || !Array.isArray(p.matched)) return;
+      var S = _swZoneScanState;
+      if (p.ruleId) S.ruleId = p.ruleId;
+      if (p.scope) S.scope = p.scope;
+      if (p.scopeName) S.scopeName = p.scopeName;
+      S.doneAt = p.doneAt || null;
+      S.total = p.total || 0;
+      S.skippedBand = p.skippedBand || 0;
+      S.matched = p.matched;
+    } catch (_) { /* tolerated */ }
+  }
+
+  // ── Chart legend toggle persistence ──
+  // Which overlays are ON (EMAs, ZOI, Forming, Fib, FVG, …) sticks across stock
+  // picks AND refreshes, so a manually-picked stock keeps the user's choices —
+  // e.g. once you turn Forming on (or the Zone Scan does), every stock you open
+  // shows forming demand zones without re-toggling. Only known keys restore.
+  var SW_INDVIS_KEY = 'sw_indvis_v1';
+  var _swIndVisRestored = false;
+  function _swSaveIndVis() {
+    try { localStorage.setItem(SW_INDVIS_KEY, JSON.stringify(STATE.indVisible || {})); } catch (_) {}
+  }
+  function _swRestoreIndVis() {
+    if (_swIndVisRestored) return;
+    _swIndVisRestored = true;
+    try {
+      var raw = localStorage.getItem(SW_INDVIS_KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      if (saved && typeof saved === 'object' && STATE.indVisible) {
+        Object.keys(STATE.indVisible).forEach(function (k) {
+          if (typeof saved[k] === 'boolean') STATE.indVisible[k] = saved[k];
+        });
+      }
+    } catch (_) { /* tolerated */ }
+  }
+
+  // Load the rule book once, cache the ready rules on state, pick a default,
+  // and paint the tile. Safe to call repeatedly (idempotent after first load).
+  function swZoneScanInit() {
+    // Restore the last persisted result (survives refresh) BEFORE loading rules,
+    // so the saved ruleId/scope/matches are in place when the tile first paints.
+    _swRestoreZoneScan();
+    // Warm the scope-group list (sectors / indices / screens) so the picker is
+    // populated; re-render once it resolves (same lazy pattern as the reco tile).
+    try { swingEnsureScanGroups().then(function () { try { renderZoneScan(); } catch (_) {} }); } catch (_) {}
+    return loadScanRules().then(function (cfg) {
+      var ids = Object.keys(cfg.rules || {});
+      _swZoneScanState.rules = ids.map(function (id) { return cfg.rules[id]; });
+      _swZoneScanState.bufferAtr = cfg.edgeBufferAtr;
+      var ridOk = _swZoneScanState.ruleId === '__all__' || !!(cfg.rules && cfg.rules[_swZoneScanState.ruleId]);
+      if (!ridOk) {
+        _swZoneScanState.ruleId = (ids.length > 1) ? '__all__' : (ids[0] || null);
+      }
+      try { renderZoneScan(); } catch (_) {}
+      return cfg;
+    }).catch(function () { try { renderZoneScan(); } catch (_) {} });
+  }
+
+  // Human label for a zone-scan scope id (mirrors the recommendation scope).
+  function _swZoneScopeName(scope) {
+    if (!scope || scope === '__all__') return 'All NSE/BSE';
+    var g = _swScanGroups;
+    if (g) {
+      var hit = (g.screens || []).concat(g.indices || [], g.sectors || [])
+        .filter(function (x) { return x.id === scope; })[0];
+      if (hit) return hit.name;
+    }
+    return scope;
+  }
+
+  // Scope-aware scan universe, deduped by ISIN — mirrors the recommendation
+  // scan's universe logic: a specific sector/index/screen pulls ONLY that
+  // group's members; '__all__' unions every curated group AND expands with the
+  // full NSE/BSE instruments index (the breadth layer). Fail-safe: an index
+  // load failure silently falls back to the curated set. Keeps sym/name so the
+  // result rows can open the stock via swingPickTodayRow.
+  async function _swZoneScanBuildUniverse(scope) {
+    var scopeAll = (scope === '__all__');
+    var byIsin = Object.create(null);
+    var sd = await loadSectors();
+    function add(st) {
+      if (!st || !st.isin || byIsin[st.isin]) return;
+      byIsin[st.isin] = { isin: st.isin, sym: st.sym, name: st.name || st.sym };
+    }
+    (sd.sectors || []).forEach(function (sec) {
+      if (!scopeAll && sec.id !== scope) return;
+      (sec.stocks || []).forEach(add);
+    });
+    (sd.indices || []).forEach(function (idx) {
+      if (!scopeAll && idx.id !== scope) return;
+      (idx.stocks || []).forEach(add);
+    });
+    if (scopeAll) {
+      try {
+        var ix = await loadInstrumentsIndex();
+        if (ix && ix.stocks) {
+          Object.keys(ix.stocks).forEach(function (sym) {
+            var pair = ix.stocks[sym];
+            if (!pair || !pair[0] || byIsin[pair[0]]) return;
+            add({ isin: pair[0], sym: sym, name: pair[1] || sym });
+          });
+        }
+      } catch (_) { /* tolerated — curated set still scans */ }
+    }
+    return Object.keys(byIsin).map(function (k) { return byIsin[k]; });
+  }
+
+  // Run the active zone-scan rule across the universe. Mirrors the bulk
+  // verdict scan's guards + worker pool, but the per-stock work is the cheap
+  // pure matcher on the daily candles fetchTf already returns.
+  async function swRunZoneScan() {
+    var S = _swZoneScanState;
+    if (S.running) return;
+    if (typeof swIsApiPaused === 'function' && swIsApiPaused()) {
+      alert('Swing API is paused. Click \u201cResume\u201d on the banner at the top of the Swing tab first.');
+      return;
+    }
+    if (!getToken()) {
+      alert('No Upstox token connected. Open the Options Trading tab \u2192 gear icon to add one, then come back.');
+      return;
+    }
+    if (typeof window.isMarketOpen === 'function' && window.isMarketOpen()) {
+      var go = window.confirm('Market is open. A full scan shares your Upstox rate budget with the live chart + option-chain polling and may briefly slow them. Run the scan now?');
+      if (!go) return;
+    }
+
+    var cfg;
+    try { cfg = await loadScanRules(); } catch (_) { cfg = { rules: {}, edgeBufferAtr: 0.15 }; }
+    // Resolve the rule(s) this run will apply. "All" runs every ready rule in
+    // one pass, confirmed-demand BEFORE forming-demand so a stock sitting in a
+    // real BUY zone is labelled "In Demand" (higher trust) rather than the
+    // weaker forming read when both could match.
+    var isAllRun = S.ruleId === '__all__';
+    var rulesToRun;
+    if (isAllRun) {
+      rulesToRun = Object.keys(cfg.rules || {}).map(function (id) { return cfg.rules[id]; })
+        .sort(function (a, b) {
+          var ac = a.zoneSource === 'forming' ? 1 : 0, bc = b.zoneSource === 'forming' ? 1 : 0;
+          return ac - bc;
+        });
+    } else {
+      var one = cfg.rules[S.ruleId] || cfg.rules[Object.keys(cfg.rules)[0]];
+      rulesToRun = one ? [one] : [];
+      if (one) S.ruleId = one.id;
+    }
+    if (!rulesToRun.length) { alert('No scan rule is available.'); return; }
+
+    var scope = S.scope || '__all__';
+    S.scopeName = _swZoneScopeName(scope);
+    var stocks;
+    try { stocks = await _swZoneScanBuildUniverse(scope); }
+    catch (e) { alert('Could not load the stock universe: ' + (e && e.message || e)); return; }
+    if (!stocks.length) { alert('No scannable stocks in \u201c' + S.scopeName + '\u201d. Pick another scope.'); return; }
+
+    // Same price band the recommendation scan uses: null = no filter; a screen's
+    // intrinsic band always applies; the global band (when on) narrows further.
+    var band = _swBandFor(scope);
+
+    S.running = true; S.cancelled = false;
+    S.total = stocks.length; S.scanned = 0; S.skippedBand = 0; S.matched = []; S.doneAt = null;
+    renderZoneScan();
+
+    var queue = stocks.slice();
+    var buf = (cfg.edgeBufferAtr != null) ? cfg.edgeBufferAtr : 0.15;
+
+    // Ride out throttle for the duration (same as the bulk scan) so a
+    // transient Upstox cooldown waits rather than failing every row.
+    swScanRideOutThrottle = true;
+    async function worker() {
+      while (true) {
+        if (S.cancelled) return;
+        var st = queue.shift();
+        if (!st) return;
+        try {
+          var raw = await fetchTf(st.isin, '1d');
+          if (raw && raw.length) {
+            var px = +raw[0][4];
+            // Price-band gate — skip names outside the band BEFORE the matcher
+            // (cheap, and keeps the result honest to the chosen band).
+            if (band && isFinite(px) && (px < band.min || px > band.max)) {
+              S.skippedBand++;
+            } else {
+              // First matching rule wins (rulesToRun is confirmed-first), so a
+              // stock is listed once with its strongest applicable label.
+              var m = null, hitRule = null;
+              for (var ri = 0; ri < rulesToRun.length; ri++) {
+                var mm = scanMatchForStock(raw, px, rulesToRun[ri], buf);
+                if (mm) { m = mm; hitRule = rulesToRun[ri]; break; }
+              }
+              if (m) {
+                m.isin = st.isin; m.sym = st.sym; m.name = st.name;
+                m.ruleId = hitRule.id;
+                m.ruleChip = hitRule.chip || hitRule.label;
+                S.matched.push(m);
+              }
+            }
+          }
+        } catch (_) { /* skip failed/throttled row — re-run recovers it */ }
+        S.scanned++;
+        if (S.scanned % 3 === 0) renderZoneScanProgress();
+      }
+    }
+    try {
+      var ws = [];
+      for (var i = 0; i < SW_BULK_CONCURRENCY; i++) ws.push(worker());
+      await Promise.all(ws);
+    } finally {
+      swScanRideOutThrottle = false;
+    }
+
+    S.running = false;
+    S.doneAt = Date.now();
+    // Confirmed demand rows first (higher trust), then within each group:
+    // tradeable first, then score desc, then symbol — strongest at the top.
+    S.matched.sort(function (a, b) {
+      var ac = a.zoneSource === 'forming' ? 1 : 0, bc = b.zoneSource === 'forming' ? 1 : 0;
+      if (ac !== bc) return ac - bc;
+      if (!!b.tradeable !== !!a.tradeable) return b.tradeable ? 1 : -1;
+      return (b.score || 0) - (a.score || 0) || (a.sym < b.sym ? -1 : 1);
+    });
+    _swSaveZoneScan();   // survive a refresh
+    renderZoneScan();
+  }
+
+  // Live progress update (cheap, no full re-render) while the scan runs.
+  function renderZoneScanProgress() {
+    var S = _swZoneScanState;
+    var bar = document.getElementById('sw-zonescan-bar');
+    var cnt = document.getElementById('sw-zonescan-count');
+    if (bar && S.total) bar.style.width = Math.round(S.scanned / S.total * 100) + '%';
+    if (cnt) cnt.textContent = S.scanned + ' / ' + S.total + ' scanned \u00b7 ' + S.matched.length + ' match' + (S.matched.length === 1 ? '' : 'es');
+    // Stream matches into the table AS they're found (instead of waiting for the
+    // whole scan to finish). Only re-paint the list when the match count grew,
+    // so we're not rebuilding rows on every scanned-but-unmatched stock.
+    var live = document.getElementById('sw-zonescan-live-rows');
+    if (live && live._swCount !== S.matched.length) {
+      live._swCount = S.matched.length;
+      live.innerHTML = S.matched.length
+        ? S.matched.map(_swZoneScanRowHtml).join('')
+        : '<div class="sw-zonescan-empty">Scanning\u2026 matches will appear here as they\u2019re found.</div>';
+    }
+  }
+
+  function _swZoneFmtDate(ts) {
+    if (!ts) return '';
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: '2-digit' });
+  }
+
+  // Build ONE result row. Shared by the live (during-scan) and final renders so
+  // a match looks identical the moment it appears and after the scan finishes.
+  function _swZoneScanRowHtml(m) {
+    var rupee = function (n) { return isFinite(n) ? '\u20B9' + Number(n).toFixed(2) : '\u2014'; };
+    // Per-row rule label (which screen matched) — green for confirmed demand,
+    // amber for forming. Always shown so the "All" list reads clearly.
+    var ruleLbl = m.ruleChip || (m.zoneSource === 'forming' ? 'In Forming Demand' : 'In Demand');
+    var ruleLblCls = (m.zoneSource === 'forming') ? 'sw-zonescan-rulebadge--amber' : 'sw-zonescan-rulebadge--bull';
+    var ruleBadge = '<span class="sw-zonescan-rulebadge ' + ruleLblCls + '">' + escapeHtml(ruleLbl) + '</span>';
+    // Freshness from the per-VISIT `touches` count (chart's notion), NOT the
+    // per-bar `testCount` which over-counts a multi-candle base as "tested 2x".
+    var _vis = (m.touches != null) ? m.touches : 0;
+    var badge = (m.zoneSource === 'forming')
+      ? '<span class="sw-zonescan-badge sw-zonescan-badge--' + (m.tradeable ? 'early' : 'watch') + '">'
+          + (m.tier || (m.tradeable ? 'EARLY' : 'WATCH')) + '</span>'
+      : '<span class="sw-zonescan-badge sw-zonescan-badge--' + (_vis >= 1 ? 'tested' : 'fresh') + '">'
+          + (_vis >= 1 ? 'TESTED (' + _vis + 'x)' : 'FRESH') + '</span>';
+    var dt = _swZoneFmtDate(m.formationTs);
+    return '<div class="sw-zonescan-row" role="button" tabindex="0" data-isin="' + escapeHtml(m.isin) + '"'
+      + ' onclick="window.swZoneScanOpen(\'' + escapeHtml(m.isin) + '\',\'' + escapeHtml(m.sym) + '\',\'' + escapeHtml((m.name || '').replace(/'/g, '')) + '\',\'' + escapeHtml(m.ruleId || '') + '\')"'
+      + ' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();this.click();}">'
+      + '<div class="sw-zonescan-row-main">'
+      +   '<span class="sw-zonescan-sym">' + escapeHtml(m.sym) + '</span>'
+      +   '<span class="sw-zonescan-name">' + escapeHtml(m.name || '') + '</span>'
+      +   ruleBadge
+      + '</div>'
+      + '<div class="sw-zonescan-row-meta">'
+      +   '<span class="sw-zonescan-px">' + rupee(m.currentPx) + '</span>'
+      +   '<span class="sw-zonescan-band">in ' + rupee(m.bottom) + ' \u2013 ' + rupee(m.top) + '</span>'
+      +   badge
+      +   (dt ? '<span class="sw-zonescan-date">' + dt + '</span>' : '')
+      + '</div>'
+      + '</div>';
+  }
+
+  // Scope dropdown for the zone tile — reuses the recommendation scope-picker
+  // styling (.sw-scope-dd-*) but with its OWN ids + a light pick handler that
+  // only sets the zone scope and re-renders (no sector-grid side effects).
+  // Returns button + in-flow menu (the menu wraps full-width below thanks to
+  // the .sw-zonescan-scope flex container).
+  function _swZoneScopeSelectHtml() {
+    var scope = _swZoneScanState.scope || '__all__';
+    var groups = _swScanGroups;
+    var curName = _swZoneScopeName(scope);
+    var dis = _swZoneScanState.running ? ' disabled' : '';
+    function optRow(id, name, count, isSel) {
+      var idArg = escapeHtml(String(id).replace(/'/g, "\\'"));
+      return '<button type="button" class="sw-scope-dd-opt' + (isSel ? ' is-sel' : '') + '"'
+        + ' role="option" aria-selected="' + (isSel ? 'true' : 'false') + '"'
+        + ' onclick="window.swZoneScanPickScope(\'' + idArg + '\')">'
+        + '<span class="sw-scope-dd-opt-name">' + escapeHtml(name)
+        + (count != null ? ' <span class="sw-scope-dd-opt-n">(' + count + ')</span>' : '')
+        + '</span>'
+        + '<span class="sw-scope-dd-opt-check" aria-hidden="true">' + (isSel ? '\u2713' : '') + '</span>'
+        + '</button>';
+    }
+    var items = optRow('__all__', 'All NSE/BSE (full universe)', null, scope === '__all__');
+    if (groups && groups.screens && groups.screens.length) {
+      items += '<div class="sw-scope-dd-group">Screens</div>';
+      groups.screens.forEach(function (g) { items += optRow(g.id, g.name, g.count, scope === g.id); });
+    }
+    if (groups && groups.indices && groups.indices.length) {
+      items += '<div class="sw-scope-dd-group">Indices</div>';
+      groups.indices.forEach(function (g) { items += optRow(g.id, g.name, g.count, scope === g.id); });
+    }
+    if (groups && groups.sectors && groups.sectors.length) {
+      items += '<div class="sw-scope-dd-group">Sectors</div>';
+      groups.sectors.forEach(function (g) { items += optRow(g.id, g.name, g.count, scope === g.id); });
+    }
+    return '<button type="button" class="sw-scope-dd-btn" id="sw-zs-scope-btn"'
+      +   ' aria-haspopup="listbox" aria-expanded="false"' + dis
+      +   ' onclick="window.swZoneScanToggleScopeMenu(event)">'
+      +   '<span class="sw-scope-dd-cur">' + escapeHtml(curName) + '</span>'
+      +   '<span class="sw-scope-dd-chev" aria-hidden="true">\u25BE</span>'
+      + '</button>'
+      + '<div class="sw-scope-dd-menu" id="sw-zs-scope-menu" role="listbox"'
+      +   ' aria-label="Universe slice to scan" hidden>'
+      +   items
+      + '</div>';
+  }
+
+  var _swZoneScopeMenuOpen = false;
+  var _swZoneScopeOutsideHandler = null;
+  function _swCloseZoneScopeMenu() {
+    _swZoneScopeMenuOpen = false;
+    var menu = document.getElementById('sw-zs-scope-menu');
+    var btn = document.getElementById('sw-zs-scope-btn');
+    if (menu) menu.hidden = true;
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+    if (_swZoneScopeOutsideHandler) {
+      document.removeEventListener('mousedown', _swZoneScopeOutsideHandler, true);
+      document.removeEventListener('keydown', _swZoneScopeOutsideHandler, true);
+      _swZoneScopeOutsideHandler = null;
+    }
+  }
+
+  // Paint the whole Zone-Scan tile from state. Three visual states: idle
+  // (rule picker + Run), running (progress), done (results list / empty).
+  function renderZoneScan() {
+    var host = document.getElementById('sw-zonescan');
+    if (!host) return;
+    var S = _swZoneScanState;
+    var rupee = function (n) { return isFinite(n) ? '\u20B9' + Number(n).toFixed(2) : '\u2014'; };
+
+    if (!S.rules.length) {
+      host.innerHTML = '<div class="sw-zonescan-card"><div class="sw-zonescan-head">'
+        + '<span class="sw-zonescan-title">\uD83D\uDD0D Scan stocks by zone</span></div>'
+        + '<div class="sw-zonescan-empty">Loading scan rules\u2026</div></div>';
+      return;
+    }
+
+    var isAll = S.ruleId === '__all__';
+
+    // Rule picker. An "All" pill (shown when 2+ rules exist) runs every ready
+    // rule in one pass and labels each result row; then one button per rule.
+    var allBtn = (S.rules.length > 1)
+      ? '<button type="button" class="sw-zonescan-rule-btn sw-zonescan-rule-btn--all'
+          + (isAll ? ' active' : '') + '" role="radio" aria-checked="' + (isAll ? 'true' : 'false') + '"'
+          + ' onclick="window.swZoneScanSetRule(\'__all__\')"'
+          + (S.running ? ' disabled' : '')
+          + ' title="Scan every demand rule in one pass and label each match">All</button>'
+      : '';
+    var ruleBtns = allBtn + S.rules.map(function (r) {
+      var active = r.id === S.ruleId;
+      var cls = 'sw-zonescan-rule-btn'
+        + (active ? ' active' : '')
+        + (r.color === 'amber' ? ' sw-zonescan-rule-btn--amber' : ' sw-zonescan-rule-btn--bull');
+      return '<button type="button" class="' + cls + '" role="radio" aria-checked="' + (active ? 'true' : 'false') + '"'
+        + ' onclick="window.swZoneScanSetRule(\'' + r.id + '\')"'
+        + (S.running ? ' disabled' : '')
+        + ' title="' + escapeHtml(r.label) + '">' + escapeHtml(r.chip || r.label) + '</button>';
+    }).join('');
+
+    var activeRule = isAll ? null : (S.rules.filter(function (r) { return r.id === S.ruleId; })[0] || S.rules[0]);
+    var sub;
+    if (isAll) {
+      sub = 'Both demand reads in one pass \u2014 confirmed BUY zones + forming EARLY zones. Each row is labelled. Location only, never an auto-BUY.';
+    } else {
+      sub = activeRule
+        ? (activeRule.direction === 'bullish'
+            ? 'Bullish location \u2014 a watchlist candidate, not an auto-BUY (confirm trend, trigger & R:R).'
+            : 'Bearish location \u2014 avoid buying here.')
+        : '';
+      if (activeRule && activeRule.conviction === 'low') {
+        sub = 'EARLY / low-trust \u2014 small-starter at most, never full size. ' + sub;
+      }
+    }
+
+    var head = '<div class="sw-zonescan-head">'
+      + '<span class="sw-zonescan-title">\uD83D\uDD0D Scan stocks by zone</span>'
+      + (S.running
+          ? '<button type="button" class="sw-zonescan-cancel" onclick="window.swZoneScanCancel()">Stop</button>'
+          : '<button type="button" class="sw-zonescan-run" onclick="window.swZoneScanRun()">Run scan</button>')
+      + '</div>';
+
+    // Scope row — universe slice picker (reuses the recommendation scope
+    // dropdown styling) + the active price-band hint.
+    var band = _swBandFor(S.scope);
+    var bandTxt = band
+      ? '\u20B9' + Math.round(band.min) + '\u2013\u20B9' + Math.round(band.max)
+      : 'all prices';
+    var scopeRow = '<div class="sw-zonescan-scope">'
+      + '<span class="sw-zonescan-scope-lbl">Scan</span>'
+      + _swZoneScopeSelectHtml()
+      + '<span class="sw-zonescan-band-hint" title="Price band — set it with the \u201cLimit scan to a price band\u201d control above. Curated screens (e.g. High Liquidity) carry their own band.">' + bandTxt + '</span>'
+      + '</div>';
+
+    var picker = '<div class="sw-zonescan-rules" role="radiogroup" aria-label="Scan rule">' + ruleBtns + '</div>'
+      + scopeRow
+      + '<div class="sw-zonescan-sub">' + escapeHtml(sub) + '</div>';
+
+    var body;
+    if (S.running) {
+      // Live results stream in below the progress bar as each match is found
+      // (renderZoneScanProgress repaints #sw-zonescan-live-rows on count change).
+      body = '<div class="sw-zonescan-progress">'
+        + '<div class="sw-zonescan-track"><div class="sw-zonescan-bar" id="sw-zonescan-bar" style="width:'
+        + (S.total ? Math.round(S.scanned / S.total * 100) : 0) + '%"></div></div>'
+        + '<div class="sw-zonescan-count" id="sw-zonescan-count">' + S.scanned + ' / ' + S.total
+        + ' scanned \u00b7 ' + S.matched.length + ' match' + (S.matched.length === 1 ? '' : 'es') + '</div>'
+        + '</div>'
+        + '<div class="sw-zonescan-rows" id="sw-zonescan-live-rows">'
+        + (S.matched.length
+            ? S.matched.map(_swZoneScanRowHtml).join('')
+            : '<div class="sw-zonescan-empty">Scanning\u2026 matches will appear here as they\u2019re found.</div>')
+        + '</div>';
+    } else if (S.doneAt) {
+      if (!S.matched.length) {
+        var emptyKind = isAll ? 'demand or forming-demand zone'
+          : (activeRule && activeRule.chip || 'zone').toLowerCase();
+        body = '<div class="sw-zonescan-empty">No stocks found with price inside a '
+          + escapeHtml(emptyKind)
+          + ' across the ' + escapeHtml(S.scopeName) + ' (' + S.total + ' scanned).</div>';
+      } else {
+        var rows = S.matched.map(_swZoneScanRowHtml).join('');
+        body = '<div class="sw-zonescan-meta">' + S.matched.length + ' match'
+          + (S.matched.length === 1 ? '' : 'es') + ' of ' + S.total + ' scanned in ' + escapeHtml(S.scopeName)
+          + (S.skippedBand ? ' \u00b7 ' + S.skippedBand + ' skipped (off-band)' : '') + '</div>'
+          + '<div class="sw-zonescan-rows">' + rows + '</div>';
+      }
+    } else {
+      body = '<div class="sw-zonescan-empty">Pick a rule and hit <b>Run scan</b> to find every stock whose price is currently inside that zone, across the '
+        + escapeHtml(S.scopeName) + '.</div>';
+    }
+
+    host.innerHTML = '<div class="sw-zonescan-card">' + head + picker + body + '</div>';
+  }
+
   // Build the scope picker for the mode row. This is a CUSTOM dropdown
   // (button + in-flow menu), NOT a native <select> — macOS Chrome renders
   // the native <option> popup with the OS appearance and ignores CSS
@@ -7573,6 +8595,29 @@
     // "re-compute to apply" hint — it never auto-runs a scan, so a stray
     // change can't wipe saved results or burn API budget.
     if (typeof renderTodaySetups === 'function') renderTodaySetups();
+    // Two-way bind: mirror the pick onto the top sector grid so the card
+    // and the dropdown always agree. `_swScopeBindBusy` stops swingPickSector
+    // from looping back to re-set the scope + repaint the tile.
+    _swScopeBindBusy = true;
+    try {
+      if (id === '__all__') {
+        // No card represents the full universe — collapse any open one.
+        if (SECTOR_STATE.activeSector) {
+          SECTOR_STATE.activeSector  = null;
+          SECTOR_STATE.filterText    = '';
+          SECTOR_STATE.signalFilter  = null;
+          SECTOR_STATE.confidenceMin = 0;
+          SECTOR_STATE.soloIsin      = null;
+          renderSectorGrid();
+          renderSectorPanel();
+        }
+      } else if (_swIsScopeGroup(id) && SECTOR_STATE.activeSector !== id) {
+        // Open + fetch the matching card (runs its own async quote load).
+        swingPickSector(id).catch(function () {});
+      }
+    } finally {
+      _swScopeBindBusy = false;
+    }
   };
   window.swingGetScanScope = swingGetScanScope;
   // Render the scannable-universe stat under the sector grid (its own
@@ -7585,34 +8630,178 @@
     if (!el) return;
     el.textContent = 'Counting universe\u2026';
     swingEnsureUniverseSize().then(function (n) {
-      el.innerHTML = 'Scannable universe: <strong>' + n.toLocaleString('en-IN')
-        + '</strong> NSE/BSE stocks \u00b7 only \u20B9' + SW_MIN_PRICE.toLocaleString('en-IN')
-        + '\u2013\u20B9' + SW_MAX_PRICE.toLocaleString('en-IN')
-        + ' priced names are actually scanned';
+      var head = 'Scannable universe: <strong>' + n.toLocaleString('en-IN')
+        + '</strong> NSE/BSE stocks \u00b7 ';
+      el.innerHTML = head + (SW_BAND_ENABLED
+        ? 'only \u20B9' + SW_MIN_PRICE.toLocaleString('en-IN')
+          + '\u2013\u20B9' + SW_MAX_PRICE.toLocaleString('en-IN')
+          + ' priced names are scanned'
+        : 'price-band filter off \u2014 every name in a scope is scanned');
     }).catch(function () { el.textContent = ''; });
   }
 
-  // Apply an optional price band from data/config.json. Called by the early
-  // config loader (window._swApplyConfig) once the fetch resolves. Validates
-  // hard and fails safe: a non-numeric, non-positive, or inverted band is
-  // ignored so the SW_MIN_PRICE / SW_MAX_PRICE fallback defaults stand —
-  // we never let bad config widen the scan band and surface noisy BUYs.
-  function _swApplyPriceBand(cfg) {
-    var band = cfg && cfg.swing_price_band;
-    if (!band) return;
-    var mn = Number(band.min), mx = Number(band.max);
-    if (!isFinite(mn) || !isFinite(mx) || mn <= 0 || mx <= 0 || mn >= mx) return;
-    SW_MIN_PRICE = mn;
-    SW_MAX_PRICE = mx;
+  // ── Price-band: validation + a single setter ──────────────────────────
+  // A band is only valid if both bounds are finite numbers, strictly
+  // positive, and min < max. Anything else is rejected (fail safe — we never
+  // let a bad band widen the scan and surface noisy BUYs).
+  function _swValidBand(mn, mx) {
+    mn = Number(mn); mx = Number(mx);
+    return isFinite(mn) && isFinite(mx) && mn > 0 && mx > 0 && mn < mx;
+  }
+
+  // Read the user's UI-chosen band from localStorage. Returns
+  // {min,max,enabled} only if stored AND the band is still valid; otherwise
+  // null (so config / defaults take over). `enabled` defaults to false for
+  // legacy rows that predate the toggle (band off unless explicitly turned on).
+  function _swLoadUserBand() {
+    try {
+      var raw = localStorage.getItem(SW_PRICE_BAND_KEY);
+      if (!raw) return null;
+      var o = JSON.parse(raw);
+      if (o && _swValidBand(o.min, o.max)) {
+        return { min: Number(o.min), max: Number(o.max), enabled: o.enabled === true };
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // THE single source of truth for changing the live band. Validates the
+  // min/max, sets SW_MIN_PRICE / SW_MAX_PRICE + the SW_BAND_ENABLED flag,
+  // optionally persists the user choice, and re-paints everything that reads
+  // the band. Returns true on success, false if the min/max were rejected.
+  function _swSetPriceBand(mn, mx, enabled, persist) {
+    if (!_swValidBand(mn, mx)) return false;
+    SW_MIN_PRICE = Number(mn);
+    SW_MAX_PRICE = Number(mx);
+    SW_BAND_ENABLED = (enabled === true);
+    if (persist) {
+      try {
+        localStorage.setItem(SW_PRICE_BAND_KEY, JSON.stringify({
+          min: SW_MIN_PRICE, max: SW_MAX_PRICE, enabled: SW_BAND_ENABLED
+        }));
+      } catch (_) {}
+    }
     try { swingRenderUniverseStat(); } catch (_) {}
+    try { _swRenderPriceBandControl(); } catch (_) {}
+    if (typeof renderSectorGrid === 'function') { try { renderSectorGrid(); } catch (_) {} }
     if (typeof renderSectorPanel === 'function') { try { renderSectorPanel(); } catch (_) {} }
+    // Keep the Zone-Scan tile's band hint in sync — it reads _swBandFor() live,
+    // so without this the hint stays "all prices" after the user enables/edits
+    // the band (even though the scan itself already applies it at run time).
+    if (typeof renderZoneScan === 'function') { try { renderZoneScan(); } catch (_) {} }
+    return true;
+  }
+
+  // Apply an optional price band from data/config.json. Called by the early
+  // config loader (window._swApplyConfig) once the fetch resolves. A user UI
+  // override (localStorage) ALWAYS wins, so config is skipped when one exists.
+  // config.json only SEEDS the band values — it never auto-enables the filter
+  // (the band stays off until the user flips the toggle).
+  function _swApplyPriceBand(cfg) {
+    if (_swLoadUserBand()) return; // user choice wins over config.json
+    var band = cfg && cfg.swing_price_band;
+    if (!band || !_swValidBand(band.min, band.max)) return;
+    _swSetPriceBand(band.min, band.max, SW_BAND_ENABLED, false);
   }
   window._swApplyConfig = _swApplyPriceBand;
+
+  // Reflect the current band state into the control: input values, the
+  // enable toggle, the disabled styling, and clear any error.
+  // Skips an input the user is actively typing in so we don't fight the caret.
+  function _swRenderPriceBandControl() {
+    var elMin = document.getElementById('sw-band-min');
+    var elMax = document.getElementById('sw-band-max');
+    if (elMin && document.activeElement !== elMin) elMin.value = SW_MIN_PRICE;
+    if (elMax && document.activeElement !== elMax) elMax.value = SW_MAX_PRICE;
+    if (elMin) elMin.disabled = !SW_BAND_ENABLED;
+    if (elMax) elMax.disabled = !SW_BAND_ENABLED;
+    var apply = document.getElementById('sw-band-apply');
+    if (apply) apply.disabled = !SW_BAND_ENABLED;
+    var toggle = document.getElementById('sw-band-enable');
+    if (toggle) toggle.checked = SW_BAND_ENABLED;
+    var ctl = document.getElementById('sw-band-ctl');
+    if (ctl) ctl.classList.toggle('sw-band-off', !SW_BAND_ENABLED);
+    var err = document.getElementById('sw-band-err');
+    if (err) { err.textContent = ''; err.setAttribute('hidden', ''); }
+    var hint = document.getElementById('sw-band-default');
+    if (hint) {
+      hint.textContent = SW_BAND_ENABLED
+        ? 'scanning \u20B9' + SW_MIN_PRICE.toLocaleString('en-IN')
+          + '\u2013\u20B9' + SW_MAX_PRICE.toLocaleString('en-IN')
+        : 'off \u2014 scanning all prices';
+    }
+  }
+
+  // Show an inline validation message under the band inputs (no band change).
+  function _swPriceBandError(msg) {
+    var err = document.getElementById('sw-band-err');
+    if (!err) return;
+    err.textContent = msg;
+    err.removeAttribute('hidden');
+  }
+
+  // Apply button / Enter handler: read the inputs, validate, then persist +
+  // apply WITH the band turned ON (applying a band implies you want it active).
+  // On rejection the live band is untouched and an inline message explains why.
+  window.swApplyPriceBandFromUI = function () {
+    var elMin = document.getElementById('sw-band-min');
+    var elMax = document.getElementById('sw-band-max');
+    if (!elMin || !elMax) return;
+    var mn = Number(elMin.value), mx = Number(elMax.value);
+    if (!isFinite(mn) || !isFinite(mx) || mn <= 0 || mx <= 0) {
+      _swPriceBandError('Enter two positive prices.'); return;
+    }
+    if (mn >= mx) { _swPriceBandError('Min must be below Max.'); return; }
+    _swSetPriceBand(mn, mx, true, true);
+  };
+
+  // Enable toggle: turn the band filter on/off. Turning ON validates the typed
+  // inputs first (so we never enable a broken band). Turning OFF keeps the
+  // min/max values but stops filtering ⇒ every scope scans all its names.
+  window.swToggleBandEnabled = function (checkbox) {
+    var on = checkbox ? !!checkbox.checked : !SW_BAND_ENABLED;
+    if (on) {
+      var elMin = document.getElementById('sw-band-min');
+      var elMax = document.getElementById('sw-band-max');
+      var mn = elMin ? Number(elMin.value) : SW_MIN_PRICE;
+      var mx = elMax ? Number(elMax.value) : SW_MAX_PRICE;
+      if (!_swValidBand(mn, mx)) {
+        if (checkbox) checkbox.checked = false;
+        _swPriceBandError('Enter a valid Min < Max before turning the band on.');
+        return;
+      }
+      _swSetPriceBand(mn, mx, true, true);
+    } else {
+      _swSetPriceBand(SW_MIN_PRICE, SW_MAX_PRICE, false, true);
+    }
+  };
+
+  // Reset button: drop the user override, fall back to config.json values (if
+  // present) else the hard-coded defaults, and turn the filter ON (matches the
+  // default-ON behaviour, 2026-06-11 — so Reset restores the out-of-box state).
+  window.swResetPriceBand = function () {
+    try { localStorage.removeItem(SW_PRICE_BAND_KEY); } catch (_) {}
+    var cfgBand = window.APP_CONFIG && window.APP_CONFIG.swing_price_band;
+    if (cfgBand && _swValidBand(cfgBand.min, cfgBand.max)) {
+      _swSetPriceBand(cfgBand.min, cfgBand.max, true, false);
+    } else {
+      _swSetPriceBand(SW_DEFAULT_MIN_PRICE, SW_DEFAULT_MAX_PRICE, true, false);
+    }
+  };
+
+  // Apply the user override (if any) at module init — runs before any scan so
+  // the band + enabled flag are correct from the very first universe count.
+  (function _swInitUserBand() {
+    var b = _swLoadUserBand();
+    if (b) { SW_MIN_PRICE = b.min; SW_MAX_PRICE = b.max; SW_BAND_ENABLED = b.enabled; }
+  })();
 
   function renderTodaySetups() {
     var host = document.getElementById('sw-today-setups');
     if (!host) return;
-    var payload = swingLoadVerdictsLocal();
+    // Prefer the live in-memory partial while a bulk scan is running so the
+    // table fills in stock-by-stock; fall back to the saved payload otherwise.
+    var payload = _swLiveScanPayload || swingLoadVerdictsLocal();
     if (!payload) {
       host.dataset.state = 'empty';
       host.innerHTML = swingTodayEmptyHtml();
@@ -7779,8 +8968,8 @@
     // Pause/Resume feeds toggle — only when the options module's master
     // toggle is available. Lets the user kill every live Upstox feed
     // right here before a market-hours scan, then resume.
-    var _apiPaused = (typeof window.ptIsApiPaused === 'function') && window.ptIsApiPaused();
-    var pauseBtnHtml = (typeof window.ptIsApiPaused === 'function')
+    var _apiPaused = swIsApiPaused();
+    var pauseBtnHtml = (typeof window.swToggleApiPause === 'function')
       ? '<button type="button" class="sw-today-act sw-today-pause-btn'
         + (_apiPaused ? ' is-paused' : '') + '"'
         + ' id="sw-today-pause-btn"'
@@ -7871,8 +9060,10 @@
     // Everything below the header strip — only shown when expanded.
     var metaHtml = ''
       + '<div class="sw-today-subline">'
-      +   'Computed ' + escapeHtml(payload.computedAtIST || '\u2014')
-      +   (ageStr ? ' \u00b7 <span class="' + (ageWarn ? 'sw-today-age-warn' : 'sw-today-age') + '">' + ageStr + '</span>' : '')
+      +   (payload.live
+        ? '<span class="sw-today-age-warn">\u23F3 Scanning live\u2026</span>'
+        : 'Computed ' + escapeHtml(payload.computedAtIST || '\u2014')
+          + (ageStr ? ' \u00b7 <span class="' + (ageWarn ? 'sw-today-age-warn' : 'sw-today-age') + '">' + ageStr + '</span>' : ''))
       +   ' \u00b7 ' + (payload.succeeded || 0) + ' / ' + (payload.universeSize || 0) + ' analyzed'
       +   (payload.verdictMode && SW_VERDICT_MODE_LABEL[payload.verdictMode] ? ' \u00b7 Mode: <strong>' + escapeHtml(SW_VERDICT_MODE_LABEL[payload.verdictMode]) + '</strong>' : '')
       +   (payload.scanTf ? ' \u00b7 TF: <strong>' + escapeHtml(SW_TF_LABEL[payload.scanTf] || payload.scanTf) + '</strong>' : '')
@@ -8298,7 +9489,12 @@
     try { var _p = swingLoadVerdictsLocal(); mode = (_p && _p.verdictMode) || swingGetVerdictMode(); }
     catch (_) { mode = swingGetVerdictMode(); }
     if (mode !== 'FIB' && mode !== 'ZOI' && mode !== 'FIB_ZOI') mode = 'FIB_ZOI';
-    STATE.indVisible.fib = (mode === 'FIB' || mode === 'FIB_ZOI');
+    // FIB overlay defaults OFF for the de-noised swing read (2026-06-09): the
+    // 7 fib lines were the main chart clutter, so ONLY a pure FIB scan (the
+    // user explicitly chose fib-only) auto-shows them. In the combined FIB+ZONE
+    // default the chart de-noises to zones-only; the fib pocket is one FIB-chip
+    // click away per stock. ZONES still match the scan mode exactly as before.
+    STATE.indVisible.fib = (mode === 'FIB');
     STATE.indVisible.zoi = (mode === 'ZOI' || mode === 'FIB_ZOI');
     // Clear stale auto-fib context when fib is being hidden so the chart
     // never redraws a previous stock's pocket. renderMainChart auto-computes
@@ -8308,15 +9504,26 @@
     }
   }
 
-  window.swingPickTodayRow = function (isin, sym, name) {
+  window.swingPickTodayRow = function (isin, sym, name, opts) {
     if (!isin) return;
     STATE.selected = { sym: sym || '', isin: isin, name: name || '' };
     _swApplyScanModeOverlays();
+    // Optional caller overrides (e.g. the Zone Scan): force specific chart
+    // overlays ON + a specific TF so the matched thing is actually visible.
+    // Stashed as ONE-SHOTS consumed in renderResult right before the draw —
+    // setting STATE directly here is unsafe because the swingPickSector call
+    // below nulls requestedChartTf and re-runs the mode overlays mid-flight.
+    _swForceOverlays = (opts && opts.overlays) ? opts.overlays : null;
     // Open the chart on the SCAN timeframe so the detail-card verdict
     // matches the row the user just clicked (consumed once in renderResult).
     try {
-      var _p = swingLoadVerdictsLocal();
-      if (_p && _p.scanTf) STATE.requestedChartTf = swingNormalizeTf(_p.scanTf);
+      if (opts && opts.forceTf) {
+        _swForceChartTf = swingNormalizeTf(opts.forceTf);
+        STATE.requestedChartTf = _swForceChartTf;
+      } else {
+        var _p = swingLoadVerdictsLocal();
+        if (_p && _p.scanTf) STATE.requestedChartTf = swingNormalizeTf(_p.scanTf);
+      }
     } catch (_) {}
 
     // Highlight the picked row immediately. The Today's Setups list is
@@ -8403,8 +9610,7 @@
   // refresh and the intraday analyzer all stop/start together — then
   // updates this header's button in place (no full re-render needed).
   window.swingToggleApiPause = function () {
-    if (typeof window.ptToggleApiPause !== 'function') return;
-    var paused = window.ptToggleApiPause();
+    var paused = window.swToggleApiPause();
     var btn = document.getElementById('sw-today-pause-btn');
     if (btn) {
       btn.classList.toggle('is-paused', !!paused);
@@ -8412,6 +9618,8 @@
       var txt = btn.querySelector('.sw-today-pause-txt');
       if (txt) txt.textContent = paused ? 'Resume feeds' : 'Pause feeds';
     }
+    if (paused) { try { stopSwingPolling(); } catch (_) {} }
+    else { try { startSwingPolling(); } catch (_) {} }
   };
 
   // Serialises the payload to JSON and triggers a browser download
@@ -8536,6 +9744,79 @@
     }
   };
 
+  // Progress-bar markup for the scan status line. Extracted so the initial
+  // build AND every live re-render (which recreates the status element) emit
+  // byte-identical structure with the same ids the per-stock callback +
+  // rate-limit heartbeat re-grab by id each tick. `fillStart` adds the
+  // shimmer-from-zero class only on the very first paint.
+  function _swScanProgressBarHtml(pct, text, fillStart) {
+    var p = Math.max(0, Math.min(100, Math.round(pct || 0)));
+    return ''
+      + '<div class="sw-today-progress" role="progressbar"'
+      +   ' id="sw-verdicts-progress" aria-valuemin="0" aria-valuemax="100"'
+      +   ' aria-valuenow="' + p + '">'
+      +   '<div class="sw-today-progress-track">'
+      +     '<div class="sw-today-progress-fill' + (fillStart ? ' sw-today-progress-fill--start' : '') + '"'
+      +       ' id="sw-verdicts-progress-fill" style="width:' + p + '%"></div>'
+      +   '</div>'
+      +   '<div class="sw-today-progress-text" id="sw-verdicts-progress-text">'
+      +     escapeHtml(text || '')
+      +   '</div>'
+      + '</div>';
+  }
+
+  // Build a partial payload from the rows scanned so far so the Today's
+  // Setups table can render mid-scan. Mirrors the shape produced at the end
+  // of swingComputeAllVerdicts (ranked + tallied) minus the regime block
+  // (not exposed by the worker pool) — the final render restores it. The
+  // scope/TF/mode are the CURRENT selection (the scan was just launched with
+  // them), so the "selection changed" stale hint correctly stays hidden.
+  function _swBuildLiveScanPayload(rows, total, scanTf, scanScope, scanScopeName, verdictMode) {
+    var copy = (rows || []).slice();
+    _swRankVerdicts(copy);
+    var c = _swCountVerdicts(copy);
+    var nowIso = new Date().toISOString();
+    return {
+      schemaVersion: 1,
+      live: true,
+      computedAt: nowIso,
+      computedAtIST: 'Scanning\u2026 (live)',
+      universeSize: total,
+      succeeded: c.succeeded,
+      failed: c.failed,
+      skipped: c.skipped,
+      insufficientHistory: c.insufficientHistory,
+      excludedTooNew: 0,
+      minPrice: SW_MIN_PRICE,
+      maxPrice: SW_MAX_PRICE,
+      scanTf: scanTf,
+      scanScope: scanScope,
+      scanScopeName: scanScopeName,
+      buyCount: c.buyCount,
+      waitCount: c.waitCount,
+      avoidCount: c.avoidCount,
+      regime: null,
+      verdictMode: verdictMode || null,
+      verdicts: copy
+    };
+  }
+
+  // Re-render the Today's Setups table from the live partial, then re-inject
+  // the progress bar into the freshly-created status element (renderTodaySetups
+  // rebuilds the whole panel, so the bar must be restored each time). The
+  // per-stock callback + heartbeat both re-grab the bar by id, so the next
+  // tick finds the restored nodes with no stale references.
+  function _swLiveRenderScan(rows, total, pct, progTxt, scanTf, scanScope, scanScopeName, verdictMode) {
+    _swLiveScanPayload = _swBuildLiveScanPayload(rows, total, scanTf, scanScope, scanScopeName, verdictMode);
+    try { renderTodaySetups(); } catch (_) { /* never let a render break the scan */ }
+    var st = document.getElementById('sw-verdicts-tool-status');
+    if (st) {
+      st.hidden = false;
+      st.className = 'sw-verdicts-tool-status sw-verdicts-tool-status-run';
+      st.innerHTML = _swScanProgressBarHtml(pct, progTxt, false);
+    }
+  }
+
   // UI handler — wired to the "Compute today's verdicts" /
   // "Re-compute" button on the swing landing page (same button id
   // in both empty and populated tile states). Drives the inline
@@ -8593,6 +9874,23 @@
         else { scanScope = '__all__'; _scopeAll = true; }  // stale → full
       } catch (_) { scanScope = '__all__'; _scopeAll = true; }
     }
+    // ── API-budget guardrail for intraday (4H/1H) scans ──
+    // 1D/1W/1M all derive from ONE shared daily fetch per stock; 4H/1H each
+    // need a SEPARATE intraday fetch per stock. On the full universe (~2,500
+    // names) that is thousands of extra calls and WILL trip Upstox's rate
+    // limit — the exact failure that IP-blocked the user before. So an
+    // intraday scan is allowed ONLY on a single sector/index/screen scope.
+    // Refuse + explain rather than silently burn the budget (fail safe).
+    if (swingScanTfIsIntraday(scanTf) && _scopeAll) {
+      _swBulkScanInFlight = false;
+      status.hidden = false;
+      status.className = 'sw-verdicts-tool-status sw-verdicts-tool-status-err';
+      status.innerHTML = '<strong>' + escapeHtml(tfLabel) + '</strong> scans run on a single '
+        + 'sector, index, or screen \u2014 not the full market. An intraday scan needs a separate '
+        + 'data fetch for every stock, which would exhaust the Upstox rate budget on ~2,500 names. '
+        + 'Pick a sector / index / High Liquidity in the <strong>Scan scope</strong> dropdown above, then Compute.';
+      return;
+    }
     // Build the scope-aware body. A specific sector/index is a small,
     // fast, rate-budget-friendly run; the full universe is the heavy
     // ~20-30 min pass.
@@ -8617,6 +9915,9 @@
         + (_scopeCount != null ? ' (' + _scopeCount + ' listed names)' : '') + '. '
         + 'Names priced outside \u20B9' + SW_MIN_PRICE + '\u2013\u20B9' + SW_MAX_PRICE
         + ' are skipped at scan time. '
+        + (swingScanTfIsIntraday(scanTf)
+            ? 'This is an INTRADAY timeframe \u2014 one extra data fetch per stock \u2014 so it is kept to this single group to stay within the Upstox rate budget. '
+            : '')
         + 'Throttled to 1.5 req/sec \u2014 a single sector usually finishes in a minute or two, '
         + 'a fraction of the full-universe budget. Results save automatically in your browser.';
     }
@@ -8655,23 +9956,22 @@
     // Visual progress bar (fill width + text are updated each tick by
     // the callback below; built once here so the bar transition stays
     // smooth instead of re-creating the node ~1.5×/sec).
-    status.innerHTML = ''
-      + '<div class="sw-today-progress" role="progressbar"'
-      +   ' id="sw-verdicts-progress" aria-valuemin="0" aria-valuemax="100"'
-      +   ' aria-valuenow="0">'
-      +   '<div class="sw-today-progress-track">'
-      +     '<div class="sw-today-progress-fill sw-today-progress-fill--start"'
-      +       ' id="sw-verdicts-progress-fill" style="width:0%"></div>'
-      +   '</div>'
-      +   '<div class="sw-today-progress-text" id="sw-verdicts-progress-text">'
-      +     (_ptAutoPaused
+    status.innerHTML = _swScanProgressBarHtml(0,
+      (_ptAutoPaused
         ? 'Live feeds paused for scan \u2014 starting\u2026'
-        : 'Starting\u2026')
-      +   '</div>'
-      + '</div>';
+        : 'Starting\u2026'),
+      true);
 
     var failed = 0;
     var startedAt = Date.now();
+    // Rows accumulated as each stock completes — fed into the live partial
+    // payload so the table fills in during the scan. Re-rendering the whole
+    // panel is throttled (the full universe completes ~1,800 stocks over
+    // ~25 min, so a render-on-every-stock would thrash the DOM); _liveRenderTs
+    // gates it to at most ~once / SW_LIVE_RENDER_MS.
+    var liveRows = [];
+    var _liveRenderTs = 0;
+    var SW_LIVE_RENDER_MS = 1500;
     // Cooldown heartbeat: the per-stock progress callback only fires when a
     // stock COMPLETES, so while the scan is riding out a 60/90s Upstox
     // cooldown the bar would otherwise look frozen. This 1s ticker overwrites
@@ -8691,6 +9991,7 @@
     try {
       var payload = await swingComputeAllVerdicts(function (done, total, last) {
         if (!last.ok) failed++;
+        liveRows.push(last);
         var pct = total > 0 ? Math.round((done / total) * 100) : 0;
         var elapsedS = Math.round((Date.now() - startedAt) / 1000);
         var etaTxt = '';
@@ -8703,6 +10004,18 @@
           + ' (' + pct + '%) \u00b7 ' + failed + ' failed \u00b7 '
           + Math.floor(elapsedS / 60) + 'm ' + (elapsedS % 60) + 's elapsed'
           + etaTxt + ' \u00b7 last: ' + last.sym;
+        // Throttled live render: rebuild the table from rows-so-far at most
+        // once / SW_LIVE_RENDER_MS, OR immediately on the final stock so the
+        // last name lands without waiting for the end-of-scan repaint. The
+        // helper re-injects the progress bar, so the bar update below is
+        // skipped on those ticks (it would write to the about-to-be-replaced
+        // nodes). On non-render ticks we just update the existing bar in place.
+        var nowTs = Date.now();
+        if (nowTs - _liveRenderTs >= SW_LIVE_RENDER_MS || done >= total) {
+          _liveRenderTs = nowTs;
+          _swLiveRenderScan(liveRows, total, pct, progTxt, scanTf, scanScope, _scopeName, verdictMode);
+          return;
+        }
         var pBar  = document.getElementById('sw-verdicts-progress');
         var pFill = document.getElementById('sw-verdicts-progress-fill');
         var pTxt  = document.getElementById('sw-verdicts-progress-text');
@@ -8726,7 +10039,10 @@
       // (or the previous populated state) with the fresh BUY
       // rows. Importantly, this also replaces the button + status
       // elements we've been writing to, so we re-fetch them by id
-      // afterwards to paint the success status.
+      // afterwards to paint the success status. Drop the live
+      // partial first so the render reads the saved, ranked,
+      // regime-stamped final payload (not the regime-less live one).
+      _swLiveScanPayload = null;
       renderTodaySetups();
       var newStatus = document.getElementById('sw-verdicts-tool-status');
       if (newStatus) {
@@ -8749,13 +10065,26 @@
           + (_ptAutoPaused ? ' Live feeds resumed.' : '');
       }
     } catch (e) {
-      status.className = 'sw-verdicts-tool-status sw-verdicts-tool-status-err';
-      status.textContent = 'Failed: ' + (e && e.message || e)
-        + (_ptAutoPaused ? ' \u00b7 Live feeds resumed.' : '');
-      btn.disabled = false;
-      btn.textContent = origLabel || 'Retry';
+      // Live renders during the scan replaced the original status/btn nodes,
+      // so re-grab by id. Drop the live partial + re-render first so the table
+      // reverts from the half-finished scan to the last saved payload, then
+      // paint the error onto the freshly-created status element.
+      _swLiveScanPayload = null;
+      try { renderTodaySetups(); } catch (_) {}
+      var errStatus = document.getElementById('sw-verdicts-tool-status');
+      if (errStatus) {
+        errStatus.hidden = false;
+        errStatus.className = 'sw-verdicts-tool-status sw-verdicts-tool-status-err';
+        errStatus.textContent = 'Failed: ' + (e && e.message || e)
+          + (_ptAutoPaused ? ' \u00b7 Live feeds resumed.' : '');
+      }
+      var errBtn = document.getElementById('sw-verdicts-tool-btn');
+      if (errBtn) { errBtn.disabled = false; errBtn.textContent = origLabel || 'Retry'; }
     } finally {
       _swBulkScanInFlight = false;
+      // Drop the live partial unconditionally (the error path leaves it set
+      // otherwise, pinning the table to a half-finished, regime-less scan).
+      _swLiveScanPayload = null;
       if (_throttleHeartbeat) { clearInterval(_throttleHeartbeat); _throttleHeartbeat = null; }
       // Resume the live chart + option polling we auto-paused for
       // the scan. Only toggle back if WE paused it and it's still
@@ -8992,20 +10321,38 @@
     var emp = $('sw-empty'); if (emp) emp.hidden = true;
     var res = $('sw-result'); if (res) res.hidden = true;
     var err = $('sw-error'); if (err) err.hidden = true;
+    var pa = $('sw-paused'); if (pa) pa.hidden = true;
     var ld = $('sw-loading'); if (ld) ld.hidden = false;
     setText('sw-loading-text', msg);
+  }
+
+  // Calm, single paused message in the result area (NOT a red error) shown
+  // when a stock is picked while the Swing API is paused. Its Go-live button
+  // resumes AND loads the picked stock (window.swGoLive), preserving the
+  // sector selection.
+  function showPaused(sym) {
+    var emp = $('sw-empty'); if (emp) emp.hidden = true;
+    var ld = $('sw-loading'); if (ld) ld.hidden = true;
+    var err = $('sw-error'); if (err) err.hidden = true;
+    var res = $('sw-result'); if (res) res.hidden = true;
+    var pa = $('sw-paused'); if (pa) pa.hidden = false;
+    var msg = sym
+      ? 'Swing API is paused. Go live to load fresh analysis for ' + sym + '.'
+      : 'Swing API is paused to protect your Upstox quota.';
+    setText('sw-paused-msg', msg);
   }
 
   function showError(title, msg) {
     var emp = $('sw-empty'); if (emp) emp.hidden = true;
     var ld = $('sw-loading'); if (ld) ld.hidden = true;
     var res = $('sw-result'); if (res) res.hidden = true;
+    var pa = $('sw-paused'); if (pa) pa.hidden = true;
     var err = $('sw-error'); if (err) err.hidden = false;
     setText('sw-error-title', title);
     setText('sw-error-msg', msg);
   }
 
-  // ── Verdict Rules Engine (data-driven from data/verdict-rules.json) ──
+  // ── Verdict Rules Engine (data-driven from rules/swing-rules.json) ──
   var _verdictRules = null;
   var _verdictRulesLoading = false;
 
@@ -9013,7 +10360,7 @@
     if (_verdictRules) { if (cb) cb(_verdictRules); return; }
     if (_verdictRulesLoading) { setTimeout(function () { _loadVerdictRules(cb); }, 100); return; }
     _verdictRulesLoading = true;
-    fetch('data/verdict-rules.json', { credentials: 'omit' })
+    fetch('rules/swing-rules.json', { credentials: 'omit' })
       .then(function (r) { return r.json(); })
       .then(function (json) {
         _verdictRules = json;
@@ -9022,7 +10369,7 @@
       })
       .catch(function () {
         _verdictRulesLoading = false;
-        console.warn('[swing] Failed to load verdict-rules.json, using inline fallback');
+        console.warn('[swing] Failed to load swing-rules.json, using inline fallback');
       });
   }
   _loadVerdictRules(null);
@@ -9064,7 +10411,7 @@
     return 'sw-neutral';
   }
 
-  // ── Pattern modifier layer (data-driven; verdict-rules.json
+  // ── Pattern modifier layer (data-driven; swing-rules.json
   // `patternModifiers` + docs/*-verdict-scenarios.md) ──────────────────
   // Candlestick + geometric chart patterns are layered ON TOP of the fib/zoi
   // base verdict. They can (a) UPGRADE a BUY's conviction → STRONG BUY (via the
@@ -9090,18 +10437,22 @@
     var pm = _verdictRules && _verdictRules.patternModifiers;
     if (!pm || pm.enabled === false) return null;
     var cfg = pm.candle || {};
-    var t1Bull = cfg.tier1Bull || [];
     var t1Bear = cfg.tier1Bear || [];
     var ctx = {
-      candleTier1Bull: false, candleTier1Bear: false, candleBullName: null, candleBearName: null,
+      candleTier1Bear: false, candleBearName: null,
       chartConfirmedBull: false, chartConfirmedBear: false, chartBullName: null, chartBearName: null
     };
-    var cBull = an && an.patternBull;
     var cBear = an && an.patternBear;
-    if (cBull && t1Bull.indexOf(cBull) >= 0) { ctx.candleTier1Bull = true; ctx.candleBullName = cBull; }
     if (cBear && t1Bear.indexOf(cBear) >= 0) { ctx.candleTier1Bear = true; ctx.candleBearName = cBear; }
 
-    if (withChart && raw && raw.length >= 4 &&
+    // (Fix #4 demote-only, 2026-06-11) The bullish-candle confluence UPGRADE was
+    // removed after a 76,447-bar real-data probe showed it never fired, so there
+    // is intentionally NO Tier-1-bull detection and NO volume-ratio computation
+    // here — this layer only carries the protective bearish-demote signal.
+
+    // CHART-pattern paths are disabled (Fix #4 — chartEnabled:false) until the
+    // rules JSON encodes them per-mode. Only the two candle paths are live.
+    if (pm.chartEnabled && withChart && raw && raw.length >= 4 &&
         typeof window !== 'undefined' && window.ChartPatterns &&
         typeof window.ChartPatterns.detect === 'function') {
       try {
@@ -9120,7 +10471,7 @@
       } catch (_) { /* chart-pattern module optional — fail safe to candle-only */ }
     }
 
-    if (!ctx.candleTier1Bull && !ctx.candleTier1Bear && !ctx.chartConfirmedBull && !ctx.chartConfirmedBear) return null;
+    if (!ctx.candleTier1Bear && !ctx.chartConfirmedBull && !ctx.chartConfirmedBear) return null;
     return ctx;
   }
 
@@ -9156,15 +10507,12 @@
       return result;
     }
 
-    // (b) Bullish pattern confluence — feed the tier + flag STRONG BUY.
-    if (gate) {
-      if (ctx.chartConfirmedBull) gate.chartConfirmedBull = ctx.chartBullName || true;
-      if (ctx.candleTier1Bull) gate.candleTier1Bull = ctx.candleBullName || true;
-    }
-    if ((ctx.chartConfirmedBull && onBuy.chartConfirmedBullStrong) ||
-        (ctx.candleTier1Bull && onBuy.candleTier1BullStrong)) {
-      result.strongBuy = true;
-    }
+    // (b) NO bullish upgrade (Fix #4 demote-only, 2026-06-11). The Tier-1-bull
+    //     confluence promotion (→ STRONG BUY) was removed after a 76,447-bar
+    //     real-data probe showed it fired 0 times across 1,542 base-BUY bars.
+    //     This layer is now purely protective: a BUY that was not demoted by a
+    //     bearish candle above passes through completely unchanged. (Re-adding a
+    //     bullish upgrade must be its own PR with its own diagnostic.)
     return result;
   }
 
@@ -9203,6 +10551,35 @@
     return pocHi < zLo ? 'POCKET_BELOW' : 'POCKET_ABOVE';
   }
 
+  // Phase 2 #2 (2026-06-10) — CONFLUENCE TIER for the demand-zone × Fib
+  // golden-pocket relationship. Separate from _pocketVsZone (which is a
+  // rule-MATCHING axis and must stay untouched so the verdict table is not
+  // disturbed); this returns a confidence GRADE the confluence scorer credits:
+  //   'OVERLAP' → the demand zone and the 61.8–80% pocket share the SAME price
+  //               band — structure + Fib discount reinforce one high-conviction
+  //               level (HIGH tier).
+  //   'NEAR'    → bands don't intersect but the gap is ≤ 1.5% of price — close
+  //               enough that the two levels still back each other (MEDIUM).
+  //   'FAR'     → distinct levels that only happen to share the chart (no credit).
+  //   'N/A'     → no comparable bands (price between zones / fib unavailable).
+  // The 1.5% gap is deliberately tight: a 1–2 week swing entry wants the
+  // discount pocket essentially AT the demand floor; beyond ~1.5% they are
+  // genuinely separate decisions and should not earn the proximity credit.
+  // Pure (no side effects); order-agnostic on both bands.
+  function _pocketZoneTier(hasFib, hasZoi, fibResult, zoiPos, currentPx) {
+    if (!hasFib || !hasZoi || !fibResult || !zoiPos || !zoiPos.zone) return 'N/A';
+    var a = fibResult.fib786, b = fibResult.fib618;
+    if (!isFinite(a) || !isFinite(b)) return 'N/A';
+    var pocLo = Math.min(a, b), pocHi = Math.max(a, b);
+    var z = zoiPos.zone;
+    var zLo = Math.min(z.distal, z.proximal), zHi = Math.max(z.distal, z.proximal);
+    if (!isFinite(zLo) || !isFinite(zHi)) return 'N/A';
+    if (pocLo <= zHi && zLo <= pocHi) return 'OVERLAP';
+    if (!isFinite(currentPx) || currentPx <= 0) return 'FAR';
+    var gap = (pocLo > zHi) ? (pocLo - zHi) : (zLo - pocHi);  // bands disjoint → +ve gap
+    return (gap / currentPx) <= 0.015 ? 'NEAR' : 'FAR';
+  }
+
   // Public entry: resolve the PURE-RULES geometry verdict, then attach
   // (never apply as a veto) the risk context. `gate` is optional — when
   // omitted, behaves exactly like the old pure-geometry resolver.
@@ -9214,6 +10591,37 @@
     // (and a bullish pattern can flag STRONG BUY) before the label is built.
     // No-op when disabled / no pattern context (v4-identical behaviour).
     result = _applyPatternModifiers(result, patternCtx, gate);
+    // ── Fresh-zone gate (Phase 2 #1, 2026-06-10; hardened 2026-06-10) ────
+    // A demand-zone-backed BUY whose zone has ALREADY been retested twice or
+    // more is rejected. Each retest fills more of the resting demand, so by the
+    // 3rd distinct visit the floor is worn out and far likelier to break than to
+    // bounce — the "stepping in front of absorbed orders" trap. We demote
+    // BUY → WATCH (keep it on the radar, do NOT act) instead of emitting a
+    // fragile BUY, honouring the prefer-false-negative rule.
+    //
+    // IMPORTANT — count DISTINCT visits (`zoneTouches`), not per-bar dwell
+    // (`zoneTestCount`). A trader's "tested N times" means price LEFT and CAME
+    // BACK N times; the per-bar testCount would wrongly flag a clean FIRST touch
+    // that merely consolidates for 2+ candles. Mapping: touches 1 = the initial
+    // touch (the bounce we want — KEEP); 2 = one prior retest (weaker, KEEP);
+    // ≥3 = tested twice or more → REJECT. Guarded to DEMAND zones so a supply
+    // read can never trip it (a BUY implies demand anyway — belt and braces).
+    // Deterministic in the pure gate fields detectZones produced, so the
+    // verdict-purity guard holds. Placed BEFORE confluence/conviction so both
+    // see the demoted (non-BUY) verdict and never credit a worn-out setup.
+    if (result.text === 'BUY' && gate && gate.zoneType === 'DEMAND'
+        && (gate.zoneTouches || 0) >= 3) {
+      result.text = 'WATCH';
+      result.cls = 'sw-neutral';
+      result.strongBuy = false;
+      result.sub = 'demand zone worn out \u2014 retested ' + gate.zoneTouches
+        + '\u00d7, orders absorbed; wait for a fresh zone';
+      result.tip = 'This demand zone has been revisited ' + gate.zoneTouches
+        + ' separate times. Each retest fills more of the resting buy orders, so a '
+        + 'level tested this often is a worn-out floor that tends to break rather '
+        + 'than bounce. Held at WATCH \u2014 wait for price to build a FRESH '
+        + '(untested) demand zone before buying.';
+    }
     // Confluence is computed for EVERY verdict (not just BUY) so the setups
     // table can rank BUY rows by it. _computeConfluence omits the base-40 BUY
     // credit when this isn't a BUY, so the raw bullish-tailwind sum stays the
@@ -9282,6 +10690,17 @@
     // exclusive so we never double-count the same gap.
     if (gate.pocketFvg) { score += 22; factors.push('OTE + FVG overlap (golden pocket = institutional gap)'); }
     else if (gate.bullFvgSupport) { score += 15; factors.push('unfilled bullish FVG support below'); }
+
+    // Phase 2 #2 (2026-06-10) — demand-zone × golden-pocket confluence tier.
+    // When a real demand zone sits ON the 61.8–80% Fib discount pocket, the
+    // structural floor and the discount entry are the SAME level — the highest
+    // -conviction long band there is (HIGH). A near-miss (≤1.5% apart) still
+    // reinforces (MEDIUM). +18 sits between a fresh zone (+15) and an FVG-in-
+    // pocket (+22): premium, but never enough on its own to vault a B to A+.
+    // Independent of the freshness + FVG credits (different signal), so it
+    // legitimately stacks; the 0–100 clamp below caps any pile-up.
+    if (gate.pocketZoneTier === 'OVERLAP') { score += 18; factors.push('demand zone overlaps the golden pocket (one high-conviction level)'); }
+    else if (gate.pocketZoneTier === 'NEAR') { score += 8; factors.push('demand zone near the golden pocket'); }
 
     // Liquidity-sweep reclaim — an independent "trigger" tailwind: price
     // ran the stops below a level then reversed up and reclaimed it.
@@ -9964,7 +11383,7 @@
     // BUY ZONE is always a RANGE (2026-06-04). HOW the range is anchored
     // depends on whether the setup is actionable NOW or still waiting for a
     // pullback — exactly the distinction the verdict rules draw for the
-    // "above pocket" states (data/verdict-rules.json): F4 = touched & bounced
+    // "above pocket" states (rules/swing-rules.json): F4 = touched & bounced
     // ABOVE the pocket → BUY now at market; F6 = approaching, not yet entered
     // → WAIT for price to fall into the pocket. So:
     //   • WAIT / WATCH / SKIP (not actionable now) AND a valid zone sits below
@@ -11041,11 +12460,44 @@
         expectedMove: _expMove
       };
     }
-    STATE.lastSwingVerdict = { tf: tf, text: vr.text, cls: vr.cls, sub: vr.sub, basis: basis, isin: (STATE.selected && STATE.selected.isin) || null };
+    // Forming-EARLY overlay (Fix #2) — keep the CARD in lock-step with the
+    // scan list so a stock the screener flagged EARLY never shows a bare WAIT
+    // here (scan/card drift = a real-money trust break). Same gated, non-BUY-
+    // only helper; the confirmed verdict `vr` is never altered.
+    var _vText = vr.text, _vCls = vr.cls, _vSub = vr.sub, _vTip = vr.tip, _vStrong = vr.strongBuy || false;
+    var _early = null;
+    if (_vText !== 'BUY' && _vText !== 'STRONG BUY') {
+      _early = _formingEarlyVerdict(raw, currentPx, tf, _vText);
+      if (_early) { _vText = 'EARLY'; _vCls = 'sw-warn'; _vSub = _early.reasoning; _vTip = _early.tooltip; }
+    }
+    // ── 4H + 1H alignment overlay on the DAILY recommendation ──
+    // Display layer only (NOT the guarded pure verdict engine): when the Daily
+    // reads BUY but the 4-hour is still making lower highs/lows, demote the
+    // SHOWN recommendation to WAIT — the same fail-safe generatePlan applies,
+    // kept consistent here so the chip can never say BUY while the alignment
+    // banner says hold off. We deliberately do NOT upgrade the chip on alignment
+    // (the boost is surfaced in the banner as a confidence note) — per the
+    // trading rules we prefer a false-negative over a manufactured stronger call.
+    // Applied AFTER the EARLY overlay so the two never collide: EARLY only fires
+    // on a non-BUY base, this only fires while the base is still a BUY.
+    if (tf === '1d' && (_vText === 'BUY' || _vText === 'STRONG BUY')) {
+      var _mtf = swMtfAlignment(R.fourHour, R.hourly);
+      if (_mtf.available && _mtf.state === 'AGAINST') {
+        _vText = 'WAIT';
+        _vCls = 'sw-neutral';
+        _vStrong = false;
+        _vSub = '4H still making lower highs \u2014 wait for it to turn up';
+        _vTip = 'The Daily setup is valid, but the 4-hour chart is still making lower highs and lower lows. '
+          + 'Buying now means stepping in front of near-term selling \u2014 the 4H + 1H alignment layer holds this '
+          + 'back to WAIT until the 4-hour stops falling and starts making higher highs.';
+      }
+    }
+    STATE.lastSwingVerdict = { tf: tf, text: _vText, cls: _vCls, sub: _vSub, basis: basis, isin: (STATE.selected && STATE.selected.isin) || null };
     return {
       tf: tf, intraday: false,
-      text: vr.text, cls: vr.cls, sub: vr.sub, tip: vr.tip,
-      strongBuy: vr.strongBuy || false,
+      text: _vText, cls: _vCls, sub: _vSub, tip: _vTip,
+      early: !!_early, earlyPlan: _early ? _early.earlyPlan : null,
+      strongBuy: _vStrong,
       riskContext: vr.riskContext || null,
       riskFlags: vr.riskFlags || null,
       confluence: vr.confluence || null,
@@ -11381,64 +12833,6 @@
     if (sideCol) { sideCol.hidden = true; sideCol.innerHTML = ''; }
   }
 
-  // Paint the Expected Move card in the Zone & Signal Analysis section.
-  // Shows the probability cone (±range at 68% / 95%) for each horizon of
-  // the selected swing TF, centered on the live LTP. This is a RANGE, not a
-  // forecast — the card copy is explicit that it does not predict direction.
-  // Hidden when there's no usable volatility estimate (intraday / no-data /
-  // newly listed), so it never paints a misleading empty cone.
-  function _swPaintExpectedMove(info) {
-    var el = $('sw-expected-move');
-    if (!el) return;
-    var em = info && info.expectedMove;
-    if (!em || !em.horizons || !em.horizons.length) {
-      el.hidden = true; el.innerHTML = '';
-      return;
-    }
-    var tfLabel = SW_TF_LABEL[em.tf] || em.tf || '';
-    var html = '<div class="sw-em-head">Expected Move'
-      + '<span class="sw-em-head-tf">' + escapeHtml(tfLabel) + '</span>'
-      + '<span class="sw-em-head-note">probable \u00B1 range \u2014 not a direction</span></div>'
-      + '<div class="sw-em-sub">From LTP <strong>' + fmtPrice(em.ltp) + '</strong>'
-      + ' \u00B7 volatility \u03C3 ' + em.sigmaPct.toFixed(2) + '%/bar</div>'
-      + '<div class="sw-em-rows">';
-    for (var i = 0; i < em.horizons.length; i++) {
-      var h = em.horizons[i];
-      var hzWord = h.label.replace(/^next\s+/, '');
-      var tip68 = 'There is roughly a 68% probability price stays between '
-        + fmtPrice(h.lo68) + ' and ' + fmtPrice(h.hi68) + ' over the ' + hzWord + '.\n'
-        + 'In plain terms: about 2 times out of 3, the move from now stays within \u00B1' + fmtMove(h.p68) + '.\n'
-        + 'The other ~1 in 3 times it moves more than that. This is a RANGE only \u2014 it does NOT say up or down.\n'
-        + '(This probability is estimated from how the stock has moved recently, so treat it as a good guide, not a promise.)';
-      var tip95 = 'There is roughly a 95% probability price stays between '
-        + fmtPrice(h.lo95) + ' and ' + fmtPrice(h.hi95) + ' over the ' + hzWord + '.\n'
-        + 'In plain terms: about 19 times out of 20, the move from now stays within \u00B1' + fmtMove(h.p95) + '.\n'
-        + 'So a target beyond this range is unlikely for this period \u2014 think of it as "don\u2019t expect more than this".\n'
-        + '(Big news or results can push price past it more often than 1 in 20, so treat 95% as a safe floor, not a guarantee.)';
-      html += '<div class="sw-em-row">'
-        + '<div class="sw-em-horizon">' + escapeHtml(h.label) + '</div>'
-        + '<div class="sw-em-bands">'
-        +   '<div class="sw-em-band sw-em-band-68" title="' + escapeHtml(tip68) + '">'
-        +     '<span class="sw-em-band-k">68% likely</span>'
-        +     '<span class="sw-em-band-v">\u00B1' + fmtMove(h.p68) + '</span>'
-        +     '<span class="sw-em-band-range">' + fmtPrice(h.lo68) + ' \u2013 ' + fmtPrice(h.hi68) + '</span>'
-        +   '</div>'
-        +   '<div class="sw-em-band sw-em-band-95" title="' + escapeHtml(tip95) + '">'
-        +     '<span class="sw-em-band-k">95% likely</span>'
-        +     '<span class="sw-em-band-v">\u00B1' + fmtMove(h.p95) + '</span>'
-        +     '<span class="sw-em-band-range">' + fmtPrice(h.lo95) + ' \u2013 ' + fmtPrice(h.hi95) + '</span>'
-        +   '</div>'
-        + '</div>'
-        + '</div>';
-    }
-    html += '</div>'
-      + '<div class="sw-em-foot">68% = 1\u03C3, 95% = 2\u03C3 of past bar-to-bar moves, scaled by \u221Atime. '
-      + 'A statistical range from historical volatility \u2014 real markets have fat tails, so treat 95% as a floor. '
-      + 'It sizes stops &amp; targets to reality; it does <strong>not</strong> predict up vs down.</div>';
-    el.hidden = false;
-    el.innerHTML = html;
-  }
-
   function _swRelocateSignalDetail() {
     // The Full Signal Detail is ALWAYS a standalone full-width banner at the
     // top of the analysis panel (#sw-signal-detail) — it is no longer glued
@@ -11454,7 +12848,6 @@
     try { _swSyncRecoModeButtons(swGetRecoMode()); } catch (_) {}
     try { _swSyncRecoTfButtons(swGetRecoTf()); } catch (_) {}
     _swPaintSignalDetail(info);
-    _swPaintExpectedMove(info);
     if (!info) {
       if (risk) { risk.hidden = true; risk.innerHTML = ''; }
       return;
@@ -11496,6 +12889,381 @@
     if (finalS) finalS.textContent = info.sub || '';
     if (finalCell) finalCell.title = info.tip || '';
     if (risk) { risk.hidden = false; risk.innerHTML = swRiskContextHtml(info); }
+  }
+
+  // ── 4H + 1H alignment banner (confidence layer under the Daily reco) ──
+  // Reads the optional 4H + 1H analyses harvested by analyze() and paints a
+  // plain-language confluence read beneath the RECOMMENDATION cell. It is a
+  // VISIBLE layer, not a hidden tweak: the trader sees exactly when the two
+  // faster timeframes agree with a Daily long (act) vs disagree (hold off).
+  // The same swMtfAlignment() the verdict engine uses backs it, so the banner
+  // and generatePlan's boost/demote can never tell different stories. Hidden
+  // when no 4H data is available (thin/new listing, failed fetch, or a
+  // cache-served result from before this feature shipped).
+  function swPaintMtfAlign(R) {
+    var el = $('sw-mtf-align');
+    if (!el) return;
+    var a = (R && (R.fourHour || R.hourly)) ? swMtfAlignment(R.fourHour, R.hourly) : null;
+    if (!a || !a.available) { el.hidden = true; el.innerHTML = ''; return; }
+    // NEUTRAL ("4-hour is mixed") adds nothing now that the 4-HOUR trend has
+    // its own column in the SETUP PLAN bar — the banner only earns its space
+    // when it carries action the column can't: ALIGNED (green light), PARTIAL
+    // (wait for the 1H trigger), or AGAINST (hold off + the BUY→WAIT demote).
+    // So suppress the neutral case to keep the panel signal, not noise.
+    if (a.state === 'NEUTRAL') { el.hidden = true; el.innerHTML = ''; return; }
+    // Human-readable 4H trend + 1H trigger facts (shown as a sub-line).
+    var fourTxt = a.fourTrend
+      ? a.fourTrend.replace('STRONG_BULL', 'strong uptrend').replace('STRONG_BEAR', 'strong downtrend')
+          .replace('BULL', 'uptrend').replace('BEAR', 'downtrend').replace('NEUTRAL', 'sideways')
+      : 'unknown';
+    var oneTxt = !a.oneHHas ? 'no 1-hour data'
+      : (a.oneHTrigger ? 'triggered (turned up)' : 'not triggered yet');
+    var cls, icon, title, body;
+    if (a.state === 'ALIGNED') {
+      cls = 'sw-mtf-aligned'; icon = '\u2713';
+      title = '4-hour and 1-hour agree \u2014 higher-confidence entry';
+      body = 'The 4-hour chart is making higher highs &amp; lows and the 1-hour has turned up. '
+        + 'All three timeframes are pulling the same way \u2014 the strongest version of this setup. '
+        + 'If the Daily reads BUY, this is your green light to act; the screener bumps such a BUY up one confidence band.';
+    } else if (a.state === 'PARTIAL') {
+      cls = 'sw-mtf-partial'; icon = '\u25D4';
+      title = '4-hour agrees \u2014 waiting on the 1-hour trigger';
+      body = 'The 4-hour structure supports a long, but the 1-hour has not turned up yet. '
+        + 'Let the 1-hour make a higher high (or reclaim its short average) before timing the entry, '
+        + 'so you are buying strength, not hoping for it.';
+    } else if (a.state === 'AGAINST') {
+      cls = 'sw-mtf-against'; icon = '\u26A0';
+      title = '4-hour is still making lower highs \u2014 hold off';
+      // Worded verdict-agnostically (2026-06-10): the AGAINST state fires off
+      // the 4-hour structure alone, so it can show while the Daily is NEUTRAL /
+      // WAIT (no BUY to demote). The old copy asserted "the Daily looks like a
+      // BUY ... demotes a Daily BUY to WAIT", which contradicted a NEUTRAL Daily.
+      // This phrasing is correct whether the Daily is a BUY (then it WAS held at
+      // WAIT) or not (general caution + what would happen if it flips to BUY).
+      body = 'The 4-hour chart is still making lower highs and lower lows, so the near-term trend is down. '
+        + 'Stepping in now means buying into that selling \u2014 even a clean Daily setup should wait for the '
+        + '4-hour to stop falling and start making higher highs before you act. If the Daily does read BUY while '
+        + 'the 4-hour is still falling, the screener holds it at WAIT to protect you.';
+    } else {
+      cls = 'sw-mtf-neutral'; icon = '\u25CB';
+      title = '4-hour structure is mixed \u2014 no extra confirmation';
+      body = 'The 4-hour is neither clearly rising nor falling right now, so it adds no confidence either way. '
+        + 'Lean on the Daily read and keep your stop honest.';
+    }
+    el.className = 'sw-mtf-align ' + cls;
+    el.hidden = false;
+    // Compact, one-line read by default (icon + directive + the two facts), with
+    // the full plain-English "why" tucked behind a native <details> toggle so it
+    // never competes with the decision above (2026-06-10 de-noise). <details>
+    // works fine when injected via innerHTML — no extra JS handler needed.
+    el.innerHTML =
+      '<details class="sw-mtf-details">'
+        + '<summary class="sw-mtf-summary">'
+          + '<span class="sw-mtf-icon" aria-hidden="true">' + icon + '</span>'
+          + '<span class="sw-mtf-title">' + title + '</span>'
+          + '<span class="sw-mtf-facts-inline">4H <strong>' + escapeHtml(fourTxt) + '</strong> &middot; 1H <strong>' + escapeHtml(oneTxt) + '</strong></span>'
+          + '<span class="sw-mtf-why" aria-hidden="true">Why?</span>'
+        + '</summary>'
+        + '<div class="sw-mtf-body">' + body + '</div>'
+      + '</details>';
+  }
+
+  // ── Weekly Context strip (read-only backdrop below the chart) ──
+  // Four context tiles mirroring the classic weekly-bias checklist:
+  //   1. Trend & Structure  — weekly trend (higher highs/lows) OR, when not
+  //      trending, sitting on a proven weekly support that held before.
+  //   2. Weekly EMA 20       — price above / below the weekly 20-EMA.
+  //   3. Weekly RSI          — RSI(14) >= 40 and (ideally) rising.
+  //   4. Weekly Bias         — a fail-safe roll-up of the three, aligned with
+  //      the engine's weekly gates (a weekly downtrend OR price below / a
+  //      falling weekly 44-SMA => stay away).
+  // PURELY INFORMATIONAL: this never drives the verdict — the live BUY/WAIT
+  // call stays in SETUP PLAN. Every value is read straight off the
+  // already-computed weekly analysis object (R.weekly), so it adds zero
+  // network calls and is O(1) to render.
+  function swPaintWeeklyContext(R) {
+    var el = $('sw-weekly-context');
+    if (!el) return;
+    var w = R && R.weekly;
+    if (!w) { el.hidden = true; el.innerHTML = ''; return; }
+
+    function tone(state) {
+      return state === 'pass' ? 'sw-wctx-pass'
+        : state === 'warn' ? 'sw-wctx-warn' : 'sw-wctx-fail';
+    }
+
+    // 1) Trend & Structure -------------------------------------------------
+    var bullTrend = (w.trend === 'BULL' || w.trend === 'STRONG_BULL');
+    var bearTrend = (w.trend === 'BEAR' || w.trend === 'STRONG_BEAR');
+    // "OR proven support" branch: not clearly trending, but price is sitting
+    // within ~3% above a recent weekly swing low / 20-bar low that held =
+    // a basing / bounce read rather than "no structure".
+    var supportRef = null;
+    if (w.swingLow != null && isFinite(w.swingLow)) supportRef = w.swingLow;
+    if (w.donLow20 != null && isFinite(w.donLow20)) {
+      supportRef = (supportRef == null) ? w.donLow20 : Math.max(supportRef, w.donLow20);
+    }
+    var atSupport = (!bullTrend && !bearTrend && supportRef != null
+      && isFinite(w.lastClose) && w.lastClose >= supportRef
+      && ((w.lastClose - supportRef) / supportRef) * 100 <= 3);
+    var structState = bullTrend ? 'pass' : (atSupport ? 'warn' : 'fail');
+    var structSub = bullTrend
+      ? (w.trendBasis || 'higher highs & lows')
+      : (atSupport ? 'At a weekly support that held before'
+                   : (w.trendBasis || 'no clear swing structure'));
+
+    // 2) Weekly EMA 20 -----------------------------------------------------
+    var aboveEma = (w.ema20 != null && isFinite(w.lastClose) && w.lastClose >= w.ema20);
+    var emaState = aboveEma ? 'pass' : 'fail';
+    var emaPct = (w.ema20DistPct != null)
+      ? ((w.ema20DistPct >= 0 ? '+' : '') + w.ema20DistPct.toFixed(1) + '%') : '';
+    var emaVal = (aboveEma ? 'ABOVE' : 'BELOW') + (emaPct ? '  ' + emaPct : '');
+    var emaSub = (aboveEma ? 'Price above the weekly 20-EMA' : 'Price below the weekly 20-EMA')
+      + (w.ema20 != null && isFinite(w.ema20) ? ' (' + fmtPrice(w.ema20) + ')' : '');
+
+    // 3) Weekly RSI --------------------------------------------------------
+    var rsiOk = (w.rsi != null && isFinite(w.rsi) && w.rsi >= 40);
+    var rsiRising = (w.rsiTrend === 'rising');
+    var rsiState = !rsiOk ? 'fail' : (rsiRising ? 'pass' : 'warn');
+    var rsiDir = w.rsiTrend === 'rising' ? 'rising'
+      : (w.rsiTrend === 'falling' ? 'falling' : 'flat');
+    var rsiVal = (w.rsi != null && isFinite(w.rsi)) ? w.rsi.toFixed(0) : '\u2014';
+    if (rsiDir !== 'flat') rsiVal += ' \u00b7 ' + rsiDir;
+    // Sub-text must MATCH the state colour. The bullish weekly read is "above
+    // 40 AND turning up", so a healthy level that is FALLING is only amber
+    // (caution) — say why ("momentum fading") instead of "healthy zone",
+    // which used to contradict the "falling" label on the value line.
+    var rsiSub;
+    if (!rsiOk) {
+      rsiSub = 'below 40 \u2014 too weak, avoid';
+    } else if (rsiRising) {
+      rsiSub = 'above 40 \u2713 \u00b7 rising, momentum building';
+    } else if (w.rsiTrend === 'falling') {
+      rsiSub = 'above 40, but turning down \u2014 momentum fading';
+    } else {
+      rsiSub = 'above 40 \u2713 \u00b7 momentum flat';
+    }
+
+    // 4) Weekly Bias roll-up ----------------------------------------------
+    // Fail-safe, matching the verdict engine's weekly gates: a weekly
+    // downtrend OR price below / a falling weekly 44-SMA = stay away.
+    var belowGate = (w.sma44 != null && isFinite(w.sma44)
+      && (w.lastClose < w.sma44 || w.sma44Slope === 'falling'));
+    var passCount = (structState === 'pass' ? 1 : 0)
+      + (emaState === 'pass' ? 1 : 0) + (rsiState === 'pass' ? 1 : 0);
+    var biasState, biasVal, biasSub;
+    if (bearTrend || belowGate) {
+      biasState = 'fail'; biasVal = '\u2717 AVOID'; biasSub = 'weekly is weak \u2014 stay away';
+    } else if (structState === 'pass' && emaState === 'pass' && rsiOk) {
+      biasState = 'pass'; biasVal = '\u2713 BULLISH'; biasSub = 'look for BUY setups on 1D';
+    } else {
+      biasState = 'warn'; biasVal = '\u2022 NEUTRAL'; biasSub = 'mixed \u2014 wait for alignment';
+    }
+
+    function card(state, k, v, sub, isBias, tally) {
+      return '<div class="sw-wctx-card ' + tone(state) + (isBias ? ' sw-wctx-card-bias' : '') + '">'
+        + '<div class="sw-wctx-card-top">'
+        +   '<span class="sw-wctx-dot" aria-hidden="true"></span>'
+        +   '<span class="sw-wctx-k">' + k + '</span>'
+        + '</div>'
+        + '<div class="sw-wctx-v">' + v + '</div>'
+        + '<div class="sw-wctx-sub">' + sub + '</div>'
+        + (tally ? '<div class="sw-wctx-tally">' + tally + '</div>' : '')
+        + '</div>';
+    }
+
+    el.hidden = false;
+    el.innerHTML =
+      '<div class="sw-wctx-head">'
+        + '<span class="sw-wctx-title">WEEKLY CONTEXT</span>'
+        + '<span class="sw-wctx-note">read-only backdrop \u2014 the live call is in SETUP PLAN</span>'
+      + '</div>'
+      + '<div class="sw-wctx-grid">'
+        + card(structState, 'TREND &amp; STRUCTURE', escapeHtml(shortTrendArrow(w.trend)), escapeHtml(structSub))
+        + card(emaState, 'WEEKLY EMA 20', escapeHtml(emaVal), escapeHtml(emaSub))
+        + card(rsiState, 'WEEKLY RSI', escapeHtml(rsiVal), escapeHtml(rsiSub))
+        + card(biasState, 'WEEKLY BIAS', biasVal, biasSub, true, passCount + ' / 3 checks')
+      + '</div>';
+  }
+
+  // ── Daily Setup Check (read-only scorecard below the weekly strip) ──
+  // Translates the classic 7-point daily entry checklist into plain-language
+  // tiles, plus the daily trend (context) and a SETUP summary bar:
+  //   Daily trend · Price location (zone) · Candle signal (pattern) ·
+  //   Price vs 20-day average line (EMA 20) · Strength meter (RSI) ·
+  //   Buying activity (volume) · Momentum (MACD) · Risk-vs-reward (mandatory).
+  // PURELY INFORMATIONAL — it never issues a BUY (the live call stays in
+  // SETUP PLAN). All values are read off the already-computed daily analysis
+  // (R.daily) + the plan's risk:reward (R.plan.rr), so it adds zero network
+  // calls. Each tile degrades to a neutral "—" when its input is missing.
+  function swPaintDailyCheck(R) {
+    var el = $('sw-daily-check');
+    if (!el) return;
+    var d = R && R.daily;
+    if (!d) { el.hidden = true; el.innerHTML = ''; return; }
+    var plan = R.plan || null;
+    var px = d.lastClose;
+
+    function tone(s) {
+      return s === 'pass' ? 'sw-dsc-pass'
+        : s === 'warn' ? 'sw-dsc-warn'
+        : s === 'fail' ? 'sw-dsc-fail' : 'sw-dsc-na';
+    }
+    function near(ref, tol) {
+      return ref != null && isFinite(ref) && isFinite(px) && Math.abs((px - ref) / ref) * 100 <= tol;
+    }
+    function aboveWithin(ref, tol) {
+      return ref != null && isFinite(ref) && isFinite(px) && px >= ref && ((px - ref) / ref) * 100 <= tol;
+    }
+
+    // 1) Daily trend (context, not one of the 7 checks) ------------------
+    var bull = (d.trend === 'BULL' || d.trend === 'STRONG_BULL');
+    var bear = (d.trend === 'BEAR' || d.trend === 'STRONG_BEAR');
+    var trendState = bull ? 'pass' : (bear ? 'fail' : 'warn');
+    var trendSub = bull ? 'Climbing \u2014 higher highs & higher lows'
+      : bear ? 'Falling \u2014 lower highs & lower lows'
+      : 'Going sideways \u2014 no clear direction yet';
+
+    // 2) Price location (zone / support / EMA confluence) ----------------
+    var emaHits = [d.ema20, d.ema50, d.ema200].filter(function (r) { return near(r, 2.5); }).length;
+    var onSupport = aboveWithin(d.swingLow, 3) || aboveWithin(d.donLow20, 3);
+    var atLevel = (emaHits >= 1) || onSupport;
+    var nearLevel = atLevel || [d.ema20, d.ema50, d.ema200, d.swingLow, d.donLow20]
+      .some(function (r) { return near(r, 5); });
+    var zoneState = atLevel ? 'pass' : (nearLevel ? 'warn' : 'fail');
+    var zoneVal = atLevel ? 'AT A GOOD PRICE' : (nearLevel ? 'SLIGHTLY EXTENDED' : 'IN OPEN SPACE');
+    var zoneBits = [];
+    if (emaHits >= 2) zoneBits.push('resting on a cluster of average-price lines');
+    else if (emaHits === 1) zoneBits.push('resting near an average-price line');
+    if (onSupport) zoneBits.push('on a recent support that held');
+    var zoneSub = atLevel
+      ? ('Price is ' + zoneBits.join(' and ') + ' \u2014 a real level, not empty space')
+      : (nearLevel ? 'A little above the nearest support \u2014 not the cheapest entry'
+                   : 'No support nearby \u2014 price is floating between levels (riskier)');
+
+    // 3) Candle signal (pattern) -----------------------------------------
+    var cState, cVal, cSub;
+    if (d.patternBull) {
+      cState = 'pass'; cVal = 'BUYERS STEPPED IN'; cSub = d.patternBull + ' \u2014 buyers showing up here';
+    } else if (d.patternCompression) {
+      cState = 'warn'; cVal = 'COILING'; cSub = d.patternCompression + ' \u2014 pausing before its next move';
+    } else if (d.patternBear) {
+      cState = 'fail'; cVal = 'SELLERS PRESENT'; cSub = d.patternBear + ' \u2014 sellers in control';
+    } else {
+      cState = 'na'; cVal = 'NO SIGNAL'; cSub = 'No clear candle pattern on the latest bar';
+    }
+
+    // 4) Price vs 20-day average line (EMA 20) ---------------------------
+    var aboveEma = (d.ema20 != null && isFinite(px) && px >= d.ema20);
+    var slopeFalling = (d.ema20Slope === 'falling');
+    var emaState = !aboveEma ? 'fail' : (slopeFalling ? 'warn' : 'pass');
+    var emaVal = !aboveEma ? 'BELOW THE LINE'
+      : (d.ema20Slope === 'rising' ? 'ABOVE & RISING'
+         : (slopeFalling ? 'ABOVE (line dipping)' : 'ABOVE & STEADY'));
+    var emaSub = !aboveEma ? 'Price is under its 20-day average line \u2014 momentum weak'
+      : (slopeFalling ? 'Above the line, but the line is sloping down \u2014 be careful'
+                      : 'Price is above its 20-day average line and the line is holding up');
+
+    // 5) Strength meter (RSI) --------------------------------------------
+    var rsiState, rsiVal, rsiSub;
+    if (d.rsi == null || !isFinite(d.rsi)) {
+      rsiState = 'na'; rsiVal = '\u2014'; rsiSub = 'strength reading unavailable';
+    } else {
+      var hook = (d.rsiTrend === 'rising');
+      var inBand = (d.rsi >= 35 && d.rsi <= 60);
+      rsiVal = d.rsi.toFixed(0) + (hook ? ' \u00b7 turning up' : (d.rsiTrend === 'falling' ? ' \u00b7 slipping' : ''));
+      if (d.rsi > 65) { rsiState = 'fail'; rsiSub = 'Too hot (overbought) \u2014 wait for a dip'; }
+      else if ((inBand && hook) || (d.rsi < 35 && hook)) { rsiState = 'pass'; rsiSub = 'Healthy range and turning up \u2014 buyers waking up'; }
+      else if (inBand) { rsiState = 'warn'; rsiSub = 'Healthy range, but hasn\u2019t turned up yet'; }
+      else if (d.rsi < 35) { rsiState = 'fail'; rsiSub = 'Weak and still sliding'; }
+      else { rsiState = 'warn'; rsiSub = 'Getting a bit hot \u2014 watch for a pullback'; }
+    }
+
+    // 6) Buying activity (volume) ----------------------------------------
+    var volState, volVal, volSub;
+    if (d.volumeRatio == null || !isFinite(d.volumeRatio)) {
+      volState = 'na'; volVal = '\u2014'; volSub = 'volume data unavailable';
+    } else {
+      volVal = d.volumeRatio.toFixed(1) + '\u00d7 usual';
+      if (d.volumeRatio >= 1.5) { volState = 'pass'; volSub = 'Much busier than normal \u2014 strong buyer interest'; }
+      else if (d.volumeRatio >= 1.0) { volState = 'warn'; volSub = 'About a normal day\u2019s activity'; }
+      else { volState = 'fail'; volSub = 'Quieter than usual \u2014 weak conviction'; }
+    }
+
+    // 7) Momentum (MACD) -------------------------------------------------
+    var bullCross = !!(d.macdCross && d.macdCross.dir === 'bull');
+    var macdRising = (d.macdHistDir === 'rising');
+    var macdState, macdVal, macdSub;
+    if (bullCross || macdRising) {
+      macdState = 'pass'; macdVal = 'TURNING UP';
+      macdSub = bullCross ? 'Momentum just crossed up \u2014 a fresh push' : 'Momentum is building back up';
+    } else if (d.macdAboveSignal) {
+      macdState = 'warn'; macdVal = 'HOLDING'; macdSub = 'Momentum is positive but flat';
+    } else {
+      macdState = 'fail'; macdVal = 'STILL FADING'; macdSub = 'Momentum hasn\u2019t turned up yet';
+    }
+
+    // 8) Risk vs reward (MANDATORY) --------------------------------------
+    var rr = (plan && plan.rr != null && isFinite(plan.rr)) ? plan.rr : null;
+    var rrState, rrVal, rrSub;
+    if (rr == null) {
+      rrState = 'na'; rrVal = '\u2014'; rrSub = 'No valid trade plan yet';
+    } else {
+      rrVal = rr.toFixed(1) + ' : 1' + (rr >= 2 ? '  \u2713' : '');
+      if (rr >= 2) { rrState = 'pass'; rrSub = 'Risk \u20b91 to make \u20b9' + rr.toFixed(1) + ' \u2014 worth the risk'; }
+      else if (rr >= 1.5) { rrState = 'warn'; rrSub = 'Reward a bit small \u2014 ideally \u2265 2:1'; }
+      else { rrState = 'fail'; rrSub = 'Reward too small for the risk (need \u2265 2:1)'; }
+    }
+
+    // Summary — count the 7 template checks (trend is context, not counted).
+    var checks = [zoneState, cState, emaState, rsiState, volState, macdState, rrState];
+    var met = checks.filter(function (s) { return s === 'pass'; }).length;
+    var rrPass = (rrState === 'pass');
+    var sumState, sumVal, sumSub;
+    if (rrState === 'na') {
+      sumState = 'warn'; sumVal = '\u2022 NO PLAN YET';
+      sumSub = 'no valid trade plan to score risk-vs-reward \u2014 ' + met + ' of 7 checks met';
+    } else if (!rrPass) {
+      sumState = 'fail'; sumVal = '\u2717 SKIP';
+      sumSub = 'reward-to-risk is below 2:1 \u2014 the math doesn\u2019t support this trade';
+    } else if (met >= 6) {
+      sumState = 'pass'; sumVal = '\u2713 SETUP CONFIRMED';
+      sumSub = 'strong daily setup \u2014 ' + met + ' of 7 checks met';
+    } else {
+      sumState = 'warn'; sumVal = '\u2022 NOT YET';
+      sumSub = 'need 6 of 7 \u2014 ' + met + ' met so far (reward-to-risk is fine)';
+    }
+
+    function card(state, k, v, sub, extraCls) {
+      return '<div class="sw-dsc-card ' + tone(state) + (extraCls ? (' ' + extraCls) : '') + '">'
+        + '<div class="sw-dsc-card-top"><span class="sw-dsc-dot" aria-hidden="true"></span>'
+        +   '<span class="sw-dsc-k">' + k + '</span></div>'
+        + '<div class="sw-dsc-v">' + v + '</div>'
+        + '<div class="sw-dsc-sub">' + sub + '</div>'
+        + '</div>';
+    }
+
+    el.hidden = false;
+    el.innerHTML =
+      '<div class="sw-dsc-head">'
+        + '<span class="sw-dsc-title">DAILY SETUP CHECK</span>'
+        + '<span class="sw-dsc-note">read-only \u2014 the live call is in SETUP PLAN</span>'
+        + '<span class="sw-dsc-count">' + met + ' / 7 met</span>'
+      + '</div>'
+      + '<div class="sw-dsc-grid">'
+        + card(trendState, 'DAILY TREND', escapeHtml(shortTrendArrow(d.trend)), escapeHtml(trendSub))
+        + card(zoneState, 'PRICE LOCATION', escapeHtml(zoneVal), escapeHtml(zoneSub))
+        + card(cState, 'CANDLE SIGNAL', escapeHtml(cVal), escapeHtml(cSub))
+        + card(emaState, 'PRICE vs AVG LINE <span class="sw-dsc-term">(EMA 20)</span>', escapeHtml(emaVal), escapeHtml(emaSub))
+        + card(rsiState, 'STRENGTH METER <span class="sw-dsc-term">(RSI)</span>', escapeHtml(rsiVal), escapeHtml(rsiSub))
+        + card(volState, 'BUYING ACTIVITY', escapeHtml(volVal), escapeHtml(volSub))
+        + card(macdState, 'MOMENTUM <span class="sw-dsc-term">(MACD)</span>', escapeHtml(macdVal), escapeHtml(macdSub))
+        + card(rrState, 'RISK vs REWARD <span class="sw-dsc-mand">MUST PASS</span>', escapeHtml(rrVal), escapeHtml(rrSub), 'sw-dsc-card-rr')
+      + '</div>'
+      + '<div class="sw-dsc-summary ' + tone(sumState) + '">'
+        + '<span class="sw-dsc-sum-v">' + sumVal + '</span>'
+        + '<span class="sw-dsc-sum-sub">' + sumSub + '</span>'
+      + '</div>';
   }
 
   // Single source of truth for the header's change / % so the initial
@@ -11544,6 +13312,7 @@
     var emp = $('sw-empty'); if (emp) emp.hidden = true;
     var ld = $('sw-loading'); if (ld) ld.hidden = true;
     var err = $('sw-error'); if (err) err.hidden = true;
+    var pa = $('sw-paused'); if (pa) pa.hidden = true;
     var res = $('sw-result'); if (res) res.hidden = false;
 
     var R = STATE.result;
@@ -11579,13 +13348,18 @@
     var whenEl = $('sw-stock-when');
     if (whenEl) whenEl.textContent = R.when.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST';
 
-    // ── Bias bar (M / W / D / Verdict) ──
-    // Hourly removed from the verdict strip — see content/swing.html
-    // for the rationale (hourly signals decay in hours and don't
-    // predict 5-15 day swing outcomes). Monthly added as the
-    // strategic-context column because that's what professional
-    // swing traders actually read first ("what stage is the stock
-    // in over multi-year time?").
+    // ── Bias bar (M / W / D / 4H / 1H / Verdict) ──
+    // Full top-down read (2026-06-09, MONTHLY re-added by user request): the
+    // columns are MONTHLY (strategic backdrop / Weinstein stage) → WEEKLY
+    // (dominant trend) → DAILY (setup) → 4-HOUR (entry structure) → 1-HOUR
+    // (entry trigger) → RECOMMENDATION, i.e. slow → fast → decision, the order
+    // a swing trader actually reads. Monthly is informational here (its trend
+    // moves over years and a Monthly ▼ next to a Weekly/Daily ▲ is context, not
+    // a veto) — it ALSO still feeds the verdict score via its Stage 1-4 read
+    // (the Stage-4 −2 penalty that keeps us out of multi-year downtrends) and
+    // renders in the optional per-TF detail drawer. 1-HOUR shows its trend here
+    // for full transparency; the richer "has the entry actually triggered?"
+    // read still lives in the 4H+1H alignment banner directly below.
     function paintBias(tfId, an) {
       var v = $('sw-bias-' + tfId);
       var s = $('sw-bias-' + tfId + '-sub');
@@ -11608,6 +13382,8 @@
     paintBias('1mo', R.monthly);
     paintBias('1w',  R.weekly);
     paintBias('1d',  R.daily);
+    paintBias('4h',  R.fourHour);
+    paintBias('1h',  R.hourly);
 
     // STRUCTURE PLAN grid + STRUCTURE TRADE PLAN card were removed 2026-06-05
     // (user request — the actionable read is the SETUP card + verdict + chart;
@@ -11635,6 +13411,14 @@
     // "ReferenceError: _vInfo is not defined" and aborts the whole render.
     var _vInfo = null;
     try { _vInfo = swComputeVerdictForTf(_recoTf0); swPaintVerdict(_vInfo); } catch (_) {}
+    // 4H + 1H alignment layer — sits under the RECOMMENDATION cell. Guarded so
+    // a paint failure can never abort the rest of renderResult (chart, cards).
+    try { swPaintMtfAlign(R); } catch (_) {}
+    // Weekly Context strip below the chart (read-only weekly backdrop).
+    // Guarded for the same reason — a paint glitch must not break the chart.
+    try { swPaintWeeklyContext(R); } catch (_) {}
+    // Daily Setup Check scorecard, directly below the weekly strip.
+    try { swPaintDailyCheck(R); } catch (_) {}
     // 4H candles are lazy — if the saved reco TF isn't fetched yet, load it
     // then repaint so the verdict isn't stuck on a "not enough data" stub.
     if (!_recoLoaded && _recoTf0 !== '1d' && typeof getRawForTf === 'function') {
@@ -11723,10 +13507,11 @@
     //    above is the single source of visual truth). Pass the plan
     //    in so each TF card can show its own contribution to the
     //    overall verdict score. ──
-    renderTfCard('1mo', R.monthly, R.plan);
-    renderTfCard('1w',  R.weekly,  R.plan);
-    renderTfCard('1d',  R.daily,   R.plan);
-    renderTfCard('1h',  R.hourly,  R.plan);
+    renderTfCard('1w',  R.weekly,   R.plan);
+    renderTfCard('1d',  R.daily,    R.plan);
+    renderTfCard('4h',  R.fourHour, R.plan);
+    renderTfCard('1h',  R.hourly,   R.plan);
+    renderTfCard('1mo', R.monthly,  R.plan);
 
     // ── Big price chart with TF switcher ──
     // Default to 1D (the primary swing-trade timeframe as of 2026-06-02).
@@ -11744,8 +13529,21 @@
     // a hardcoded '1d' would silently reset it on first render. An explicit
     // scanner / today-row request (requestedChartTf) or a pending Fib TF
     // still wins, and renderMainChart then mirrors the reco control to it.
-    var defaultTf = STATE.requestedChartTf
+    // Consume the Zone-Scan (or other caller) one-shot overrides LAST, so they
+    // win over anything the pick → sector-bind → analyze chain may have reset.
+    if (_swForceOverlays && STATE.indVisible) {
+      Object.keys(_swForceOverlays).forEach(function (k) {
+        STATE.indVisible[k] = !!_swForceOverlays[k];
+      });
+      // Make the forced overlay sticky so subsequent MANUAL stock picks also
+      // show it (answers "if I pick a stock, will it show forming?" → yes,
+      // once the Zone Scan or the legend chip has turned it on).
+      _swSaveIndVis();
+    }
+    _swForceOverlays = null;
+    var defaultTf = _swForceChartTf || STATE.requestedChartTf
       || ((FIB_STATE && FIB_STATE.pendingFib) ? (FIB_STATE.pendingTf || swGetRecoTf()) : swGetRecoTf());
+    _swForceChartTf = null;
     STATE.requestedChartTf = null;
     renderMainChart(defaultTf);
   }
@@ -11799,7 +13597,7 @@
   function _swBindOverlayInteractions(inner) {
     if (!inner || inner._swOverlayBound) return;
     inner._swOverlayBound = true;
-    var rafId = 0, rafActive = false;
+    var rafId = 0, rafActive = false, tailTimer = 0;
     function runAll() {
       var u = inner._swOverlayUpdaters;
       if (!u) return;
@@ -11808,17 +13606,52 @@
       }
     }
     function loop() { runAll(); if (rafActive) rafId = requestAnimationFrame(loop); }
-    function start() { if (!rafActive) { rafActive = true; loop(); } }
-    function stop() { rafActive = false; cancelAnimationFrame(rafId); runAll(); }
+    function start() { clearTimeout(tailTimer); if (!rafActive) { rafActive = true; loop(); } }
+    function hardStop() { rafActive = false; cancelAnimationFrame(rafId); runAll(); }
+    // Keep the loop alive for a short TAIL after the gesture ends. Lightweight-
+    // Charts re-fits the price axis (autoscale) on the frame(s) AFTER mouseup /
+    // the last wheel tick, and that final re-fit is NOT delivered as a
+    // visibleLogicalRangeChange event. Without the tail, the rAF driver has
+    // already stopped, so price-anchored bands (ZOI / forming / FVG / OB …)
+    // freeze at their pre-release position and only snap to the correct level on
+    // the next live-poll re-render seconds later. The tail lets them track that
+    // settle so they stay glued to price right through the release.
+    function tailStop(delay) { clearTimeout(tailTimer); tailTimer = setTimeout(hardStop, delay); }
     inner.addEventListener('mousedown', start);
     inner.addEventListener('wheel', function () {
       start();
-      clearTimeout(inner._swOverlayWt);
-      inner._swOverlayWt = setTimeout(stop, 200);
+      tailStop(450);   // cover the post-zoom autoscale settle
     }, { passive: true });
     inner.addEventListener('touchstart', start, { passive: true });
-    window.addEventListener('mouseup', stop);
-    window.addEventListener('touchend', stop);
+    // Only react to a release if a chart gesture was actually underway (rafActive),
+    // so unrelated page clicks don't needlessly spin the rAF loop.
+    window.addEventListener('mouseup', function () { if (rafActive) tailStop(700); });
+    window.addEventListener('touchend', function () { if (rafActive) tailStop(700); });
+  }
+
+  // Re-arm the price-anchored overlay settle gate and reposition every band
+  // against the CURRENT (now-visible) layout. Called when the swing section is
+  // re-shown (swingActivate) — the chart persists across tab switches, but
+  // while it was hidden its pane size was 0, so any band that got touched in
+  // that state collapsed its label into the top-left corner. We hide the bands
+  // immediately, then a double-rAF (after layout flushes) reveals them at the
+  // correct level — no flash, no stale top-left labels. Display-only.
+  function _swResettleOverlays() {
+    var mount = $('sw-chart');
+    if (!mount) return;
+    var inner = mount.querySelector('.sw-chart-inner');
+    if (!inner || !inner._swOverlayUpdaters) return;
+    inner._swOverlaysSettled = false;
+    var rects = inner.querySelectorAll('.sw-zoi-rect');
+    for (var i = 0; i < rects.length; i++) rects[i].style.display = 'none';
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        inner._swOverlaysSettled = true;
+        var u = inner._swOverlayUpdaters;
+        if (!u) return;
+        for (var j = 0; j < u.length; j++) { try { u[j](); } catch (_) {} }
+      });
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -12109,6 +13942,27 @@
     } catch (_) {}
   }
 
+  // The countdown chip sits ON the right price axis, pinned at the last bar's
+  // price. LWC's crosshair PRICE label is painted on the canvas (below the DOM),
+  // so it can't be raised above the chip with z-index — when you hover at that
+  // price the chip hides the value. Mirror the intraday chart: FADE the chip out
+  // while the crosshair is within its vertical band, restore it the instant the
+  // crosshair moves away or leaves the chart. `el.style.top` is set in the same
+  // coordinate space as param.point.y; ~20px is the chip's height.
+  function _swCrosshairCountdownGuard(param) {
+    var el = document.getElementById('sw-countdown');
+    if (!el) return;
+    var hide = false;
+    if (param && param.point && isFinite(param.point.y) && el.style.display !== 'none') {
+      var chipTop = parseFloat(el.style.top);
+      if (isFinite(chipTop)) {
+        var cy = param.point.y;
+        if (cy >= chipTop - 12 && cy <= chipTop + 26) hide = true;
+      }
+    }
+    el.classList.toggle('tv-countdown-cross-hide', hide);
+  }
+
   function updateSwCountdown() {
     var el = _swEnsureCountdownEl();
     if (!el) return;
@@ -12239,6 +14093,7 @@
 
   async function pollSwingTick() {
     if (!STATE.livePoll.active) return;
+    if (swIsApiPaused()) { setLiveBadge('closed', 'PAUSED'); return; }
     if (!STATE.chart || !STATE.result) return;
     var sel = STATE.selected;
     if (!sel || !sel.isin) return;
@@ -12372,6 +14227,7 @@
 
   async function silentRefetchSwing(tf) {
     if (STATE.livePoll.refetchInFlight) return;
+    if (swIsApiPaused()) return;
     var sel = STATE.selected;
     if (!sel || !sel.isin) return;
     STATE.livePoll.refetchInFlight = true;
@@ -12421,6 +14277,10 @@
     }
     if (STATE.result && STATE.chart) {
       console.log('[swing] swingActivate: result and chart exist, starting polling');
+      // The chart persisted while hidden (pane size 0); re-settle the
+      // price-anchored bands against the now-visible layout so the
+      // DEMAND/SUPPLY labels don't flash in the top-left corner.
+      try { _swResettleOverlays(); } catch (_) {}
       startSwingPolling();
     } else {
       console.log('[swing] swingActivate: no result or chart yet, will start when ready');
@@ -13042,6 +14902,10 @@
     { ratio: 0.800, label: '80.0%', line: '#ec4899' },
     { ratio: 1.000, label: '100%',  line: '#3b82f6' }
   ];
+  // Expose the fib level palette so the Intraday Trade chart draws the IDENTICAL
+  // retracement levels (single source of truth — no drift). _swCP is defined
+  // above; computeFibZone is already on it.
+  try { if (window._swCP) window._swCP.FIB_BAND_LEVELS = FIB_BAND_LEVELS; } catch (_) {}
 
   function drawPriceLevel(series, price, color, title, opts) {
     if (!isFinite(price) || !series) return;
@@ -13244,6 +15108,13 @@
     // pushes its reposition callback into this array instead of attaching
     // its own (leaking) listeners.
     inner._swOverlayUpdaters = [];
+    // Gate for price-anchored overlays whose label is pinned to the band's top
+    // edge (ZOI demand/supply). It stays false until the post-render double-rAF
+    // settle pass (see ~14814) has positioned every band against the FINAL price
+    // fit — so the bands never flash at the wrong level (top-left corner) during
+    // the one-frame transient between setData's fit and setVisibleLogicalRange's
+    // re-fit. Reset on every render (TF switch / stock change).
+    inner._swOverlaysSettled = false;
     _swBindOverlayInteractions(inner);
 
     var chart;
@@ -13493,6 +15364,14 @@
     var _recoMode = swGetRecoMode();
     var recoFib = (_recoMode === 'FIB' || _recoMode === 'FIB_ZOI');
     var recoZoi = (_recoMode === 'ZOI' || _recoMode === 'FIB_ZOI');
+    // Card visibility is DECOUPLED from the verdict basis (2026-06-11, by
+    // request): the Supply/Demand-zone cards and the Fib-retracement card are
+    // always shown for context, regardless of which basis (FIB / ZOI / FIB+ZOI)
+    // drives the BUY/WAIT verdict. The basis selector still controls the verdict
+    // and the on-chart trade-level overlays — only the informational cards are
+    // now unconditional. (recoZoi/recoFib remain the verdict/overlay gates.)
+    var showZoiCards = true;
+    var showFibCards = true;
     // ── Reco TIMEFRAME decoupling (2026-06-01) ──
     // The analysis CARDS + verdict compute from the Recommendation TF
     // (swGetRecoTf, default Weekly), which is INDEPENDENT of the chart's
@@ -13533,13 +15412,11 @@
       drawPriceLevel(candleSeries, plan.t2,    '#16a34a', 'T2');
     }
 
-    // Fib retracement — price lines at each fib level.
-    if (fibCtx) {
-      FIB_BAND_LEVELS.forEach(function (lvl) {
-        var price = fibCtx.swHigh - lvl.ratio * (fibCtx.swHigh - fibCtx.swLow);
-        drawPriceLevel(candleSeries, price, lvl.line, lvl.label);
-      });
-    }
+    // Fib retracement is now drawn as a TradingView-style ANCHORED Fib (DOM
+    // segments, candle-to-candle + on-line labels) in the price-anchored overlay
+    // region below (search "Fib retracement — anchored DOM overlay"), NOT here via
+    // createPriceLine (full-width + price-axis tags). UI ONLY — computeFibZone()'s
+    // swing/pocket/verdict math is untouched; this just changes how levels render.
 
     var legendLevels = $('sw-chart-legend-levels');
     if (legendLevels) {
@@ -13612,7 +15489,7 @@
     // the already-computed fibCtx; tied to the FIB toggle like ZOI.
     var fibPanel = $('sw-fib-cards');
     if (fibPanel) {
-      if (recoFib && _fibComputed) {
+      if (showFibCards && _fibComputed) {
         fibPanel.hidden = false;
         var fpf = function (v) { return '\u20B9' + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 2 }); };
         var fb = _fibComputed;
@@ -13785,28 +15662,44 @@
     var _zoiRects = [];
     var _zoiUpdate = null;
     var _zoiChip = !!(STATE.indVisible && STATE.indVisible.zoi);
-    if (_zoiChip || recoZoi) {
+    if (_zoiChip || recoZoi || showZoiCards) {
       // Chart rectangles read the CHART-TF zones; the analysis CARDS read
-      // the reco-TF zones (decoupled — the chart is just the picture).
+      // the reco-TF zones (decoupled — the chart is just the picture). The
+      // cards are always shown, so the reco-TF zones are always computed.
       var zoiZonesChart = _zoiChip ? detectZones(raw) : [];
-      var zoiZones = recoZoi ? detectZones(recoRaw) : zoiZonesChart;
+      var zoiZones = detectZones(recoRaw);
+      // DISPLAY-ONLY expiry: a zone touched twice is retired from the CHART;
+      // touched once is faded. The verdict (zoiZones, the cards below) keeps the
+      // FULL unfiltered set — this only de-clutters the picture, never the signal.
+      var zoiZonesDisplay = zoiZonesChart.filter(function (zz) { return (zz.touches || 0) < 2; });
       if (_zoiChip) {
-      for (var zi = 0; zi < zoiZonesChart.length; zi++) {
-        var z = zoiZonesChart[zi];
+      for (var zi = 0; zi < zoiZonesDisplay.length; zi++) {
+        var z = zoiZonesDisplay[zi];
         var isDemand = z.type === 'DEMAND';
         var bg   = isDemand ? 'rgba(34,197,94,0.13)' : 'rgba(239,68,68,0.13)';
         var edge = isDemand ? 'rgba(34,197,94,0.45)' : 'rgba(239,68,68,0.45)';
         var txt  = isDemand ? 'rgba(34,197,94,0.85)' : 'rgba(239,68,68,0.85)';
 
+        var _zTested = (z.touches || 0) >= 1;
+        // 'cluster' = a same-type sibling sits within 1.5×ATR (display-only tag);
+        // drawn with dashed edges as a soft single area, matching the intraday chart.
+        var _zCluster = !!z.cluster;
+        var _zBorderStyle = _zCluster ? 'dashed' : 'solid';
         var zDiv = document.createElement('div');
         zDiv.className = 'sw-zoi-rect';
         zDiv.style.cssText = 'position:absolute;left:0;pointer-events:none;z-index:1;'
           + 'background:' + bg + ';'
-          + 'border-top:1px solid ' + edge + ';'
-          + 'border-bottom:1px solid ' + edge + ';'
+          + 'border-top:1px ' + _zBorderStyle + ' ' + edge + ';'
+          + 'border-bottom:1px ' + _zBorderStyle + ' ' + edge + ';'
           + 'display:none;';
+        if (_zTested) zDiv.style.opacity = '0.5';
         var lbl = document.createElement('span');
-        lbl.textContent = isDemand ? 'DEMAND ZONE' : 'SUPPLY ZONE';
+        // Formed / Confirmed dates are intentionally NOT shown on the chart
+        // label — a full-width band can't visually anchor a date, so it read as
+        // disconnected from the candles. The dates live on the zone CARDS
+        // instead (see _swZoneDisplayDates usage in the card renderer below).
+        lbl.textContent = (isDemand ? 'DEMAND ZONE' : 'SUPPLY ZONE')
+          + (_zTested ? ' \u00b7 TESTED' : '') + (_zCluster ? ' \u00b7 CLUSTER' : '');
         lbl.style.cssText = 'position:absolute;left:8px;top:2px;font-size:9px;'
           + 'font-weight:700;letter-spacing:0.5px;color:' + txt + ';'
           + 'text-shadow:0 0 4px var(--bg),0 0 4px var(--bg);';
@@ -13817,6 +15710,16 @@
 
       _zoiUpdate = function () {
         var cw = chart.timeScale().width();
+        // Guard: while the chart is hidden / not yet laid out (section switched
+        // away, or just made visible this frame), its width and pane height are
+        // 0, so priceToCoordinate() collapses every band to top:0 — parking the
+        // DEMAND/SUPPLY labels in the top-left corner. Don't commit any position
+        // in that state; keep the bands hidden until a real layout exists. The
+        // settle pass (renderMainChart / swingActivate) re-runs this once sized.
+        if (!cw || !inner.clientHeight) {
+          for (var rh = 0; rh < _zoiRects.length; rh++) _zoiRects[rh].el.style.display = 'none';
+          return;
+        }
         for (var ri = 0; ri < _zoiRects.length; ri++) {
           var d = _zoiRects[ri];
           var y1 = candleSeries.priceToCoordinate(d.proximal);
@@ -13833,7 +15736,9 @@
           d.el.style.top = top + 'px';
           d.el.style.height = Math.max(h, 3) + 'px';
           d.el.style.width = cw + 'px';
-          d.el.style.display = '';
+          // Stay hidden until the settle pass has run, so the top-pinned
+          // DEMAND/SUPPLY label never flashes at a stale (top-left) position.
+          d.el.style.display = inner._swOverlaysSettled ? '' : 'none';
         }
       };
       _zoiUpdate();
@@ -13843,10 +15748,10 @@
       inner._swOverlayUpdaters.push(_zoiUpdate);
       }  // end chart-rectangle drawing (legend-chip gated)
 
-      // Render ZOI justification CARDS — gated on the Recommendation basis,
-      // independent of the chart-overlay chip.
+      // Render ZOI justification CARDS — always shown for context, independent
+      // of both the chart-overlay chip AND the verdict basis (showZoiCards).
       var zoiPanel = $('sw-zoi-cards');
-      if (zoiPanel && recoZoi) {
+      if (zoiPanel && showZoiCards) {
         // Explain absent zones (demand / supply) so the chart never
         // shows "nothing" without a reason. Rendered as a muted card
         // (same shape as a real zone card) above the live cards;
@@ -13898,6 +15803,10 @@
           var html = '';
           for (var zci = 0; zci < zoiZones.length; zci++) {
             var zc = zoiZones[zci];
+            // "Formed" date = start of the base (earliest base candle).
+            var _zcDates = _swZoneDisplayDates(zc);
+            var _zcFormedTs = _zcDates.formedTs;
+            var _zcConfirmedTs = _zcDates.confirmedTs;
             var isDem = zc.type === 'DEMAND';
             var cls = isDem ? 'sw-zoi-card sw-zoi-card--demand' : 'sw-zoi-card sw-zoi-card--supply';
             var r = zc.reason;
@@ -13933,7 +15842,7 @@
             // (single rule for card + recommendation): mirrored onto the
             // nearest DEMAND zone, so the card can NEVER say "wait for a
             // pullback" while the engine says BUY — the 1–10%-above-demand
-            // bounce is Z3 BUY (data/verdict-rules.json), not a "wait" case.
+            // bounce is Z3 BUY (rules/swing-rules.json), not a "wait" case.
             // Supply zones stay descriptive context (a long-only verdict isn't
             // a call on resistance). APPROACHING = within 3% of the near edge.
             var _zLo = Math.min(zc.proximal, zc.distal);
@@ -14009,6 +15918,17 @@
               + '<div class="sw-zoi-card-range sw-tip" data-tip="' + rangeTip + '">'
               +   fp(Math.min(zc.proximal, zc.distal)) + ' \u2013 ' + fp(Math.max(zc.proximal, zc.distal))
               + '</div>'
+              + (_zcFormedTs
+                  ? '<div class="sw-zoi-card-formed sw-tip" data-tip="When this zone STARTED forming \u2014 the first candle of the base (consolidation) where buyers began accumulating, before price launched away. Anchored to a confirmed (closed) candle, in IST.">'
+                    + '<span class="sw-zoi-formed-icon" aria-hidden="true">\uD83D\uDCC5</span> Formed ' + _swFmtZoneFormed(_zcFormedTs)
+                    + '</div>'
+                  : '')
+              + (_zcConfirmedTs && _zcFormedTs && _zcConfirmedTs !== _zcFormedTs
+                  ? '<div class="sw-zoi-card-confirmed sw-tip" data-tip="When this level was FIRST confirmed \u2014 the breakout candle that launched away from the earliest base and proved the zone. The gap from \u2018Formed\u2019 is the head-start an early (forming-zone) read would have given over waiting for this confirmation.">'
+                    + '<span class="sw-zoi-confirmed-icon" aria-hidden="true">\u2713</span> Confirmed ' + _swFmtZoneFormed(_zcConfirmedTs)
+                    + _swZoneHeadstart(_zcFormedTs, _zcConfirmedTs)
+                    + '</div>'
+                  : '')
               + _posHtml
               + _rsnHtml
               + '<div class="sw-zoi-card-pattern">'
@@ -14099,6 +16019,168 @@
       if (zoiPanelOff) { zoiPanelOff.hidden = true; zoiPanelOff.innerHTML = ''; }
     }
 
+    // ── Forming demand zones (EARLY / WATCH) — amber, DASHED ──
+    // Early, UNCONFIRMED demand reads, marked the instant a base candle closes
+    // (no waiting for the confirming rally). Strictly lower trust than the green
+    // confirmed ZOI above: a forming zone may raise a WATCH/EARLY note but NEVER
+    // a full-size BUY (that still requires a CONFIRMED zone). Entirely gated
+    // behind the "Forming" legend chip (default OFF) so the standard read stays
+    // clean. The display filter (formingZonesForDisplay) trims to unbroken +
+    // recent + near-price + not-already-confirmed.
+    var _fzRects = [];
+    var _fzUpdate = null;
+    var _fzList = [];
+    if (STATE.indVisible && STATE.indVisible.forming) {
+      var _fzPx = (isFinite(R.ltp) && R.ltp) ? R.ltp : (raw && raw[0] ? +raw[0][4] : NaN);
+      var _fzConfirmed = (typeof detectZones === 'function') ? (detectZones(raw) || []) : [];
+      _fzList = formingZonesForDisplay(raw, _fzConfirmed, _fzPx);
+
+      for (var fzi = 0; fzi < _fzList.length; fzi++) {
+        var fz = _fzList[fzi];
+        var _fzEarly = !!fz.tradeable;            // EARLY (reversal) vs WATCH (continuation)
+        var fzBg   = _fzEarly ? 'rgba(245,158,11,0.13)' : 'rgba(245,158,11,0.07)';
+        var fzEdge = _fzEarly ? 'rgba(245,158,11,0.65)' : 'rgba(245,158,11,0.40)';
+        var fzTxt  = _fzEarly ? 'rgba(245,158,11,0.95)' : 'rgba(245,158,11,0.70)';
+        var fzDiv = document.createElement('div');
+        fzDiv.className = 'sw-forming-rect';
+        fzDiv.style.cssText = 'position:absolute;left:0;pointer-events:none;z-index:1;'
+          + 'background:' + fzBg + ';'
+          + 'border-top:1px dashed ' + fzEdge + ';'
+          + 'border-bottom:1px dashed ' + fzEdge + ';'
+          + 'display:none;';
+        var fzLbl = document.createElement('span');
+        // Date intentionally omitted from the chart label (kept on the forming
+        // card instead) — matches the confirmed-zone labels above.
+        // Anchored to the BOTTOM edge so it never collides with a confirmed
+        // zone's top-pinned DEMAND/SUPPLY label.
+        fzLbl.textContent = 'FORMING \u00b7 ' + (_fzEarly ? 'EARLY' : 'WATCH');
+        fzLbl.style.cssText = 'position:absolute;left:8px;bottom:2px;font-size:9px;'
+          + 'font-weight:700;letter-spacing:0.5px;color:' + fzTxt + ';'
+          + 'text-shadow:0 0 4px var(--bg),0 0 4px var(--bg);';
+        fzDiv.appendChild(fzLbl);
+        inner.appendChild(fzDiv);
+        _fzRects.push({ el: fzDiv, proximal: fz.proximal, distal: fz.distal });
+      }
+
+      if (_fzRects.length) {
+        _fzUpdate = function () {
+          var cw = chart.timeScale().width();
+          // Same hidden-while-unsized guard as the ZOI bands (avoid top-left flash).
+          if (!cw || !inner.clientHeight) {
+            for (var rh = 0; rh < _fzRects.length; rh++) _fzRects[rh].el.style.display = 'none';
+            return;
+          }
+          for (var ri = 0; ri < _fzRects.length; ri++) {
+            var d = _fzRects[ri];
+            var y1 = candleSeries.priceToCoordinate(d.proximal);
+            var y2 = candleSeries.priceToCoordinate(d.distal);
+            if (y1 === null || y2 === null) { d.el.style.display = 'none'; continue; }
+            var top = Math.min(y1, y2), h = Math.abs(y1 - y2);
+            if (top < 0) { h += top; top = 0; }
+            d.el.style.top = top + 'px';
+            d.el.style.height = Math.max(h, 3) + 'px';
+            d.el.style.width = cw + 'px';
+            d.el.style.display = inner._swOverlaysSettled ? '' : 'none';
+          }
+        };
+        _fzUpdate();
+        chart.timeScale().subscribeVisibleLogicalRangeChange(_fzUpdate);
+        inner._swOverlayUpdaters.push(_fzUpdate);
+      }
+    }
+
+    // Forming-zone CARDS (amber variant) — shown whenever the Forming chip is
+    // on (independent of the ZOI recommendation basis). The card spells out the
+    // tier, the evidence behind the early read, and the Formed date.
+    (function renderFormingCards() {
+      var fzPanel = $('sw-forming-cards');
+      if (!fzPanel) return;
+      if (!(STATE.indVisible && STATE.indVisible.forming) || !_fzList.length) {
+        fzPanel.hidden = true; fzPanel.innerHTML = '';
+        return;
+      }
+      fzPanel.hidden = false;
+      var _fp = function (v) { return '\u20B9' + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 2 }); };
+      var TURN_LABEL = { HAMMER: 'Hammer', PIERCING: 'Piercing', ENGULF: 'Bullish engulfing', STRONG_CLOSE: 'Strong close', WICK_REJECT: 'Wick rejection' };
+      var fzHtml = '<div class="sw-smc-grouphead">'
+        + '<span class="sw-smc-grouphead-title">Forming demand zones</span>'
+        + '<span class="sw-smc-grouphead-count">' + _fzList.length + '</span>'
+        + '</div>'
+        + '<div class="sw-forming-note">Early, UNCONFIRMED reads \u2014 marked the instant a base candle closed, before any confirming rally. Lower trust than confirmed zones. <b>EARLY</b> = small-starter candidate (tight stop below the zone, 2R+ target, add on confirmation). <b>WATCH</b> = context only. Never a full-size BUY.</div>';
+      for (var fci = 0; fci < _fzList.length; fci++) {
+        var fc = _fzList[fci];
+        var _early = !!fc.tradeable;
+        var _badge = _early ? 'EARLY' : 'WATCH';
+        var _flav = fc.flavour === 'REVERSAL' ? 'Reversal' : 'Continuation';
+        var _turn = TURN_LABEL[fc.turnKind] || fc.turnKind || '';
+        var ev = fc.evidence || {};
+        var _chips = '<span class="sw-forming-chip">' + _turn + '</span>'
+          + '<span class="sw-forming-chip">' + _flav + '</span>'
+          + (ev.atSupport ? '<span class="sw-forming-chip">At support</span>' : '')
+          + (ev.nearEma ? '<span class="sw-forming-chip">At EMA</span>' : '')
+          + '<span class="sw-forming-chip sw-forming-chip--vol">Vol ' + (fc.volMult != null ? fc.volMult + '\u00d7' : '?') + '</span>';
+        var _badgeTip = _early
+          ? 'EARLY \u2014 a forming demand REVERSAL. Backtests show a small but real positive edge (about +0.2R at a 2R target, ~39% win rate). Treat it as a SMALL-STARTER only: tight stop just below the zone, target 2R or more, and add on confirmation (a confirmed zone or clear follow-through). It is NOT a full-size, high-conviction BUY.'
+          : 'WATCH \u2014 a forming continuation pullback. Shown for context only; not a trade trigger on its own.';
+        var _rangeTip = 'Forming zone band. Distal (far/stop edge): ' + _fp(Math.min(fc.proximal, fc.distal)) + '. Proximal (near edge): ' + _fp(Math.max(fc.proximal, fc.distal)) + '. A tight stop sits just below the distal edge.';
+        fzHtml += '<div class="sw-forming-card ' + (_early ? 'sw-forming-card--early' : 'sw-forming-card--watch') + '">'
+          + '<div class="sw-forming-card-head">'
+          +   '<span class="sw-forming-card-type">FORMING DEMAND</span>'
+          +   '<span class="sw-forming-badge ' + (_early ? 'sw-forming-badge--early' : 'sw-forming-badge--watch') + ' sw-tip" data-tip="' + _badgeTip + '">' + _badge + '</span>'
+          + '</div>'
+          + '<div class="sw-forming-card-range sw-tip" data-tip="' + _rangeTip + '">' + _fp(Math.min(fc.proximal, fc.distal)) + ' \u2013 ' + _fp(Math.max(fc.proximal, fc.distal)) + '</div>'
+          + ((fc.baseStartTs || fc.formationTs)
+              ? '<div class="sw-forming-card-formed sw-tip" data-tip="When this forming base STARTED \u2014 the first candle of the consolidation where the early read began, in IST. No confirming rally is required for a forming zone.">'
+                + '<span aria-hidden="true">\uD83D\uDCC5</span> Formed ' + _swFmtZoneFormed(fc.baseStartTs || fc.formationTs)
+                + (fc._barsAgo != null ? ' \u00b7 ' + fc._barsAgo + ' bar' + (fc._barsAgo === 1 ? '' : 's') + ' ago' : '')
+                + '</div>'
+              : '')
+          + '<div class="sw-forming-card-evidence">' + _chips + '</div>'
+          + '</div>';
+      }
+      fzPanel.innerHTML = fzHtml;
+
+      // Reuse the shared themed [data-tip] tooltip. Ensure the global tip
+      // element exists, then wire mouseover/out ONCE (guarded) so re-renders
+      // don't stack listeners.
+      if (!fzPanel._swTipWired) {
+        fzPanel._swTipWired = true;
+        var tipEl = document.getElementById('sw-zoi-tip-global');
+        if (!tipEl) {
+          tipEl = document.createElement('div');
+          tipEl.id = 'sw-zoi-tip-global';
+          tipEl.className = 'sw-zoi-tip';
+          document.body.appendChild(tipEl);
+        }
+        var fzTipTimer = 0;
+        fzPanel.addEventListener('mouseover', function (e) {
+          var tgt = e.target.closest('[data-tip]');
+          if (!tgt) { clearTimeout(fzTipTimer); tipEl.style.display = 'none'; return; }
+          clearTimeout(fzTipTimer);
+          fzTipTimer = setTimeout(function () {
+            tipEl.textContent = '';
+            var lines = tgt.getAttribute('data-tip').split('\\n');
+            for (var li = 0; li < lines.length; li++) {
+              if (li > 0) tipEl.appendChild(document.createElement('br'));
+              tipEl.appendChild(document.createTextNode(lines[li]));
+            }
+            tipEl.style.display = '';
+            var r = tgt.getBoundingClientRect();
+            var left = r.left, top = r.bottom + 6;
+            if (left + 320 > window.innerWidth) left = window.innerWidth - 330;
+            if (left < 8) left = 8;
+            if (top + 200 > window.innerHeight) top = r.top - tipEl.offsetHeight - 6;
+            tipEl.style.left = left + 'px';
+            tipEl.style.top = top + 'px';
+          }, 300);
+        });
+        fzPanel.addEventListener('mouseout', function (e) {
+          var tgt = e.target.closest('[data-tip]');
+          if (tgt) { clearTimeout(fzTipTimer); tipEl.style.display = 'none'; }
+        });
+      }
+    })();
+
     // ── Fair Value Gaps (FVG filled rectangles) ──
     var _fvgRects = [];
     var _fvgUpdate = null;
@@ -14113,23 +16195,30 @@
 
         var fDiv = document.createElement('div');
         fDiv.className = 'sw-fvg-rect';
-        fDiv.style.cssText = 'position:absolute;left:0;pointer-events:none;z-index:1;'
+        fDiv.style.cssText = 'position:absolute;pointer-events:none;z-index:1;'
           + 'background:' + fBg + ';'
-          + 'border-top:1px dashed ' + fEdge + ';'
-          + 'border-bottom:1px dashed ' + fEdge + ';'
+          + 'border:1px dashed ' + fEdge + ';'
           + 'display:none;';
         var fLbl = document.createElement('span');
         fLbl.textContent = 'FVG';
-        fLbl.style.cssText = 'position:absolute;left:8px;top:1px;font-size:8px;'
+        fLbl.style.cssText = 'position:absolute;left:4px;top:1px;font-size:8px;'
           + 'font-weight:700;letter-spacing:0.5px;color:' + fTxt + ';'
           + 'text-shadow:0 0 4px var(--bg),0 0 4px var(--bg);';
         fDiv.appendChild(fLbl);
         inner.appendChild(fDiv);
-        _fvgRects.push({ el: fDiv, top: fg.top, bottom: fg.bottom });
+        // startTime = the gap-forming (middle) candle; endTime = latest candle.
+        // Box is drawn between them, so the origin candle is obvious AND it stops
+        // at the latest price action (never runs into the right-edge gap / axis).
+        // raw is newest-first → raw[0] is the most recent candle.
+        var _fStart = null, _fEnd = null;
+        try { _fStart = fg.formed != null ? candleTime(fg.formed, tf) : null; } catch (_) { _fStart = null; }
+        try { _fEnd = (raw && raw.length) ? candleTime(raw[0][0], tf) : null; } catch (_) { _fEnd = null; }
+        _fvgRects.push({ el: fDiv, top: fg.top, bottom: fg.bottom, startTime: _fStart, endTime: _fEnd });
       }
 
       _fvgUpdate = function () {
         var cw = chart.timeScale().width();
+        var _ts = chart.timeScale();
         for (var ri = 0; ri < _fvgRects.length; ri++) {
           var d = _fvgRects[ri];
           var y1 = candleSeries.priceToCoordinate(d.top);
@@ -14140,9 +16229,24 @@
           // Clamp to the chart's top edge (see ZOI updater) so the FVG band +
           // its label never ride up into the toolbar/legend on zoom.
           if (top2 < 0) { h2 += top2; top2 = 0; }
+          // Bound the box horizontally: left = origin candle (clamped to the left
+          // edge once scrolled out), right = latest candle (clamped to the chart
+          // edge if scrolled off-screen right). Falls back to full width if the
+          // anchors are missing.
+          var fLeft = 0, fW = cw;
+          if (d.startTime != null) {
+            var fx1 = null, fx2 = null;
+            try { fx1 = _ts.timeToCoordinate(d.startTime); } catch (_) {}
+            try { fx2 = (d.endTime != null) ? _ts.timeToCoordinate(d.endTime) : null; } catch (_) {}
+            fLeft = (fx1 == null || fx1 < 0) ? 0 : fx1;
+            var fRight = (fx2 == null) ? cw : Math.min(fx2, cw);
+            fW = fRight - fLeft;
+            if (fW < 1) fW = 1;
+          }
           d.el.style.top = top2 + 'px';
           d.el.style.height = Math.max(h2, 2) + 'px';
-          d.el.style.width = cw + 'px';
+          d.el.style.left = fLeft + 'px';
+          d.el.style.width = fW + 'px';
           d.el.style.display = '';
         }
       };
@@ -14405,6 +16509,30 @@
       if (obPanelOff) { obPanelOff.hidden = true; obPanelOff.innerHTML = ''; }
     }
 
+    // ── Trend regime badge — ALWAYS ON, every timeframe ──
+    // Prominent pill in the chart toolbar (next to the symbol) so the market
+    // structure regime is visible at a glance. Decoupled from the BOS toggle
+    // (which is off by default) — the badge shows on all timeframes regardless,
+    // while the BOS lines/labels below still respect the indicator toggle.
+    (function () {
+      var trendEl = $('sw-chart-trend');
+      if (!trendEl) return;
+      try {
+        var td = detectStructureBreaks(raw, { pivot: BOS_PIVOT_BY_TF[tf] || 5 });
+        var tr = recentSwingTrend(td) || 'RANGING';
+        var trendCls = tr === 'BULLISH' ? 'sw-trend--bull'
+          : tr === 'BEARISH' ? 'sw-trend--bear' : 'sw-trend--range';
+        var trendArrow = tr === 'BULLISH' ? '\u25B2'
+          : tr === 'BEARISH' ? '\u25BC' : '\u25C6';
+        trendEl.innerHTML = '<span class="sw-trend-badge ' + trendCls + '">'
+          + trendArrow + ' ' + tr + '</span>';
+        trendEl.hidden = false;
+      } catch (_) {
+        trendEl.innerHTML = '';
+        trendEl.hidden = true;
+      }
+    })();
+
     // ── BOS / CHoCH (structure break lines + swing markers) ──
     var _bosEls = [];
     var _bosUpdate = null;
@@ -14413,17 +16541,11 @@
       var bosBreaks = bosData.breaks;
       var bosSwings = bosData.swings;
       var bosTrend = recentSwingTrend(bosData);
-
-      // Trend badge in chart status
-      var statusEl = $('sw-chart-status');
-      if (statusEl) {
-        var trendCls = bosTrend === 'BULLISH' ? 'sw-trend--bull'
-          : bosTrend === 'BEARISH' ? 'sw-trend--bear' : 'sw-trend--range';
-        var trendArrow = bosTrend === 'BULLISH' ? '\u25B2'
-          : bosTrend === 'BEARISH' ? '\u25BC' : '\u25C6';
-        statusEl.innerHTML = '<span class="sw-trend-badge ' + trendCls + '">'
-          + trendArrow + ' ' + bosTrend + '</span>';
-      }
+      // Used by the BOS summary card (sw-bos-cards) below.
+      var trendCls = bosTrend === 'BULLISH' ? 'sw-trend--bull'
+        : bosTrend === 'BEARISH' ? 'sw-trend--bear' : 'sw-trend--range';
+      var trendArrow = bosTrend === 'BULLISH' ? '\u25B2'
+        : bosTrend === 'BEARISH' ? '\u25BC' : '\u25C6';
 
       // Render swing markers (small labels at swing points)
       var visibleSwings = bosSwings.slice(-10);
@@ -14449,27 +16571,53 @@
         _bosEls.push({ el: swDiv, price: vsw.price, barIdx: vsw.barIdx, time: _swTime, pos: isHighSwing ? 'above' : 'below' });
       }
 
-      // Render break lines (horizontal dashed lines with BOS/CHoCH label)
+      // Render breaks — last 5. Each shows TWO ways: (1) a FAINT horizontal line
+      // at the broken swing level (origin → break candle) for level reference;
+      // (2) a bold TAG + arrow anchored directly ON the break candle (brk.barIdx)
+      // — like the candlestick-pattern markers — so it's unambiguous which candle
+      // broke structure. barIdx/swingIdx index the detector's oldest-first array;
+      // map back via raw[len-1-idx] (raw is newest-first).
       var visibleBreaks = bosBreaks.slice(-5);
       for (var bki = 0; bki < visibleBreaks.length; bki++) {
         var brk = visibleBreaks[bki];
         var isBos = brk.type === 'BOS';
         var isBullBrk = brk.direction === 'BULL';
         var brkColor = isBos
-          ? (isBullBrk ? 'rgba(34,197,94,0.60)' : 'rgba(239,68,68,0.60)')
-          : (isBullBrk ? 'rgba(234,179,8,0.70)' : 'rgba(192,38,211,0.70)');
+          ? (isBullBrk ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)')
+          : (isBullBrk ? 'rgba(234,179,8,0.95)' : 'rgba(192,38,211,0.95)');
+        var _brkRaw = (brk.barIdx != null) ? raw[raw.length - 1 - brk.barIdx] : null;
+        var _swOriginRaw = (brk.swingIdx != null) ? raw[raw.length - 1 - brk.swingIdx] : null;
+        var _brkTime = _brkRaw ? candleTime(_brkRaw[0], tf) : null;
+
+        // (1) Faint level line.
         var brkDiv = document.createElement('div');
         brkDiv.className = 'sw-bos-line';
         brkDiv.style.cssText = 'position:absolute;left:0;pointer-events:none;z-index:2;'
-          + 'height:0;border-top:1.5px dashed ' + brkColor + ';display:none;';
-        var brkLbl = document.createElement('span');
-        brkLbl.textContent = (isBos ? 'BOS' : 'CHoCH') + ' ' + brk.direction;
-        brkLbl.style.cssText = 'position:absolute;right:8px;top:-12px;font-size:9px;'
-          + 'font-weight:700;color:' + brkColor + ';'
-          + 'text-shadow:0 0 3px var(--bg),0 0 3px var(--bg);';
-        brkDiv.appendChild(brkLbl);
+          + 'height:0;border-top:1.5px dashed ' + brkColor + ';opacity:0.30;display:none;';
         inner.appendChild(brkDiv);
-        _bosEls.push({ el: brkDiv, price: brk.level, isLine: true });
+        _bosEls.push({
+          el: brkDiv, price: brk.level, isLine: true,
+          endTime: _brkTime,
+          startTime: _swOriginRaw ? candleTime(_swOriginRaw[0], tf) : null
+        });
+
+        // (2) Bold tag ON the break candle (hugs its low for bull, high for bear).
+        if (_brkRaw) {
+          var brkMark = document.createElement('div');
+          brkMark.className = 'sw-bos-mark';
+          brkMark.textContent = (isBullBrk ? '\u25B2 ' : '\u25BC ') + (isBos ? 'BOS' : 'CHoCH');
+          brkMark.style.cssText = 'position:absolute;pointer-events:none;z-index:3;'
+            + 'font-size:9px;font-weight:800;letter-spacing:0.3px;white-space:nowrap;'
+            + 'color:' + brkColor + ';display:none;'
+            + 'text-shadow:0 0 3px var(--bg),0 0 3px var(--bg);';
+          inner.appendChild(brkMark);
+          _bosEls.push({
+            el: brkMark,
+            price: isBullBrk ? +_brkRaw[3] : +_brkRaw[2],  // low (below) / high (above)
+            time: _brkTime,
+            pos: isBullBrk ? 'below' : 'above'
+          });
+        }
       }
 
       _bosUpdate = function () {
@@ -14490,8 +16638,23 @@
           var py = candleSeries.priceToCoordinate(be.price);
           if (py === null) { be.el.style.display = 'none'; continue; }
           if (be.isLine) {
+            // Segment from broken-swing origin → break candle so the label
+            // lands on the candle that broke structure.
+            var lx1 = null, lx2 = null;
+            if (be.startTime != null) lx1 = chart.timeScale().timeToCoordinate(be.startTime);
+            if (be.endTime != null) lx2 = chart.timeScale().timeToCoordinate(be.endTime);
             be.el.style.top = py + 'px';
-            be.el.style.width = cw + 'px';
+            if (lx2 === null) {
+              // Break candle scrolled off-screen → fall back to full-width line.
+              be.el.style.left = '0px';
+              be.el.style.width = cw + 'px';
+            } else {
+              var lleft = (lx1 === null || lx1 < 0) ? 0 : lx1;
+              var lw = lx2 - lleft;
+              if (lw < 1) lw = 1;
+              be.el.style.left = lleft + 'px';
+              be.el.style.width = lw + 'px';
+            }
             be.el.style.display = '';
           } else {
             var offset = be.pos === 'above' ? -14 : 4;
@@ -14608,8 +16771,8 @@
     } else {
       var bosPanelOff = $('sw-bos-cards');
       if (bosPanelOff) { bosPanelOff.hidden = true; bosPanelOff.innerHTML = ''; }
-      var statusElOff = $('sw-chart-status');
-      if (statusElOff) statusElOff.innerHTML = '&mdash;';
+      // Trend badge stays visible (it's always-on, set above) — only the BOS
+      // lines/labels/summary card are hidden when the indicator is toggled off.
     }
 
     // ── Liquidity Sweeps (level lines + sweep markers) ──
@@ -14780,6 +16943,129 @@
       } catch (_) {}
     }
 
+    // ── Fib retracement — anchored DOM overlay (UI port of the intraday chart) ──
+    // RENDERING ONLY. computeFibZone()'s swing/pocket/verdict math is untouched;
+    // fibCtx is its unmodified output. Each level is a DOM segment anchored at the
+    // measured leg (left) that EXTENDS RIGHT to the series edge, with the
+    // % (price) label ON the line (not the price axis) + a dashed diagonal
+    // connector across the leg. Mirrors the BOS overlay mechanism: append to
+    // `inner`, glue via a subscribeVisibleLogicalRangeChange handler that is also
+    // pushed into inner._swOverlayUpdaters (so the post-fit settle pass re-runs it).
+    // Swing keeps its existing 0%-at-HIGH convention (no down-leg reversal).
+    var _fibUpdate = null;
+    if (fibCtx && isFinite(fibCtx.swHigh) && isFinite(fibCtx.swLow) && fibCtx.swHigh > fibCtx.swLow) {
+      var _fibEls = [];
+      var _fibLeg = fibCtx.swHigh - fibCtx.swLow;
+      // Derive anchor candle times by matching swHigh/swLow back to their bars
+      // (raw is newest-first [ts,O,H,L,C,V]). swHigh/swLow ARE raw bar high/low
+      // values, so an exact match locates the anchor — no change to the engine.
+      var _fibHiTs = null, _fibLoTs = null;
+      for (var _fh = 0; _fh < raw.length; _fh++) { if (+raw[_fh][2] === fibCtx.swHigh) { _fibHiTs = raw[_fh][0]; break; } }
+      for (var _fl = 0; _fl < raw.length; _fl++) { if (+raw[_fl][3] === fibCtx.swLow) { _fibLoTs = raw[_fl][0]; break; } }
+      var _fibStartTime = null, _fibEndTime = null, _fibConn = null;
+      if (_fibHiTs != null && _fibLoTs != null) {
+        var _fibHiMs = new Date(_fibHiTs).getTime();
+        var _fibLoMs = new Date(_fibLoTs).getTime();
+        var _fibEarlier = (_fibHiMs <= _fibLoMs) ? _fibHiTs : _fibLoTs;
+        var _fibLater   = (_fibHiMs <= _fibLoMs) ? _fibLoTs : _fibHiTs;
+        try { _fibStartTime = candleTime(_fibEarlier, tf); _fibEndTime = candleTime(_fibLater, tf); }
+        catch (_) { _fibStartTime = null; _fibEndTime = null; }
+      }
+
+      FIB_BAND_LEVELS.forEach(function (lvl) {
+        var price = fibCtx.swHigh - lvl.ratio * _fibLeg;   // 0% = high (swing convention)
+        if (!isFinite(price)) return;
+        var line = document.createElement('div');
+        line.className = 'sw-fib-line';
+        line.style.cssText = 'position:absolute;left:0;pointer-events:none;z-index:2;height:0;'
+          + 'border-top:1.5px solid ' + lvl.line + ';opacity:0.9;display:none;';
+        inner.appendChild(line);
+        var label = document.createElement('div');
+        label.className = 'sw-fib-line-lbl';
+        label.textContent = lvl.label + ' (' + Number(price).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + ')';
+        label.style.cssText = 'position:absolute;pointer-events:none;z-index:3;font-size:9px;font-weight:700;'
+          + 'white-space:nowrap;color:' + lvl.line + ';display:none;'
+          + 'text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 3px var(--bg);';
+        inner.appendChild(label);
+        var lblW = Math.ceil(label.textContent.length * 5.4) + 8;
+        _fibEls.push({ el: line, label: label, price: price, lblW: lblW });
+      });
+
+      // Dashed diagonal connector (leg origin → leg end) — SVG line, only when
+      // both anchor times resolved. Earlier-in-time anchor = start.
+      if (_fibStartTime != null && _fibEndTime != null) {
+        var _fibSvgNS = 'http://www.w3.org/2000/svg';
+        var _fibSvg = document.createElementNS(_fibSvgNS, 'svg');
+        _fibSvg.setAttribute('class', 'sw-fib-connector');
+        _fibSvg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;display:none;overflow:visible;z-index:2;';
+        var _fibConnLine = document.createElementNS(_fibSvgNS, 'line');
+        _fibConnLine.style.stroke = 'var(--muted)';
+        _fibConnLine.setAttribute('stroke-width', '1');
+        _fibConnLine.setAttribute('stroke-dasharray', '4 3');
+        _fibConnLine.setAttribute('opacity', '0.55');
+        _fibSvg.appendChild(_fibConnLine);
+        inner.appendChild(_fibSvg);
+        var _fibEarlierIsHigh = (new Date(_fibHiTs).getTime()) <= (new Date(_fibLoTs).getTime());
+        _fibConn = {
+          svg: _fibSvg, line: _fibConnLine,
+          startTime: _fibStartTime, endTime: _fibEndTime,
+          startPrice: _fibEarlierIsHigh ? fibCtx.swHigh : fibCtx.swLow,
+          endPrice:   _fibEarlierIsHigh ? fibCtx.swLow  : fibCtx.swHigh
+        };
+      }
+
+      _fibUpdate = function () {
+        var ts = chart.timeScale();
+        var cw = ts.width();
+        var fx1 = (_fibStartTime != null) ? ts.timeToCoordinate(_fibStartTime) : null;
+        var fLeft = (fx1 == null || fx1 < 0) ? 0 : fx1;
+        for (var i = 0; i < _fibEls.length; i++) {
+          var fe = _fibEls[i];
+          var py = candleSeries.priceToCoordinate(fe.price);
+          if (py === null) { fe.el.style.display = 'none'; fe.label.style.display = 'none'; continue; }
+          var fRight = cw;                       // extend right to the series edge
+          fe.el.style.top = py + 'px';
+          fe.el.style.left = fLeft + 'px';
+          fe.el.style.width = Math.max(1, fRight - fLeft) + 'px';
+          fe.el.style.display = '';
+          // Right-align the label just INSIDE the series edge (never onto the axis),
+          // clamped so it never crosses left of the leg origin.
+          var lw = fe.lblW || 70;
+          var lx = fRight - lw - 4;
+          if (lx < fLeft + 2) lx = fLeft + 2;
+          fe.label.style.left = lx + 'px';
+          // Sit the label JUST ABOVE its line instead of centred on it. The
+          // chart-pattern level tags (Double Bottom entry / target / invalidation)
+          // and the trade-plan Entry/SL/T1/T2 tags are Lightweight-Charts price-line
+          // TITLES — they render right-aligned at this same edge, vertically CENTRED
+          // on their line. When a fib level coincides in price with one of those
+          // levels (e.g. pattern entry ≈ 0% at the swing high, stop ≈ 80% near the
+          // low) both texts landed on the same band and overlapped. Lifting the fib
+          // label ~9px above its line keeps the centred pattern/plan title on the
+          // line and the fib label clear above it — readable for any coincidence,
+          // not just one. Uniform offset preserves fib-to-fib spacing, so no new
+          // collisions appear between adjacent fib labels.
+          fe.label.style.top = (py - 9) + 'px';
+          fe.label.style.transform = 'translateY(-100%)';
+          fe.label.style.display = '';
+        }
+        if (_fibConn && _fibConn.line) {
+          var cx1 = ts.timeToCoordinate(_fibConn.startTime);
+          var cy1 = candleSeries.priceToCoordinate(_fibConn.startPrice);
+          var cx2 = ts.timeToCoordinate(_fibConn.endTime);
+          var cy2 = candleSeries.priceToCoordinate(_fibConn.endPrice);
+          if (cx1 != null && cy1 != null && cx2 != null && cy2 != null) {
+            _fibConn.line.setAttribute('x1', Math.max(0, cx1)); _fibConn.line.setAttribute('y1', cy1);
+            _fibConn.line.setAttribute('x2', cx2); _fibConn.line.setAttribute('y2', cy2);
+            _fibConn.svg.style.display = '';
+          } else { _fibConn.svg.style.display = 'none'; }
+        }
+      };
+      _fibUpdate();
+      chart.timeScale().subscribeVisibleLogicalRangeChange(_fibUpdate);
+      inner._swOverlayUpdaters.push(_fibUpdate);
+    }
+
     // Reposition ALL price-anchored overlays once the view above has settled
     // (2026-06-06). Each overlay block positions its DOM box immediately at
     // creation (via _zoiUpdate/_fvgUpdate/… + a subscribeVisibleLogicalRangeChange
@@ -14795,6 +17081,9 @@
     // prices (proximal/distal) and the verdict are untouched.
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
+        // Price fit has now applied — bands can be revealed at their correct
+        // level on this pass (see inner._swOverlaysSettled gate in _zoiUpdate).
+        inner._swOverlaysSettled = true;
         var u = inner._swOverlayUpdaters;
         if (!u) return;
         for (var _ui = 0; _ui < u.length; _ui++) {
@@ -14821,10 +17110,13 @@
     }
 
     chart.subscribeCrosshairMove(function (param) {
+      _swCrosshairCountdownGuard(param);   // fade the countdown chip so the hovered price label shows
       if (_zoiUpdate) _zoiUpdate();
+      if (_fzUpdate) _fzUpdate();       // forming demand bands — same reposition trigger as ZOI
       if (_fvgUpdate) _fvgUpdate();
       if (_bosUpdate) _bosUpdate();
       if (_liqUpdate) _liqUpdate();
+      if (_fibUpdate) _fibUpdate();
       if (!param || !param.time || !param.seriesData || !param.seriesData.size) {
         tooltip.style.display = 'none';
         return;
@@ -14953,9 +17245,11 @@
       function refreshOverlays() {
         requestAnimationFrame(function () {
           if (_zoiUpdate) _zoiUpdate();
+          if (_fzUpdate) _fzUpdate();     // keep forming bands glued during price-axis zoom too
           if (_fvgUpdate) _fvgUpdate();
           if (_bosUpdate) _bosUpdate();
           if (_liqUpdate) _liqUpdate();
+          if (_fibUpdate) _fibUpdate();
         });
       }
 
@@ -15349,6 +17643,22 @@
         html += '<div class="sw-tf-contrib-empty">No directional signal at this timeframe \u2014 neutral vote.</div>';
       }
       html += '</div>';
+    } else if (tfId === '4h') {
+      // 4-Hour does NOT add to the additive verdict score — it is the
+      // alignment layer (it can boost a Daily BUY when its structure
+      // agrees, or hold it back to WAIT when it's still falling). We
+      // render a parallel "role" panel here (a) so the 4H read is fully
+      // transparent and (b) so this card keeps the same child-count as
+      // the others and subgrid row-alignment stays clean.
+      html += '<div class="sw-tf-contrib sw-tf-contrib-neutral">'
+        +   '<div class="sw-tf-contrib-head">'
+        +     '<span class="sw-tf-contrib-k">ROLE \u2014 ALIGNMENT LAYER</span>'
+        +     '<span class="sw-tf-contrib-v sw-muted">\u2014</span>'
+        +   '</div>'
+        +   '<div class="sw-tf-contrib-empty">Not part of the additive score. The 4-hour structure '
+        +     'confirms or vetoes the Daily entry: it boosts confidence when it agrees and the 1-hour '
+        +     'triggers, or holds the trade to WAIT while it is still making lower highs.</div>'
+        + '</div>';
     }
 
     // ── 3. TREND BLOCK ──
@@ -15709,6 +18019,8 @@
       requestAnimationFrame(function () {
         rafPending = false;
         if (STATE.chart) try { STATE.chart.resize(); } catch (_) {}
+        // Reposition price-anchored bands against the new size (no top-left flash).
+        try { _swResettleOverlays(); } catch (_) {}
       });
     });
   }
@@ -15731,6 +18043,7 @@
     if (!STATE.chart) return;
     STATE.indVisible[key] = !STATE.indVisible[key];
     if (el) el.classList.toggle('active', STATE.indVisible[key]);
+    _swSaveIndVis();   // sticky across stock picks + refreshes
 
     // Auto-compute Fib from current chart candles when toggling FIB on
     // without a prior scan — so clicking FIB in the legend "just works".
@@ -15756,6 +18069,23 @@
     // the default window. Consumed (and reset) inside renderMainChart.
     STATE._swPreserveView = true;
     renderMainChart(STATE.chartTf);
+  };
+
+  // Collapse / expand the "Advanced (SMC)" legend group (FVG / OB / BOS / LIQ).
+  // Pure DOM show/hide — does NOT touch indicator visibility or re-render the
+  // chart; the individual chips inside still toggle their own overlay via
+  // swToggleInd when clicked. Default collapsed so the swing read stays clean.
+  window.swToggleAdvLegend = function (btn) {
+    var group = document.getElementById('sw-adv-group');
+    if (!group) return;
+    var open = group.hasAttribute('hidden');
+    if (open) { group.removeAttribute('hidden'); }
+    else { group.setAttribute('hidden', ''); }
+    var b = btn || document.getElementById('sw-adv-toggle');
+    if (b) {
+      b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      b.classList.toggle('sw-adv-toggle--open', open);
+    }
   };
 
   // Expose for inline onclick + lazy section loader
@@ -15786,6 +18116,66 @@
   // Sector navigation (the only entry path into single-stock analysis).
   window.swingPickSector       = swingPickSector;
   window.swingPickSectorStock  = swingPickSectorStock;
+
+  // Zone Scan ("Scan stocks by zone") — rule picker + runner + row open.
+  window.swZoneScanSetRule = function (id) {
+    if (_swZoneScanState.running) return;
+    _swZoneScanState.ruleId = id;
+    // Results are rule-specific — drop the previous rule's matches so the tile
+    // never shows (or restores) a stale list under a different rule.
+    _swZoneScanState.doneAt = null;
+    _swZoneScanState.matched = [];
+    _swSaveZoneScan();
+    try { renderZoneScan(); } catch (_) {}
+  };
+  window.swZoneScanRun = function () { swRunZoneScan(); };
+  window.swZoneScanCancel = function () { _swZoneScanState.cancelled = true; };
+  window.swZoneScanToggleScopeMenu = function (e) {
+    if (e) { e.stopPropagation(); }
+    if (_swZoneScanState.running) return;
+    if (_swZoneScopeMenuOpen) { _swCloseZoneScopeMenu(); return; }
+    _swZoneScopeMenuOpen = true;
+    var menu = document.getElementById('sw-zs-scope-menu');
+    var btn = document.getElementById('sw-zs-scope-btn');
+    if (menu) menu.hidden = false;
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+    _swZoneScopeOutsideHandler = function (ev) {
+      if (ev.type === 'keydown') { if (ev.key === 'Escape') _swCloseZoneScopeMenu(); return; }
+      var m = document.getElementById('sw-zs-scope-menu');
+      var b = document.getElementById('sw-zs-scope-btn');
+      if ((m && m.contains(ev.target)) || (b && b.contains(ev.target))) return;
+      _swCloseZoneScopeMenu();
+    };
+    document.addEventListener('mousedown', _swZoneScopeOutsideHandler, true);
+    document.addEventListener('keydown', _swZoneScopeOutsideHandler, true);
+  };
+  window.swZoneScanPickScope = function (id) {
+    _swCloseZoneScopeMenu();
+    if (_swZoneScanState.running) return;
+    _swZoneScanState.scope = id || '__all__';
+    _swZoneScanState.scopeName = _swZoneScopeName(_swZoneScanState.scope);
+    // Picking a new scope invalidates the previous result set — clear it so the
+    // tile drops back to the idle prompt rather than showing stale matches.
+    _swZoneScanState.doneAt = null;
+    _swZoneScanState.matched = [];
+    _swSaveZoneScan();
+    try { renderZoneScan(); } catch (_) {}
+  };
+  window.swZoneScanOpen = function (isin, sym, name, ruleId) {
+    // Open on the SAME timeframe the scan ran (daily) and turn ON the overlay
+    // for the matched zone kind, so the user immediately SEES the zone that
+    // put this stock in the list. Forming-demand → enable the amber "Forming"
+    // overlay (+ ZOI for confirmed-zone context); confirmed-demand → ZOI.
+    // In "All" mode each row carries its own matched ruleId, so prefer that
+    // over the picker's active rule (which is the synthetic "__all__").
+    var rid = ruleId || _swZoneScanState.ruleId;
+    var rule = (_swZoneScanState.rules || []).filter(function (r) { return r.id === rid; })[0];
+    var isForming = rule && rule.zoneSource === 'forming';
+    var overlays = isForming ? { forming: true, zoi: true } : { zoi: true };
+    if (typeof window.swingPickTodayRow === 'function') {
+      window.swingPickTodayRow(isin, sym, name, { forceTf: '1d', overlays: overlays });
+    }
+  };
   window.swingInitSectors      = swingInitSectors;
   window.swingReapplyChartTheme = function () {
     if (STATE.chart) STATE.chart.applyOptions(chartOptions(STATE.chartTf));
@@ -15852,6 +18242,10 @@
     window.__swingExports = {
       analyzeTf: analyzeTf,
       generatePlan: generatePlan,
+      // 4H+1H alignment overlay (pure on two analyzeTf objects) — exported so
+      // the guard can assert the AGAINST/ALIGNED/PARTIAL/NEUTRAL/NODATA states
+      // map to the same boost/demote behaviour generatePlan applies.
+      swMtfAlignment: swMtfAlignment,
       // The Fib/ZOI scan engine (universe scan-table verdicts). Pure on
       // candles → the backtester can replay the EXACT scan signals.
       scanVerdictFromCandles: scanVerdictFromCandles,
@@ -15860,6 +18254,11 @@
       // assert the fibClass ladder / zoiRising / gate stay byte-identical to
       // the reference spec across FIB / ZOI / FIB+ZOI.
       swComputeVerdictInputs: swComputeVerdictInputs,
+      // Fix #4 pattern-modifier verification (the live path is gated on the
+      // fetched rules JSON, which the vm sandbox can't fetch — so a guard needs
+      // to inject the rules and call the modifier directly).
+      _applyPatternModifiers: _applyPatternModifiers,
+      _setVerdictRules: function (j) { _verdictRules = j; },
       computeFibZone: computeFibZone,
       // Mode-aware Entry/SL/T1 geometry (pure on candles + ctx). Exported so the
       // regression guard can assert targets always clear the entry zone top.
@@ -15867,6 +18266,16 @@
       // SMC zone/structure detectors — pure on candles, used for
       // validating the overlay/card detectors against real history.
       detectZones: detectZones,
+      // Phase 5 — forming (provisional) demand zones (past-only, no
+      // look-ahead). Exported so the unit guard + hit-rate backtest can
+      // validate the detector against real + synthetic candles.
+      detectFormingZones: detectFormingZones,
+      formingZonesForDisplay: formingZonesForDisplay,
+      // Stock-scan "price inside a zone" rules (rules/scan-rule.json). Pure on
+      // candles → unit-testable + replayable. The runner/UI use the window.*
+      // aliases below; these are here so a guard can assert match behaviour.
+      scanMatchForStock: scanMatchForStock,
+      loadScanRules: loadScanRules,
       detectFVG: detectFVG,
       detectStructureBreaks: detectStructureBreaks,
       detectOrderBlocks: detectOrderBlocks,
@@ -16343,6 +18752,64 @@
   //  7. Leg-out must be stronger than leg-in (the departure move is
   //     what proves the zone matters).
 
+  // Human-readable formation date for a zone's base candle, in IST.
+  // Daily / weekly / monthly bars are stamped at IST midnight, so we show the
+  // date only ("14 Mar '26"); intraday bars (1H / 4H) carry a real clock time,
+  // so we append HH:MM ("14 Mar '26 13:45"). Returns '' on bad input — never
+  // throws, so a missing/odd timestamp can't break the chart or a card.
+  function _swFmtZoneFormed(ts) {
+    if (!ts) return '';
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    try {
+      var day = d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit' });
+      var mon = d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short' });
+      var yr  = d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: '2-digit' });
+      var out = day + ' ' + mon + " '" + yr;
+      var hm = d.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false
+      });
+      if (hm && hm.indexOf('00:00') === -1) out += ' ' + hm;
+      return out;
+    } catch (e) { return ''; }
+  }
+
+  // Calendar-day gap between a zone's "formed" and "confirmed" dates, as a
+  // compact " (+Nd)" suffix — the head-start an early detector would have given
+  // over waiting for the confirming rally. Returns '' on bad / zero input.
+  function _swZoneHeadstart(formedTs, confTs) {
+    if (!formedTs || !confTs) return '';
+    var a = new Date(formedTs).getTime(), b = new Date(confTs).getTime();
+    if (isNaN(a) || isNaN(b) || b <= a) return '';
+    var days = Math.round((b - a) / 86400000);
+    return days > 0 ? ' (+' + days + 'd)' : '';
+  }
+
+  // Pick the dates to DISPLAY for a zone (chart label + card). The buy/sell
+  // verdict never calls this — it's purely about which "Formed"/"Confirmed"
+  // dates read most truthfully to a human. We surface the EARLIEST honest
+  // formation across two display-only refinements computed in detectZones:
+  //   • consolidationStartTs — the true start of the sideways stretch that
+  //     launched the impulse (the detected base walked backward to its origin).
+  //   • originBaseStartTs / originConfirmedTs — the OLDEST base at the same
+  //     unbroken price level (when several bases clustered there over time).
+  // Whichever is earlier wins, and "Confirmed" is paired to that same origin
+  // so the head-start gap stays internally consistent. Falls back to the raw
+  // base-start / formation timestamps when the refinements are absent.
+  function _swZoneDisplayDates(z) {
+    if (!z) return { formedTs: null, confirmedTs: null };
+    var ownFormed = z.consolidationStartTs || z.baseStartTs || z.formationTs || null;
+    var ownConf   = z.confirmedTs || null;
+    var origFormed = z.originBaseStartTs || null;
+    var origConf   = z.originConfirmedTs || null;
+    var ownMs  = ownFormed  ? new Date(ownFormed).getTime()  : Infinity;
+    var origMs = origFormed ? new Date(origFormed).getTime() : Infinity;
+    if (isFinite(origMs) && origMs < ownMs) {
+      return { formedTs: origFormed, confirmedTs: origConf };
+    }
+    return { formedTs: ownFormed, confirmedTs: ownConf };
+  }
+
   function detectZones(rawCandles) {
     if (!rawCandles || rawCandles.length < 25) return [];
 
@@ -16556,6 +19023,10 @@
           // Freshness: scan all candles AFTER the formation.
           var freshness = 'FRESH';
           var testCount = 0;
+          // touches = per-VISIT re-entries into the band (counted once per visit,
+          // not per bar). This is a DISPLAY-ONLY signal for chart de-cluttering;
+          // it NEVER feeds testCount / freshness / score / the verdict below.
+          var touches = 0, _zPrevOut = true;
           for (var f = legOut.end + 1; f < n; f++) {
             var inZone = (zoneType === 'DEMAND')
               ? lo(f) <= proximal && hi(f) >= distal
@@ -16567,6 +19038,10 @@
 
             if (brokeThrough) { freshness = 'BROKEN'; break; }
             if (inZone) { testCount++; freshness = 'TESTED'; }
+            // Count one touch per fresh entry into the proximal edge.
+            var _entered = (zoneType === 'DEMAND') ? (lo(f) <= proximal) : (hi(f) >= proximal);
+            if (_entered && _zPrevOut) touches++;
+            _zPrevOut = !_entered;
           }
 
           if (freshness === 'BROKEN') {
@@ -16661,7 +19136,28 @@
             freshness: freshness,
             score: score,
             formationIdx: i,
+            // Timestamp of the LAST base candle — the moment the zone was
+            // completed, just before price launched away from it. This is the
+            // "when did this zone form" date surfaced on the chart + cards.
+            // Anchored to a confirmed (closed) candle, never the live bar.
+            formationTs: (c[base.end] && c[base.end][0]) || null,
+            baseStartTs: (c[base.end - base.len + 1] && c[base.end - base.len + 1][0]) || null,
+            // Index of the detected base's first candle — kept so the display
+            // layer can walk BACKWARD to the true start of the consolidation
+            // (the detected base is only the last few bars before the impulse).
+            baseStartIdx: (base.end - base.len + 1),
+            // Timestamp of the FIRST leg-out candle — the breakout bar that
+            // departed the base and validated the zone. This is a STABLE
+            // "confirmed on" date: it does NOT creep forward as an ongoing rally
+            // extends. (Using legOut.end would move the date to "today" on every
+            // additional trend bar — a repaint, and it made a still-rallying
+            // zone read "Confirmed <today>".) base.end+1 is always the first
+            // leg-out candle: detectLeg() starts its scan there and a null
+            // leg-out is already filtered out above. The gap from formationTs is
+            // the head-start an early (forming-zone) read would have given.
+            confirmedTs: (c[base.end + 1] && c[base.end + 1][0]) || null,
             testCount: testCount,
+            touches: touches,
             reason: {
               dispMultiple: Math.round(dispMult * 10) / 10,
               volMultiple: Math.round(volMult * 10) / 10,
@@ -16679,11 +19175,22 @@
 
     // Deduplicate: if two zones of the same type overlap, keep the
     // one with the higher score (it has better structure).
+    //
+    // ORIGIN DATES (display-only, signal-inert): when several bases form at the
+    // SAME unbroken price level over time, the highest-scored one wins the band
+    // + score + verdict — but that winner is usually the most explosive (often
+    // the most RECENT) base, so its "Formed" date hides the fact that the level
+    // was first established earlier. So as we discard each overlapping lower-
+    // scored member, we fold its dates into the winner IF it formed earlier,
+    // and surface those as origin{BaseStart,Formation,Confirmed}Ts. The result:
+    // "Formed" shows when the level was FIRST built (oldest base), "Confirmed"
+    // shows when it FIRST proved itself — while the buy/sell verdict still uses
+    // only the kept winner's geometry. Nothing downstream reads origin*.
     zones.sort(function (a, b) { return b.score - a.score; });
     var kept = [];
     for (var zi = 0; zi < zones.length; zi++) {
       var zone = zones[zi];
-      var dup = false;
+      var dupTarget = null;
       var zTop = Math.max(zone.proximal, zone.distal);
       var zBot = Math.min(zone.proximal, zone.distal);
       var latA = recentAtr() || 1;
@@ -16694,10 +19201,63 @@
         var eBot = Math.min(ex.proximal, ex.distal);
         // Overlap OR within 0.5× ATR of each other.
         if (zBot <= eTop + latA * 0.5 && zTop >= eBot - latA * 0.5) {
-          dup = true; break;
+          dupTarget = ex; break;
         }
       }
-      if (!dup) kept.push(zone);
+      if (!dupTarget) {
+        // First (highest-scored) member at this level: seed its origin trackers
+        // to its own dates. Lower indices = older bars (c is oldest-first).
+        zone.originFormationIdx = zone.formationIdx;
+        zone.originBaseStartTs  = zone.baseStartTs;
+        zone.originFormationTs  = zone.formationTs;
+        zone.originConfirmedTs  = zone.confirmedTs;
+        zone.clusterMemberCount = 1;
+        kept.push(zone);
+      } else {
+        // Discard this member's band/score, but if it is OLDER than the
+        // winner's current origin, adopt ITS dates as the level's true origin.
+        dupTarget.clusterMemberCount = (dupTarget.clusterMemberCount || 1) + 1;
+        if (zone.formationIdx < dupTarget.originFormationIdx) {
+          dupTarget.originFormationIdx = zone.formationIdx;
+          dupTarget.originBaseStartTs  = zone.baseStartTs;
+          dupTarget.originFormationTs  = zone.formationTs;
+          dupTarget.originConfirmedTs  = zone.confirmedTs;
+        }
+      }
+    }
+
+    // DISPLAY-ONLY: walk the detected base BACKWARD to the true start of the
+    // sideways stretch. The detector's base is just the last few bars before
+    // the impulse-out; a long consolidation that launched the move began
+    // earlier. We step back while candles keep trading inside the zone band
+    // (with a little tolerance) and aren't a strong impulse candle — stopping
+    // the instant we hit the move that DELIVERED price into the zone, or a bar
+    // that closed outside it. Anchors on confirmed bars only (no repaint). The
+    // band / score / verdict are untouched; only the shown "Formed" date moves.
+    function _swConsolidationStart(zn) {
+      var startIdx = zn.baseStartIdx;
+      if (typeof startIdx !== 'number' || startIdx <= 0) return zn.baseStartTs;
+      var top = Math.max(zn.proximal, zn.distal);
+      var bot = Math.min(zn.proximal, zn.distal);
+      var bandH = top - bot;
+      if (!(bandH > 0)) return zn.baseStartTs;
+      var tol = bandH * 0.6;
+      var rngLo = bot - tol, rngHi = top + tol;
+      var idx = startIdx, guard = 0;
+      for (var k = startIdx - 1; k >= 0 && guard < 60; k--, guard++) {
+        var a2 = atrAt(k);
+        // Strong-bodied bar = the impulse that delivered price here (leg-in).
+        if (a2 > 0 && body(k) > a2 * 0.85) break;
+        // Must still be ranging inside the (toleranced) band to be the same
+        // consolidation; a close outside (or a bar far outside) ends it.
+        if (cl(k) < rngLo || cl(k) > rngHi) break;
+        if (hi(k) > rngHi + tol || lo(k) < rngLo - tol) break;
+        idx = k;
+      }
+      return (c[idx] && c[idx][0]) || zn.baseStartTs;
+    }
+    for (var kz = 0; kz < kept.length; kz++) {
+      kept[kz].consolidationStartTs = _swConsolidationStart(kept[kz]);
     }
 
     function distToPx(z) {
@@ -16710,6 +19270,29 @@
       .sort(function (a, b) { return distToPx(a) - distToPx(b); }).slice(0, 4);
 
     var finalAtr = recentAtr() || 0;
+
+    // CLUSTER tag — DISPLAY-ONLY, inert to the verdict (same safe pattern as
+    // .touches). Sub-0.5×ATR neighbours are already dropped by the dedup above,
+    // so this only flags the 0.5–1.5×ATR "close siblings" of the SAME type so
+    // the chart can draw them with a dashed edge. The verdict / SMC cards never
+    // read .cluster, so adding it changes no signal.
+    var _clusterThr = finalAtr * 1.5;
+    function tagClusters(list) {
+      if (!(_clusterThr > 0)) return;
+      for (var ci = 0; ci < list.length; ci++) {
+        var aTop = Math.max(list[ci].proximal, list[ci].distal);
+        var aBot = Math.min(list[ci].proximal, list[ci].distal);
+        for (var cj = ci + 1; cj < list.length; cj++) {
+          var bTop = Math.max(list[cj].proximal, list[cj].distal);
+          var bBot = Math.min(list[cj].proximal, list[cj].distal);
+          // <0 = overlap (shouldn't happen post-dedup), else nearest-edge gap.
+          var cgap = Math.max(aBot, bBot) - Math.min(aTop, bTop);
+          if (cgap < _clusterThr) { list[ci].cluster = true; list[cj].cluster = true; }
+        }
+      }
+    }
+    tagClusters(demand);
+    tagClusters(supply);
 
     // Human-readable explanation of WHY a side has no shown zone.
     // Returns null when at least one zone of that type is displayed.
@@ -16771,6 +19354,518 @@
     }
 
     return result;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // FORMING (provisional) demand zones — Phase 5
+  //
+  // Marks a demand zone the moment its TURN candle CLOSES, using ONLY
+  // past candles (zero look-ahead) — the leg-out rally is NOT required.
+  // The leg-out (the confirmed engine's proof) is replaced by a richer
+  // PAST-ONLY confluence score over six footprints:
+  //   1. arrival   — price reached the level with momentum (a real leg-in)
+  //   2. base      — a tight, quiet pause before the turn
+  //   3. turn      — a bullish trigger ON the just-closed candle
+  //   4. volume    — above-average volume (the absorption footprint)
+  //   5. location  — at a prior swing low / on a rising EMA, not mid-air
+  //   6. regime    — uptrend resuming (continuation) or downtrend exhaustion
+  // A zone is emitted only when the score clears SCORE_THRESHOLD *and* a
+  // turn signal is present *and* the arrival gate passed (stay silent
+  // rather than guess). Each zone at turn index i is scored using ONLY
+  // c[0..i] — no future bar is ever read (no repainting).
+  //
+  // SAFETY: this is a SEPARATE pass from detectZones. Forming zones never
+  // touch the confirmed-zone verdict gate; they feed display + the (gated)
+  // EARLY tier only. See docs/swing-trade-improvement-plan.md §5.
+  //
+  // Tunables live in FORMING_PARAMS so the backtest can sweep them.
+  // ═══════════════════════════════════════════════════════════════
+  // Tunables. The GATE thresholds (arrivalMinAtr, width bounds, base detection)
+  // define what counts as a forming zone at all. The dryVolMax / sharpBaseMax /
+  // arrivalModMax thresholds now only label INFORMATIONAL evidence flags for
+  // the UI — the backtest showed they do NOT predict the outcome, so they are
+  // deliberately NOT used to grade/gate. Do not turn them back into a grade
+  // without re-running scripts/backtest/forming-zones.mjs and proving the
+  // selected subset beats the ~40% base population (it didn't before).
+  var FORMING_PARAMS = {
+    minBars: 30,
+    warmup: 20,
+    maxBaseBars: 5,
+    baseBodyAtr: 0.7,    // a "quiet" base bar has body <= 0.7 * ATR
+    arrivalLookback: 6,  // bars before the base to measure the leg-in
+    arrivalMinAtr: 1.2,  // leg-in must move >= 1.2 * ATR (momentum, not drift)
+    nearSwingPct: 3.0,   // "at a prior swing low": within 3% of the recent low
+    nearEmaPct: 3.0,     // "on an average": proximal within 3% of EMA20/50
+    minWidthAtr: 0.05,   // reject paper-thin bands
+    maxWidthAtr: 4.0,    // reject blown-out bands
+    // informational-only evidence thresholds (NOT a grade — see note above):
+    dryVolMax: 1.0,      // label: volume at/below its 20-bar average
+    sharpBaseMax: 1,     // label: a sharp V-reversal (0-1 quiet base bars)
+    arrivalModMax: 3.0   // label: a discount, not a falling knife (<= 3 * ATR)
+  };
+
+  function detectFormingZones(rawCandles, opts) {
+    var P = FORMING_PARAMS;
+    if (opts) { P = Object.assign({}, FORMING_PARAMS, opts); }
+    if (!rawCandles || rawCandles.length < P.minBars) return [];
+
+    // Work oldest-first (index 0 = oldest), exactly like detectZones.
+    var c = rawCandles.slice().reverse();
+    var n = c.length;
+
+    function hi(i)   { return +c[i][2]; }
+    function lo(i)   { return +c[i][3]; }
+    function cl(i)   { return +c[i][4]; }
+    function op(i)   { return +c[i][1]; }
+    function vol(i)  { return +c[i][5] || 0; }
+    function body(i) { return Math.abs(cl(i) - op(i)); }
+    function bodyTop(i) { return Math.max(op(i), cl(i)); }
+
+    var atrVals = atr(c, 14);
+    function atrAt(i) { return (isFinite(atrVals[i]) && atrVals[i] > 0) ? atrVals[i] : 0; }
+    var closes = c.map(function (x) { return +x[4]; });
+    var ema20v = ema(closes, 20);
+    var ema50v = ema(closes, 50);
+    var vols   = c.map(function (x) { return +x[5] || 0; });
+    var volSma = sma(vols, 20);
+
+    function num(x, d) { return (isFinite(x) ? x : d); }
+
+    var raw = [];
+
+    for (var i = P.warmup; i < n; i++) {
+      var a = atrAt(i);
+      if (!a) continue;
+      if (i < 2) continue;
+
+      var e20 = num(ema20v[i], cl(i));
+      // EMA50 needs 50 bars; on shorter history (e.g. a new listing) fall back
+      // to EMA20 so the uptrend check stays sane (e20 >= e20 is neutral-true),
+      // NOT to the current close (which would invert the trend read).
+      var e50 = num(ema50v[i], e20);
+
+      // ── Flavour: continuation (uptrend resuming) vs reversal (bounce) ──
+      var isUp = cl(i) > e20 && e20 >= e50;
+      var flavour = isUp ? 'CONTINUATION' : 'REVERSAL';
+
+      // ── Turn signal on the just-closed candle i (the trigger) ──
+      var parts = candleParts(c[i]);
+      var closeInUpperHalf = parts.range > 0 && ((cl(i) - lo(i)) / parts.range) >= 0.5;
+      var turnKind = null, turnPts = 0;
+      if (flavour === 'REVERSAL') {
+        if (isHammer(c[i]))                         { turnKind = 'HAMMER';    turnPts = 25; }
+        else if (isBullishEngulfing(c[i - 1], c[i])) { turnKind = 'ENGULF';    turnPts = 25; }
+        else if (isPiercing(c[i - 1], c[i]))         { turnKind = 'PIERCING';  turnPts = 20; }
+        else if (parts.lowerWick >= parts.body && parts.lowerWick > 0 && closeInUpperHalf && cl(i) >= op(i)) {
+          turnKind = 'WICK_REJECT'; turnPts = 18;
+        }
+      } else {
+        // CONTINUATION: a strong bullish close that reclaims the recent highs.
+        var recentCloseHigh = Math.max(cl(i - 1), cl(i - 2), num(cl(i - 3), -Infinity));
+        if (cl(i) > op(i) && body(i) >= 0.4 * a && cl(i) >= recentCloseHigh) {
+          turnKind = 'STRONG_CLOSE'; turnPts = 22;
+        } else if (isBullishEngulfing(c[i - 1], c[i])) {
+          turnKind = 'ENGULF'; turnPts = 22;
+        }
+      }
+      if (!turnKind) continue; // no trigger at this candle → stay silent
+
+      // ── Base: the quiet bars immediately BEFORE the turn candle ──
+      var baseStart = i; // default: turn candle stands alone (sharp reversal)
+      var baseBars = 0;
+      for (var b = i - 1; b >= Math.max(0, i - (P.maxBaseBars - 1)); b--) {
+        if (body(b) <= a * P.baseBodyAtr) { baseStart = b; baseBars++; } else break;
+      }
+
+      // ── Zone band from base + turn candle (demand: body-top → wick-low) ──
+      var zoneHi = -Infinity, zoneLo = Infinity, maxBaseVol = 0;
+      for (var k = baseStart; k <= i; k++) {
+        zoneHi = Math.max(zoneHi, bodyTop(k));
+        zoneLo = Math.min(zoneLo, lo(k));
+        if (k < i) maxBaseVol = Math.max(maxBaseVol, vol(k));
+      }
+      var width = zoneHi - zoneLo;
+      if (width < a * P.minWidthAtr || width > a * P.maxWidthAtr) continue;
+
+      // ── 1. Arrival with momentum (leg-in) — gated ──
+      var lbIdx = Math.max(0, baseStart - P.arrivalLookback);
+      var arrivalMove = (flavour === 'REVERSAL')
+        ? (cl(lbIdx) - zoneLo)   // dropped INTO the level
+        : (zoneHi - cl(lbIdx));  // rallied UP into the level
+      var arrivalAtr = arrivalMove / a;
+      if (arrivalAtr < P.arrivalMinAtr) continue; // weak arrival → skip
+
+      // ── Volume footprint (vs the stock's OWN 20-bar average) ──
+      // EMPIRICAL (hit-rate backtest, 2026-06-10): for forming-zone REVERSALS
+      // a DRY base (volume at/below average) reverses BETTER than a loud
+      // volume spike — a spike at a fresh low is usually capitulation / news
+      // that keeps falling, NOT quiet absorption. So "good" here = DRY, the
+      // opposite of the original hypothesis. (volMult<0.7 → 40.7% win-rate vs
+      // volMult>=2 → 35.4% at 2R; see scripts/backtest/forming-zones.mjs.)
+      var vAvg = num(volSma[i], 0);
+      var volMult = vAvg > 0 ? (Math.max(vol(i), maxBaseVol) / vAvg) : 1;
+      var dryVolume = volMult <= P.dryVolMax;
+
+      // ── Location: near a recent swing low and/or on a rising average ──
+      var loLook = Math.max(0, i - 20);
+      var recentLow = Infinity;
+      for (var rl = loLook; rl <= i; rl++) recentLow = Math.min(recentLow, lo(rl));
+      var nearSupport = zoneLo <= recentLow * (1 + P.nearSwingPct / 100);
+      var nearEma = (e20 > 0 && Math.abs(zoneHi - e20) / e20 * 100 <= P.nearEmaPct) ||
+                    (e50 > 0 && Math.abs(zoneHi - e50) / e50 * 100 <= P.nearEmaPct);
+
+      // ── Tier — HONEST and DATA-DRIVEN (hit-rate backtest, 2026-06-10;
+      // scripts/backtest/forming-zones.mjs). The backtest's verdict:
+      //   • A forming demand REVERSAL has a FLAT ~40% win-rate / +0.20R
+      //     expectancy at 2R across the whole universe (break-even = 33.3%).
+      //     That is a MODEST but real positive edge.
+      //   • CONTINUATION forming zones are similar (~39% / +0.17R).
+      //   • CRITICAL: the sub-factors (volume / base length / turn type /
+      //     location) did NOT reliably separate winners on the full
+      //     population. An earlier ~50% "grade-A" stack was OVERFITTING to a
+      //     filtered sub-sample and did NOT hold up — so there is intentionally
+      //     NO higher "grade A" tier. We do not promise precision the data
+      //     cannot back (trading rule: accuracy/honesty over coverage).
+      // Therefore: a forming REVERSAL is tier 'EARLY' (a small-starter, 2R+,
+      // add-on-confirmation candidate — NEVER a full-size high-conviction BUY);
+      // a forming CONTINUATION is tier 'WATCH' (context only). The boolean
+      // evidence below is kept for the UI tooltip (informational), NOT as a
+      // grade driver, because it does not predict the outcome.
+      var sharpBase       = baseBars <= P.sharpBaseMax;
+      var moderateArrival = arrivalAtr <= P.arrivalModMax;
+      var cleanTurn       = turnKind !== 'ENGULF';
+      var tier = (flavour === 'REVERSAL') ? 'EARLY' : 'WATCH';
+
+      raw.push({
+        type: 'DEMAND',
+        flavour: flavour,
+        turnKind: turnKind,
+        proximal: zoneHi,
+        distal: zoneLo,
+        formationIdx: i,
+        formationTs: c[i][0],
+        baseStartTs: c[baseStart][0],
+        baseBars: baseBars,
+        tier: tier,
+        // EARLY (reversal) = small-starter eligible at +0.20R expectancy, NOT
+        // a confident BUY. WATCH (continuation) = display/context only.
+        tradeable: tier === 'EARLY',
+        // ATR at the formation bar — used for look-ahead-free dedup spacing
+        // (NOT the latest-bar ATR, which would shift as new bars arrive and
+        // could flip a past dedup decision = a repaint). Also handy later for
+        // stop sizing.
+        formationAtr: a,
+        // `score` is a dedup-ranking value only (reversal > continuation, then
+        // stronger turn) — NOT a probability. It only breaks ties between
+        // adjacent overlapping detections so the decisive turn candle survives,
+        // keeping the displayed "Formed" date + band anchored correctly.
+        score: (flavour === 'REVERSAL' ? 50 : 30)
+             + ({ HAMMER: 0.5, PIERCING: 0.4, ENGULF: 0.3, STRONG_CLOSE: 0.2, WICK_REJECT: 0.1 }[turnKind] || 0),
+        volMult: Math.round(volMult * 100) / 100,
+        dryVolume: dryVolume,
+        evidence: {
+          arrivalAtr: Math.round(arrivalAtr * 100) / 100,
+          dryVolume: dryVolume, sharpBase: sharpBase,
+          moderateArrival: moderateArrival, atSupport: nearSupport,
+          nearEma: nearEma, cleanTurn: cleanTurn
+        }
+      });
+    }
+
+    // ── De-dupe: drop the SAME base re-detected on adjacent bars (keep the
+    // highest grade/score). Genuinely separate zones (different price band OR
+    // far apart in time) all survive. Spatial+temporal overlap only — no
+    // future bar is consulted, so this stays look-ahead-free per zone.
+    raw.sort(function (x, y) { return y.score - x.score; });
+    var kept = [];
+    for (var zi = 0; zi < raw.length; zi++) {
+      var z = raw[zi];
+      var zTop = z.proximal, zBot = z.distal;
+      var dup = false;
+      for (var ki = 0; ki < kept.length; ki++) {
+        var ex = kept[ki];
+        // Spacing uses each zone's OWN formation-time ATR (look-ahead-free),
+        // never the latest-bar ATR.
+        var gap = 0.5 * Math.max(z.formationAtr || 1, ex.formationAtr || 1);
+        var overlapPrice = zBot <= ex.proximal + gap && zTop >= ex.distal - gap;
+        var closeInTime = Math.abs(z.formationIdx - ex.formationIdx) <= (P.maxBaseBars + 2);
+        if (overlapPrice && closeInTime) { dup = true; break; }
+      }
+      if (!dup) kept.push(z);
+    }
+    kept.sort(function (x, y) { return x.formationIdx - y.formationIdx; });
+    return kept;
+  }
+
+  // ── Forming-zone DISPLAY filter (chart + cards) ──
+  // detectFormingZones() returns every historical forming base; that is the
+  // raw signal set (and what the backtest measures). For the live chart we
+  // only ever want the small, currently-relevant subset, so this trims to:
+  //   • UNBROKEN  — price has not since closed below the zone's distal edge
+  //                 (a broken forming zone is a failed early read, gone).
+  //   • RECENT    — formed within the last `recentBars` candles (a months-old
+  //                 base that never confirmed nor broke is stale context).
+  //   • NEAR PRICE — the zone mid sits within `nearAtr`× a recent-ATR of the
+  //                 current price (far-away zones are not actionable now).
+  //   • NOT a duplicate of a CONFIRMED zone — if a confirmed (detectZones)
+  //                 band already covers it, the green confirmed zone wins; we
+  //                 don't double-draw the same level as both amber + green.
+  // This is a pure DISPLAY trim. It legitimately consults bars AFTER each
+  // zone's formation (we are standing at the latest bar NOW, asking "is this
+  // early read still alive?") — it never feeds a verdict and never changes the
+  // detector's look-ahead-free per-zone scoring.
+  function formingZonesForDisplay(rawCandles, confirmedZones, currentPx, opts) {
+    var o = opts || {};
+    var recentBars = o.recentBars != null ? o.recentBars : 40;
+    var nearAtr    = o.nearAtr    != null ? o.nearAtr    : 8;
+    var cap        = o.cap        != null ? o.cap        : 3;
+    var all;
+    try { all = detectFormingZones(rawCandles) || []; } catch (_) { return []; }
+    if (!all.length) return [];
+
+    var c = rawCandles.slice().reverse();           // oldest-first (matches formationIdx)
+    var n = c.length;
+    if (n < 2) return [];
+
+    // Recent-ATR (last 14 true ranges) for proximity scaling — fail safe to 0.
+    var rsum = 0, rk = 0;
+    for (var ri = Math.max(1, n - 14); ri < n; ri++) {
+      var rh = +c[ri][2], rl = +c[ri][3], rpc = +c[ri - 1][4];
+      if (isFinite(rh) && isFinite(rl) && isFinite(rpc)) {
+        rsum += Math.max(rh - rl, Math.abs(rh - rpc), Math.abs(rl - rpc)); rk++;
+      }
+    }
+    var rAtr = rk ? rsum / rk : 0;
+    var px = isFinite(currentPx) && currentPx > 0
+      ? currentPx : (c[n - 1] ? +c[n - 1][4] : NaN);
+    if (!isFinite(px)) return [];
+
+    function overlapsConfirmed(z) {
+      if (!confirmedZones || !confirmedZones.length) return false;
+      var zTop = Math.max(z.proximal, z.distal), zBot = Math.min(z.proximal, z.distal);
+      var pad = rAtr * 0.5;
+      for (var i = 0; i < confirmedZones.length; i++) {
+        var e = confirmedZones[i];
+        if (e.type !== z.type) continue;
+        var eTop = Math.max(e.proximal, e.distal), eBot = Math.min(e.proximal, e.distal);
+        if (zBot <= eTop + pad && zTop >= eBot - pad) return true;
+      }
+      return false;
+    }
+
+    var out = [];
+    for (var k = 0; k < all.length; k++) {
+      var z = all[k];
+      // RECENT: formed within the last `recentBars` candles.
+      if ((n - 1 - z.formationIdx) > recentBars) continue;
+      // UNBROKEN: no candle after formation has closed below the distal edge.
+      var broken = false, tested = 0;
+      for (var f = z.formationIdx + 1; f < n; f++) {
+        var cf = +c[f][4];
+        if (isFinite(cf) && cf < z.distal) { broken = true; break; }
+        var lof = +c[f][3];
+        if (isFinite(lof) && lof <= z.proximal) tested++;   // re-entry into band
+      }
+      if (broken) continue;
+      // NEAR PRICE: zone mid within nearAtr× recent-ATR of current price.
+      var mid = (z.proximal + z.distal) / 2;
+      if (rAtr > 0 && Math.abs(px - mid) > rAtr * nearAtr) continue;
+      // NOT a duplicate of an already-confirmed zone.
+      if (overlapsConfirmed(z)) continue;
+      z._tested = tested;
+      z._barsAgo = n - 1 - z.formationIdx;
+      out.push(z);
+    }
+
+    // Most actionable first: tradeable (EARLY) ahead of WATCH, then freshest.
+    out.sort(function (a, b) {
+      if (!!b.tradeable !== !!a.tradeable) return b.tradeable ? 1 : -1;
+      return b.formationIdx - a.formationIdx;
+    });
+    return out.slice(0, cap);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // STOCK-SCAN RULES (rules/scan-rule.json) — "price inside a zone"
+  // ═══════════════════════════════════════════════════════════════
+  // Pure matchers for the swing "Scan stocks" option. Each rule asks ONE
+  // question of a single stock's candles: is the LIVE price currently sitting
+  // INSIDE a zone of a given kind? See rules/scan-rule.json for the declarative
+  // spec + the honesty caveats. These are LOCATION screens — a match is a
+  // watchlist candidate, NEVER an automatic BUY (the verdict engine + its gates
+  // still decide that). This layer only READS detectZones / detectFormingZones
+  // output; the confirmed-zone signal path is untouched.
+
+  // Inline fallback so the matcher still works when the JSON can't be fetched
+  // (e.g. the backtest vm sandbox, which rejects fetch, or a file:// open).
+  // Mirrors the two READY demand rules in rules/scan-rule.json. The supply +
+  // forming-supply rules are intentionally absent here (deferred / detector
+  // not built yet) so they can never silently fire.
+  var SCAN_RULE_FALLBACK = {
+    edgeBufferAtr: 0.15,
+    rules: {
+      'price-in-demand': {
+        id: 'price-in-demand', label: 'Price inside demand zone', chip: 'In Demand',
+        color: 'bull', direction: 'bullish', conviction: 'high', status: 'ready', enabled: true,
+        zoneSource: 'confirmed', zoneType: 'DEMAND',
+        freshnessAllowed: ['FRESH', 'TESTED'], maxTestCount: 2, maxTouches: 1, minScore: 30,
+        recentBars: 40, requireUnbroken: true, selectBest: 'highestScore'
+      },
+      'price-in-forming-demand': {
+        id: 'price-in-forming-demand', label: 'Price inside forming demand zone', chip: 'In Forming Demand',
+        color: 'amber', direction: 'bullish', conviction: 'low', status: 'ready', enabled: true,
+        zoneSource: 'forming', zoneType: 'DEMAND',
+        freshnessAllowed: ['FRESH', 'TESTED'], maxTestCount: Infinity, minScore: 0,
+        recentBars: 40, requireUnbroken: true, selectBest: 'tradeableThenFreshest'
+      }
+    }
+  };
+
+  var _scanRulesCache = null;
+
+  // Flatten a rules/scan-rule.json rule object into the compact internal shape
+  // the matcher consumes. Defensive on every field (a hand-edited JSON must
+  // never throw the scanner).
+  function _normScanRule(ru) {
+    var m = (ru && ru.match) || {};
+    var f = m.filters || {};
+    return {
+      id: ru.id, label: ru.label, chip: ru.chip, color: ru.color,
+      direction: ru.direction, conviction: ru.conviction,
+      status: ru.status, enabled: ru.enabled !== false,
+      zoneSource: m.zoneSource, zoneType: m.zoneType,
+      freshnessAllowed: f.freshnessAllowed || ['FRESH', 'TESTED'],
+      maxTestCount: (f.maxTestCount != null ? f.maxTestCount : Infinity),
+      // Per-VISIT re-entry cap. Default 1 = chart parity (the chart draws zones
+      // with `touches < 2`), so a scan match is always visible on the chart.
+      maxTouches: (f.maxTouches != null ? f.maxTouches : 1),
+      minScore: (f.minScore != null ? f.minScore : 0),
+      recentBars: (f.recentBars != null ? f.recentBars : 40),
+      requireUnbroken: (f.requireUnbroken !== false),
+      selectBest: m.selectBest || 'highestScore'
+    };
+  }
+
+  // Load + cache the scan rule book. Returns { edgeBufferAtr, rules:{id->rule} }.
+  // Fetches rules/scan-rule.json at runtime (same pattern as swing-rules.json);
+  // falls back to SCAN_RULE_FALLBACK on any failure so the scanner is never
+  // dead-on-arrival. ONLY 'ready' + enabled rules are surfaced.
+  function loadScanRules() {
+    if (_scanRulesCache) return Promise.resolve(_scanRulesCache);
+    if (typeof fetch !== 'function') { _scanRulesCache = SCAN_RULE_FALLBACK; return Promise.resolve(_scanRulesCache); }
+    return fetch('rules/scan-rule.json', { credentials: 'omit' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) {
+        var buf = (j.engine && j.engine.priceInside && j.engine.priceInside.edgeBufferAtr);
+        var idx = { edgeBufferAtr: (buf != null ? buf : 0.15), rules: {} };
+        (j.rules || []).forEach(function (ru) {
+          if (!ru || !ru.id) return;
+          if (ru.enabled === false) return;            // deferred / disabled
+          if (ru.status && ru.status !== 'ready') return; // needs-detector / deferred
+          idx.rules[ru.id] = _normScanRule(ru);
+        });
+        // Fail safe: a JSON that disabled everything still leaves the demand
+        // rules available from the fallback so the option isn't empty.
+        if (!Object.keys(idx.rules).length) return (_scanRulesCache = SCAN_RULE_FALLBACK);
+        _scanRulesCache = idx;
+        return idx;
+      })
+      .catch(function () { _scanRulesCache = SCAN_RULE_FALLBACK; return _scanRulesCache; });
+  }
+
+  // Recent (14-bar) ATR for the price-inside edge buffer. Input is newest-first
+  // (the raw Upstox candle order); atr() wants oldest-first.
+  function _scanRecentAtr(rawCandles) {
+    var c = rawCandles.slice().reverse();
+    var av = atr(c, 14);
+    var v = av && av.length ? av[av.length - 1] : NaN;
+    return (isFinite(v) && v > 0) ? v : 0;
+  }
+
+  // True when price sits within [min(a,b) - buf, max(a,b) + buf], where buf is
+  // bufferAtr × recent-ATR (0 = strict inside-only).
+  function _priceInsideBand(px, a, b, bufferAtr, atrVal) {
+    if (!isFinite(px) || !isFinite(a) || !isFinite(b)) return false;
+    var lo = Math.min(a, b), hi = Math.max(a, b);
+    var buf = (isFinite(atrVal) && atrVal > 0 && isFinite(bufferAtr)) ? atrVal * bufferAtr : 0;
+    return px >= (lo - buf) && px <= (hi + buf);
+  }
+
+  // Shape a matched zone into the compact result the runner/UI consume.
+  function _scanMatchObj(rule, z, px, atrVal) {
+    var top = Math.max(z.proximal, z.distal), bottom = Math.min(z.proximal, z.distal);
+    return {
+      ruleId: rule.id,
+      zoneType: z.type,
+      zoneSource: rule.zoneSource,
+      direction: rule.direction || null,
+      top: top, bottom: bottom, currentPx: px, atr: atrVal,
+      freshness: z.freshness || null,
+      testCount: (z.testCount != null ? z.testCount : null),
+      touches: (z.touches != null ? z.touches : null),
+      tier: z.tier || null,
+      tradeable: !!z.tradeable,
+      flavour: z.flavour || null,
+      score: (z.score != null ? z.score : null),
+      formationTs: z.formationTs || null,
+      confirmedTs: z.confirmedTs || null
+    };
+  }
+
+  // The pure per-stock matcher. Given a stock's raw daily candles + live price
+  // + a (normalised) rule, returns a match object or null. No DOM, no fetch —
+  // safe to call from the scan worker and to unit-test in Node.
+  function scanMatchForStock(rawCandles, currentPx, rule, bufferAtr) {
+    if (!rawCandles || rawCandles.length < 30 || !rule) return null;
+    var px = (isFinite(currentPx) && currentPx > 0) ? currentPx : +rawCandles[0][4];
+    if (!isFinite(px)) return null;
+    var atrVal = _scanRecentAtr(rawCandles);
+    var buf = (bufferAtr != null) ? bufferAtr : 0.15;
+
+    if (rule.zoneSource === 'confirmed') {
+      var zones;
+      try { zones = detectZones(rawCandles) || []; } catch (_) { return null; }
+      var cand = zones.filter(function (z) {
+        return z.type === rule.zoneType
+          // CHART PARITY (critical for trust): the chart RETIRES any zone with
+          // 2+ distinct re-entries (`touches`) — see the `touches < 2` declutter
+          // in renderMainChart. Without this gate the scan could label a stock
+          // "In Demand" against a zone the chart no longer draws, so price would
+          // appear to sit nowhere near a demand zone. `touches` is the correct
+          // per-VISIT count; `testCount` over-counts every bar inside the band
+          // (a fresh multi-candle base reads as "tested 2x"), so we gate on
+          // touches and keep testCount only as a secondary, looser cap.
+          && ((z.touches || 0) <= rule.maxTouches)
+          && (rule.freshnessAllowed.indexOf(z.freshness) >= 0)
+          && ((z.testCount || 0) <= rule.maxTestCount)
+          && ((z.score || 0) >= rule.minScore)
+          && _priceInsideBand(px, z.proximal, z.distal, buf, atrVal);
+      });
+      if (!cand.length) return null;
+      cand.sort(function (a, b) { return (b.score || 0) - (a.score || 0); });
+      return _scanMatchObj(rule, cand[0], px, atrVal);
+    }
+
+    if (rule.zoneSource === 'forming') {
+      // Confirmed zones are passed in so a forming zone overlapping an existing
+      // confirmed band is dropped (the confirmed one wins — same as the chart).
+      var confirmed = [];
+      try { confirmed = detectZones(rawCandles) || []; } catch (_) { confirmed = []; }
+      var fz;
+      try {
+        fz = formingZonesForDisplay(rawCandles, confirmed, px, { recentBars: rule.recentBars, cap: 25 }) || [];
+      } catch (_) { return null; }
+      var fcand = fz.filter(function (z) {
+        return z.type === rule.zoneType && _priceInsideBand(px, z.proximal, z.distal, buf, atrVal);
+      });
+      if (!fcand.length) return null;
+      fcand.sort(function (a, b) {
+        if (!!b.tradeable !== !!a.tradeable) return b.tradeable ? 1 : -1;
+        return (b.formationIdx || 0) - (a.formationIdx || 0);
+      });
+      return _scanMatchObj(rule, fcand[0], px, atrVal);
+    }
+    return null;
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -17024,6 +20119,23 @@
     if (!highBull && !lowBull)     return 'BEARISH';
     return 'RANGING';
   }
+
+  // Expose the chart-structure primitives so OTHER chart modules (e.g. the
+  // Intraday Trade tab) can render the IDENTICAL BOS/CHoCH + HH/HL/LH/LL
+  // structure as this chart — single source of truth, no algorithm drift.
+  // Pure functions (read candles, return data); exposing them adds no
+  // coupling and cannot affect this module's signal logic.
+  try {
+    window.detectStructureBreaks = detectStructureBreaks;
+    window.recentSwingTrend = recentSwingTrend;
+    window.BOS_PIVOT_BY_TF = BOS_PIVOT_BY_TF;
+    // Same rationale: the Intraday Trade chart reuses these pure SMC zone
+    // detectors so its FVG / Order-Block overlays are byte-identical to swing
+    // (single source of truth — no drift). Function declarations are hoisted,
+    // so detectOrderBlocks (defined below) is already bound here.
+    window.detectFVG = detectFVG;
+    window.detectOrderBlocks = detectOrderBlocks;
+  } catch (_) {}
 
   // ═══════════════════════════════════════════════════════════════
   // SMART MONEY CONCEPTS — Order Blocks (OB)

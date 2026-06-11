@@ -15,10 +15,10 @@ own card/row by the analyzer:
   * Source of name + price = the existing per-stock snapshots in sectors.json
     (Upstox LTP baked in at generation time by generate-sectors.py). No network.
   * We keep only names whose snapshot price sits inside the configurable band
-    (default 500-2000) and sort by liquidity (most liquid first).
+    (default 400-5000) and sort by liquidity (most liquid first).
 
 The group carries an explicit `band: {min, max}` so the analyzer scans and
-browse-filters this card against 500-2000 instead of the global 400-2200 band
+browse-filters this card against 400-5000 instead of the global price band
 (swing-analyzer.js `_swBandFor`). Every other card is untouched.
 
 IDEMPOTENT: any existing `liquid-band` group is removed before the fresh one is
@@ -26,7 +26,7 @@ appended, so re-running just refreshes it. Re-run AFTER generate-sectors.py to
 pick up fresh prices, then bump CACHE_VERSION in sw.js.
 
 Usage:
-    python3 scripts/tools/generate-liquid-screen.py [--min 500] [--max 2000]
+    python3 scripts/tools/generate-liquid-screen.py [--min 400] [--max 5000]
 """
 
 from __future__ import annotations
@@ -168,8 +168,8 @@ def _inject_group(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Inject the High Liquidity screen into sectors.json")
-    parser.add_argument("--min", type=float, default=500.0, help="lower price band (inclusive)")
-    parser.add_argument("--max", type=float, default=2000.0, help="upper price band (inclusive)")
+    parser.add_argument("--min", type=float, default=400.0, help="lower price band (inclusive)")
+    parser.add_argument("--max", type=float, default=5000.0, help="upper price band (inclusive)")
     args = parser.parse_args()
 
     price_min: float = float(args.min)

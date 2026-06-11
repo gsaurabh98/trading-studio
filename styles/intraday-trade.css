@@ -1,0 +1,2053 @@
+/* ═══════════════════════════════════════════════════════════════
+   INTRADAY TRADE — self-contained swing-style chart workspace.
+   Mirrors styles/swing-analyzer.css's .sw-chart-* rules with an it-*
+   prefix so it is fully isolated from the Options Trading tab. Uses
+   the same design tokens (var(--bull/bear/card/bd/muted/text/info))
+   so both light + dark themes work without extra overrides.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Intraday paper-trading sandbox — separates the cloned pt-shell desk from the
+   zone cards above it. The desk itself is styled by styles/paper-trading.css
+   (shared .pt-* classes); this only owns the section spacing. */
+.it-paper {
+  margin-top: 18px;
+}
+
+/* No-token empty state. */
+.it-empty {
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  background: var(--card);
+  padding: 32px 22px;
+  text-align: center;
+  margin: 0 0 22px;
+}
+.it-empty-icon {
+  font-size: 30px;
+  margin-bottom: 8px;
+}
+.it-empty h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--text);
+}
+.it-empty p {
+  margin: 0 auto;
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ── Chart shell ────────────────────────────────────────────── */
+.it-chart-section {
+  margin: 0 0 22px;
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  background: var(--card);
+  overflow: hidden;
+}
+
+.it-chart-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--bd);
+  background: var(--s2);
+  flex-wrap: wrap;
+}
+
+.it-chart-title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  max-width: 60%;
+  min-width: 0;
+}
+
+.it-chart-title-sym {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.it-chart-title-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Live LTP read-out, shown once polling delivers a price. */
+.it-chart-ltp {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+/* Explicit display above overrides the UA [hidden] rule, so the "— —"
+   placeholder would otherwise stay visible next to CLOSED when there's no
+   price. Re-assert hidden so renderLtpReadout(null) truly removes it. */
+.it-chart-ltp[hidden] { display: none; }
+.it-chart-ltp-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.it-chart-ltp-chg {
+  font-size: 11px;
+  font-weight: 600;
+}
+.it-chart-ltp-chg.up   { color: var(--bull); }
+.it-chart-ltp-chg.down { color: var(--bear); }
+
+/* LIVE / CLOSED badge next to the chart title. */
+.it-chart-live {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  min-width: 0;
+  line-height: 1;
+}
+.it-chart-live-live {
+  background: rgba(9, 168, 110, 0.14);
+  color: var(--bull);
+  box-shadow: inset 0 0 0 1px rgba(9, 168, 110, 0.32);
+  animation: it-live-pulse 1.6s ease-in-out infinite;
+}
+.it-chart-live-closed {
+  background: rgba(100, 116, 139, 0.12);
+  color: var(--muted);
+  box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.24);
+}
+/* BOS structure-regime pill in the toolbar (next to the symbol). Reuses the
+   global .sw-trend-badge classes for color; this just aligns the container. */
+.it-chart-trend {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  white-space: nowrap;
+}
+.it-chart-trend[hidden] { display: none; }
+@keyframes it-live-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+/* TF button group — same visual language as the swing / paper TF buttons. */
+.it-chart-tf-group {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--bd);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-left: auto;
+}
+.it-chart-tf-btn {
+  padding: 5px 12px;
+  background: transparent;
+  color: var(--muted);
+  border: 0;
+  border-right: 1px solid var(--bd);
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: background 0.12s, color 0.12s;
+}
+.it-chart-tf-btn:last-child { border-right: 0; }
+.it-chart-tf-btn:hover {
+  background: var(--s2);
+  color: var(--text);
+}
+.it-chart-tf-btn.active {
+  background: var(--info);
+  color: #fff;
+}
+.it-chart-tf-btn--busy {
+  opacity: 0.55;
+  cursor: pointer;
+}
+.it-chart-tf-btn--busy.active { opacity: 0.85; }
+
+/* Indicator legend. */
+.it-chart-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  padding: 6px 14px 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.it-chart-legend-sep {
+  width: 1px; height: 14px;
+  background: var(--muted); opacity: 0.25;
+  margin: 0 2px;
+}
+.it-chart-legend-it {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+/* Author display:inline-flex would otherwise beat the UA [hidden] rule, so
+   the BOS chip's `hidden` attribute (set per-TF) needs an explicit hide. */
+.it-chart-legend-it[hidden] { display: none; }
+.it-ind-toggle {
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: opacity 0.15s, background 0.15s;
+  user-select: none;
+}
+.it-ind-toggle:hover { background: rgba(255,255,255,0.06); }
+[data-theme="light"] .it-ind-toggle:hover { background: rgba(0,0,0,0.05); }
+.it-ind-toggle:not(.active) { opacity: 0.45; }
+.it-ind-toggle:not(.active) .it-chart-dot { opacity: 0.35; }
+.it-chart-dot {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+/* On-chart Fib direction tag, pinned next to the FIB legend chip. Tells you at
+   a glance whether the mapped leg is up (pocket = support / buy-dip), down
+   (pocket = resistance / sell-bounce), or a consolidating range. */
+.it-fib-dir {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.it-fib-dir[hidden] { display: none; }
+.it-fib-dir--up {
+  color: var(--bull);
+  background: var(--bull-tint, rgba(34,197,94,0.14));
+  border-color: var(--bull);
+}
+.it-fib-dir--down {
+  color: var(--bear);
+  background: var(--bear-tint, rgba(239,68,68,0.14));
+  border-color: var(--bear);
+}
+.it-fib-dir--range {
+  color: var(--muted);
+  background: rgba(148,163,184,0.14);
+  border-color: var(--muted);
+}
+
+/* Chart mount + overlays. */
+.it-chart {
+  position: relative;
+  width: 100%;
+  height: 620px;
+  background: var(--bg);
+  touch-action: none;
+}
+.it-chart-empty,
+.it-chart-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--bg);
+  z-index: 2;
+  text-align: center;
+  padding: 0 16px;
+}
+.it-spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--bd);
+  border-top-color: var(--info);
+  border-radius: 50%;
+  animation: it-spin 0.8s linear infinite;
+}
+@keyframes it-spin { to { transform: rotate(360deg); } }
+
+/* Demand / supply zone bands — price-anchored overlays glued to the chart
+   by JS (top/height set per frame). The layer sits above the canvas but
+   ignores pointer events so chart drag/zoom still works. */
+.it-zone-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+.it-zone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: none;
+  border-top: 1px solid;
+  border-bottom: 1px solid;
+}
+.it-zone.demand {
+  background: color-mix(in srgb, var(--bull) 14%, transparent);
+  border-color: color-mix(in srgb, var(--bull) 55%, transparent);
+}
+.it-zone.supply {
+  background: color-mix(in srgb, var(--bear) 14%, transparent);
+  border-color: color-mix(in srgb, var(--bear) 55%, transparent);
+}
+/* Clustered zone: a related sibling sits close by but not close enough to
+   merge — dashed edges signal "soft single area, treat with care". */
+.it-zone.cluster {
+  border-top-style: dashed;
+  border-bottom-style: dashed;
+}
+.it-zone-label {
+  position: absolute;
+  left: 6px;
+  top: 1px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0 4px;
+  border-radius: 3px;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+.it-zone.demand .it-zone-label { color: var(--bull); }
+.it-zone.supply .it-zone-label { color: var(--bear); }
+
+/* FVG + Order-Block band layers — full-width price zones glued by the rAF
+   loop, identical look to the swing chart. The individual .it-fvg-rect /
+   .it-ob-rect bands carry their colours inline (set per type in JS), so only
+   the container needs styling here. */
+.it-fvg-layer,
+.it-ob-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* BOS / CHoCH structure overlay — same look as the swing chart. Swing
+   labels (HH/HL/LH/LL) sit on their own candle; break lines span full
+   width. JS sets top/left/width per frame; layer ignores pointer events. */
+.it-bos-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 2;
+}
+.it-bos-swing {
+  position: absolute;
+  display: none;
+  font-size: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 0 3px var(--bg), 0 0 3px var(--bg);
+}
+.it-bos-line {
+  position: absolute;
+  left: 0;
+  display: none;
+  height: 0;
+  border-top: 1.5px dashed currentColor;
+}
+
+/* Anchored Fib (TradingView-style): segments span only the leg's candles, with
+   labels sitting ON the line (not the price axis). z-index above bands. */
+.it-fib-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 2;
+}
+.it-fib-line {
+  position: absolute;
+  left: 0;
+  display: none;
+  height: 0;
+  border-top: 1.5px solid currentColor;
+  opacity: 0.9;
+}
+.it-fib-line-lbl {
+  position: absolute;
+  display: none;
+  transform: translateY(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 0 3px var(--bg), 0 0 3px var(--bg), 0 0 3px var(--bg);
+}
+.it-bos-line-lbl {
+  position: absolute;
+  right: 8px;
+  top: -12px;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 0 3px var(--bg), 0 0 3px var(--bg);
+}
+/* Bold BOS/CHoCH tag anchored ON the break candle (arrow + label). Positioned
+   by the overlay loop (time → x, price → y) with collision nudging, exactly
+   like the HH/HL swing labels. */
+.it-bos-mark {
+  position: absolute;
+  display: none;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  text-shadow: 0 0 3px var(--bg), 0 0 3px var(--bg);
+}
+
+.it-chart-status {
+  padding: 8px 14px;
+  border-top: 1px solid var(--bd);
+  background: var(--card);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Zoom / scroll nav. */
+.it-chart-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0 2px;
+}
+.it-chart-nav-btn {
+  width: 36px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--card, #1e1e2e);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  color: var(--muted, #aaa);
+  font-size: 18px; font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.it-chart-nav-btn:hover {
+  background: rgba(255,255,255,0.06);
+  color: var(--text, #eee);
+  border-color: rgba(255,255,255,0.15);
+}
+.it-chart-nav-btn:active {
+  background: rgba(255,255,255,0.1);
+  transform: scale(0.92);
+}
+[data-theme="light"] .it-chart-nav-btn {
+  background: #f4f4f5;
+  border-color: rgba(0,0,0,0.08);
+  color: #666;
+}
+[data-theme="light"] .it-chart-nav-btn:hover {
+  background: #e8e8ea;
+  color: #222;
+  border-color: rgba(0,0,0,0.15);
+}
+
+@media (max-width: 720px) {
+  .it-chart { height: 460px; }
+  .it-chart-toolbar { gap: 10px; padding: 8px 10px; }
+  .it-chart-legend { font-size: 10px; gap: 10px; padding: 4px 10px 2px; justify-content: flex-start; }
+  .it-chart-tf-btn { padding: 5px 9px; }
+}
+
+/* ══════════════ INTRADAY CONTEXT CARDS ══════════════
+   India VIX / Max Pain / PCR with plain-language reasoning + tooltips.
+   Display only — no buy/sell signal. */
+.it-cards { margin-top: 16px; }
+.it-cards-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.it-cards-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.it-cards-meta {
+  flex: 1;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.it-cards-refresh {
+  border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
+  background: var(--card);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 5px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.it-cards-refresh:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 32%, transparent);
+}
+.it-cards-refresh:disabled { opacity: 0.5; cursor: progress; }
+
+.it-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+.it-card {
+  position: relative;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--text) 22%, transparent);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+}
+.it-card--bull    { border-left-color: var(--bull); }
+.it-card--bear    { border-left-color: var(--bear); }
+.it-card--neutral { border-left-color: var(--info, #eab308); }
+.it-card--na      { border-left-color: color-mix(in srgb, var(--text) 22%, transparent); }
+
+.it-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.it-card-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.it-card-info {
+  position: relative;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: color 0.15s;
+}
+.it-card-info svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+.it-card-info:hover,
+.it-card-info:focus-visible,
+.it-card-info:focus {
+  color: var(--info);
+  outline: none;
+}
+/* Theme-styled tooltip bubble — follows dark/light via tokens, holds the
+   full plain-language explanation. Opens below the icon, anchored to its
+   right edge so it never spills off the right side of the card grid. */
+.it-card-tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: -4px;
+  width: 256px;
+  max-width: 76vw;
+  padding: 10px 12px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
+  border-radius: 9px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.30);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: normal;
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  pointer-events: none;
+  z-index: 50;
+}
+.it-card-info:hover .it-card-tip,
+.it-card-info:focus-visible .it-card-tip,
+.it-card-info:focus .it-card-tip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+@media (max-width: 720px) {
+  .it-card-tip { right: -4px; width: 240px; }
+}
+
+/* Per-card loading state — reuses the theme-aware .it-spinner (var(--bd) +
+   var(--info)) so the loader follows dark/light automatically. */
+.it-card-loader {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.it-card-loader .it-spinner {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+}
+.it-card-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+  margin-top: 6px;
+}
+.it-card--bull .it-card-value { color: var(--bull); }
+.it-card--bear .it-card-value { color: var(--bear); }
+.it-card-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+.it-card-reason {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text);
+  opacity: 0.86;
+  margin-top: 8px;
+}
+
+@media (max-width: 1180px) {
+  .it-cards-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 720px) {
+  .it-cards-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .it-card { min-height: 0; }
+}
+@media (max-width: 460px) {
+  .it-cards-grid { grid-template-columns: 1fr; }
+}
+
+/* ═════════ CANDLESTICK PATTERN CARDS ═════════
+   Mirrors the swing analyzer's .sw-pattern-card deck (scripts/swing-analyzer.js
+   collectTier1Patterns) — prefixed it-* so it's isolated from the swing tab.
+   Outcome badge (LIVE / ✓ WORKED / ✗ FAILED) + zone/Fib location + plain note.
+   All colours flow through the global theme tokens so it follows dark/light. */
+.it-pattern-cards { margin: 14px 0 2px; }
+.it-pattern-cards-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.it-pattern-cards-icon { font-size: 14px; line-height: 1; color: var(--info); }
+.it-pattern-cards-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+.it-pattern-cards-sub { font-size: 11px; color: var(--muted); }
+.it-pattern-hist-toggle,
+.it-cp-hist-toggle {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--bd, rgba(148,163,184,0.18));
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.it-pattern-hist-toggle:hover,
+.it-cp-hist-toggle:hover { color: var(--text); border-color: var(--text); }
+.it-pattern-hist-toggle.is-on,
+.it-cp-hist-toggle.is-on {
+  color: var(--text);
+  border-color: var(--info);
+  background: color-mix(in srgb, var(--info) 14%, transparent);
+}
+.it-pattern-hist-w, .it-cp-hist-w { color: var(--bull); font-weight: 700; }
+.it-pattern-hist-f, .it-cp-hist-f { color: var(--bear); font-weight: 700; }
+.it-pattern-card-grid,
+.it-cp-card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.it-pattern-card {
+  flex: 1 1 200px;
+  min-width: 180px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px 11px;
+  text-align: left;
+  background: var(--s1, var(--card));
+  border: 1px solid var(--bd, rgba(148,163,184,0.18));
+  border-left-width: 3px;
+  border-radius: 9px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+}
+.it-pattern-card:hover { background: var(--s2, rgba(148,163,184,0.08)); border-color: var(--info); }
+.it-pattern-card:active { transform: scale(0.985); }
+.it-pattern-card:focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
+.it-pattern-card--bull { border-left-color: var(--bull); }
+.it-pattern-card--bear { border-left-color: var(--bear); }
+.it-pattern-card--bull.is-strong {
+  background: var(--bull-tint, rgba(9, 168, 110, 0.12));
+  border-left-color: var(--bull);
+}
+.it-pattern-card--bear.is-strong {
+  background: var(--bear-tint, rgba(201, 31, 58, 0.12));
+  border-left-color: var(--bear);
+}
+.it-pattern-card.is-warn {
+  border-left-color: var(--warn, #f59e0b);
+  background: color-mix(in srgb, var(--warn, #f59e0b) 10%, transparent);
+}
+.it-pattern-card-r1 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+.it-pattern-card-arrow { font-size: 11px; line-height: 1; }
+.it-pattern-card--bull .it-pattern-card-arrow { color: var(--bull); }
+.it-pattern-card--bear .it-pattern-card-arrow { color: var(--bear); }
+.it-pattern-card.is-warn .it-pattern-card-arrow { color: var(--warn, #f59e0b); }
+.it-pattern-card-name { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.it-pattern-card-dir,
+.it-cp-card-dir {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 999px;
+  line-height: 1.5;
+}
+.it-pattern-card-dir--bull,
+.it-cp-card-dir--bull { color: var(--bull); background: color-mix(in srgb, var(--bull) 16%, transparent); }
+.it-pattern-card-dir--bear,
+.it-cp-card-dir--bear { color: var(--bear); background: color-mix(in srgb, var(--bear) 16%, transparent); }
+.it-pattern-card-ago {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.it-pattern-card-state,
+.it-cp-card-state {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--s2, rgba(148,163,184,0.12));
+  color: var(--muted);
+  white-space: nowrap;
+}
+.it-cp-card-state { margin-left: auto; }
+.it-pattern-card.is-live .it-pattern-card-state,
+.it-cp-card.is-confirmed .it-cp-card-state { background: var(--info); color: #fff; }
+.it-pattern-card.is-worked .it-pattern-card-state,
+.it-cp-card.is-worked .it-cp-card-state { background: var(--bull); color: #fff; }
+.it-pattern-card.is-failed .it-pattern-card-state,
+.it-cp-card.is-failed .it-cp-card-state { background: var(--bear); color: #fff; }
+.it-pattern-card.is-failed { opacity: 0.8; }
+.it-pattern-card.is-failed .it-pattern-card-name {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+.it-pattern-card.is-failed .it-pattern-card-dir { opacity: 0.75; }
+.it-pattern-card-loc,
+.it-cp-card-loc {
+  font-size: 11px;
+  font-weight: 600;
+  align-self: flex-start;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--s2, rgba(148,163,184,0.12));
+  color: var(--muted);
+}
+.it-loc-strong-bull { color: var(--bull); background: var(--bull-tint, rgba(9, 168, 110, 0.12)); }
+.it-loc-strong-bear { color: var(--bear); background: var(--bear-tint, rgba(201, 31, 58, 0.12)); }
+.it-loc-warn        { color: var(--warn, #f59e0b); background: color-mix(in srgb, var(--warn, #f59e0b) 14%, transparent); }
+.it-loc-none        { color: var(--muted); }
+.it-pattern-card-note,
+.it-cp-card-note {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* ═════════ GEOMETRIC CHART-PATTERN CARDS ═════════
+   Mirrors the swing analyzer's .sw-cp-card deck (scripts/chart-patterns.js
+   paintCards) — a state badge + target + invalidation row. Same flex grid. */
+.it-cp-cards { margin: 14px 0 4px; }
+.it-cp-cards-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.it-cp-cards-icon { font-size: 14px; line-height: 1; color: #e879f9; }
+.it-cp-cards-title { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: 0.02em; }
+.it-cp-cards-sub { font-size: 11px; color: var(--muted); }
+.it-cp-card-empty {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 10px 12px;
+  border: 1px dashed var(--bd, rgba(148,163,184,0.18));
+  border-radius: 8px;
+}
+.it-cp-card {
+  flex: 1 1 220px;
+  min-width: 200px;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px 11px;
+  text-align: left;
+  background: var(--s1, var(--card));
+  border: 1px solid var(--bd, rgba(148,163,184,0.18));
+  border-left-width: 3px;
+  border-radius: 9px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+}
+.it-cp-card:hover { background: var(--s2, rgba(148,163,184,0.08)); border-color: var(--info); }
+.it-cp-card:active { transform: scale(0.985); }
+.it-cp-card:focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
+.it-cp-card--bull { border-left-color: var(--bull); }
+.it-cp-card--bear { border-left-color: var(--bear); }
+.it-cp-card--bull.is-strong { background: var(--bull-tint, rgba(9, 168, 110, 0.12)); }
+.it-cp-card--bear.is-strong { background: var(--bear-tint, rgba(201, 31, 58, 0.12)); }
+.it-cp-card.is-pending { opacity: 0.92; border-left-style: dashed; }
+.it-cp-card-r1 { display: flex; align-items: center; gap: 6px; }
+.it-cp-card-arrow { font-size: 11px; line-height: 1; }
+.it-cp-card--bull .it-cp-card-arrow { color: var(--bull); }
+.it-cp-card--bear .it-cp-card-arrow { color: var(--bear); }
+.it-cp-card-name { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.it-cp-card.is-failed .it-cp-card-dir { opacity: 0.75; }
+.it-cp-card.is-failed { opacity: 0.8; border-left-color: var(--muted); }
+.it-cp-card.is-failed .it-cp-card-name { text-decoration: line-through; text-decoration-thickness: 1px; }
+.it-cp-card-range {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.it-cp-card-range-icon {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  color: currentColor;
+  opacity: 0.85;
+}
+.it-cp-card-r2 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.it-cp-card-tgt { font-size: 11px; font-weight: 600; color: var(--bull); }
+.it-cp-card-inv { font-size: 11px; font-weight: 600; color: var(--bear); }
+
+@media (max-width: 720px) {
+  .it-pattern-card, .it-cp-card { max-width: 100%; flex-basis: 100%; }
+}
+
+/* ═════════ FIBONACCI RETRACEMENT CARD ═════════
+   The card body reuses the global swing presentational classes (.sw-zoi-card,
+   .sw-smc-grouphead, .sw-tip) so it's pixel-identical to the swing Fib card.
+   These it-* rules cover the intraday-only additions: the spacing wrapper, the
+   plain-language reasoning line, and the full Fib-level ladder. */
+.it-fib-cards { margin: 14px 0 4px; }
+/* Early-session / too-tight state: an honest "building" note instead of a Fib
+   drawn on noise (intraday engine only). */
+.it-fib-building {
+  padding: 12px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+/* Full-width card (override the swing card's 280–380px column sizing) with a
+   2-column body so it's wide + short instead of tall + narrow. */
+.it-fib-card.sw-zoi-card { flex: 1 1 100%; max-width: none; width: 100%; }
+/* Header: type · inline golden-pocket range (fills middle) · status badge. */
+.it-fib-card .sw-zoi-card-head { padding: 10px 14px 8px; }
+.sw-zoi-card-range-inline {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.2px;
+}
+.it-fib-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 4px 26px;
+  padding: 0 14px 6px;
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .it-fib-body { grid-template-columns: 1fr; gap: 10px; }
+}
+.it-fib-col { min-width: 0; }
+/* Neutralise the swing card's per-block horizontal padding + bottom-pin now
+   that these blocks live inside the padded grid columns. */
+.it-fib-card .sw-rsn { margin: 0 0 8px; }
+.it-fib-card .sw-zoi-card-pattern { margin: 0; padding: 0; }
+.it-fib-card .sw-zoi-card-metrics { margin: 12px 0 0; padding: 0; }
+.it-fib-levels {
+  margin-top: 0;
+  padding-top: 0;
+}
+.it-fib-levels-head {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+.it-fib-level-grid { display: flex; flex-direction: column; gap: 1px; }
+/* Fixed 4-column grid so ratio / price / distance / GP-tag line up on every
+   row regardless of value width. */
+.it-fib-level {
+  display: grid;
+  grid-template-columns: 52px 1fr 64px 28px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-family: 'IBM Plex Mono', monospace;
+  padding: 3px 8px;
+  border-radius: 5px;
+}
+.it-fib-level-ratio { color: var(--muted); font-weight: 600; }
+.it-fib-level-px { color: var(--text); font-weight: 700; }
+.it-fib-level-dist { text-align: right; font-size: 10.5px; color: var(--muted); opacity: 0.85; }
+.it-fib-level-tag { text-align: right; }
+.it-fib-level.is-gp { background: color-mix(in srgb, #eab308 12%, transparent); }
+.it-fib-level.is-gp .it-fib-level-ratio { color: #b45309; }
+[data-theme="light"] .it-fib-level.is-gp .it-fib-level-ratio { color: #92400e; }
+.it-fib-level-gp-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  padding: 0 6px;
+  border-radius: 999px;
+  color: #b45309;
+  background: color-mix(in srgb, #eab308 18%, transparent);
+}
+[data-theme="light"] .it-fib-level-gp-tag { color: #92400e; }
+
+/* ── CPR (Central Pivot Range) card ──
+   Reuses the full-width Fib-card layout (.it-fib-body / .it-fib-col 2-column
+   grid) so it sits visually consistent with the other intraday cards. Only the
+   pivot ladder needs its own grid (label · price · distance · tag). */
+.it-cpr-cards { margin: 14px 0 4px; }
+.it-cpr-card.sw-zoi-card { flex: 1 1 100%; max-width: none; width: 100%; }
+.it-cpr-card .sw-zoi-card-head { padding: 10px 14px 8px; }
+.it-cpr-card .sw-rsn { margin: 0 0 8px; }
+.it-cpr-card .sw-zoi-card-pattern { margin: 0; padding: 0; }
+.it-cpr-card .sw-zoi-card-metrics { margin: 12px 0 0; padding: 0; }
+.it-cpr-levels { margin-top: 0; padding-top: 0; }
+.it-cpr-levels-head {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  cursor: help;
+}
+.it-cpr-level-grid { display: flex; flex-direction: column; gap: 1px; }
+.it-cpr-level {
+  display: grid;
+  grid-template-columns: 52px 1fr 64px 28px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-family: 'IBM Plex Mono', monospace;
+  padding: 3px 8px;
+  border-radius: 5px;
+}
+.it-cpr-level-k { color: var(--muted); font-weight: 600; }
+.it-cpr-level-px { color: var(--text); font-weight: 700; }
+.it-cpr-level-dist { text-align: right; font-size: 10.5px; color: var(--muted); opacity: 0.85; }
+.it-cpr-level-tag { text-align: right; }
+/* The Central Range (BC · Pivot · TC) — the zone defended hardest intraday. */
+.it-cpr-level.is-band { background: color-mix(in srgb, #f59e0b 12%, transparent); }
+.it-cpr-level.is-band .it-cpr-level-k { color: #b45309; }
+[data-theme="light"] .it-cpr-level.is-band .it-cpr-level-k { color: #92400e; }
+.it-cpr-band-tag,
+.it-cpr-pivot-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  padding: 0 6px;
+  border-radius: 999px;
+  color: #b45309;
+  background: color-mix(in srgb, #f59e0b 18%, transparent);
+}
+.it-cpr-pivot-tag {
+  color: #854d0e;
+  background: color-mix(in srgb, #facc15 30%, transparent);
+}
+[data-theme="light"] .it-cpr-band-tag,
+[data-theme="light"] .it-cpr-pivot-tag { color: #92400e; }
+
+/* ── Supply & Demand zone cards (below the Fib card) ──
+   Reuses the global .sw-zoi-card* + .sw-rsn* styling; this just lays the cards
+   out as a wrapping deck like the Swing Analyzer's ZOI panel. */
+.it-zoi-cards { margin: 14px 0 4px; }
+.it-zoi-deck {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: stretch;
+}
+.it-zoi-deck .sw-zoi-card { flex: 1 1 300px; }
+@media (max-width: 640px) {
+  .it-zoi-deck .sw-zoi-card { flex: 1 1 100%; max-width: none; }
+}
+
+/* ── Intraday Setup Plan + Trade Plan (1H / 30m / 15m / 5m) ──
+   Reuses the global .sw-setup-row / .sw-bias-* / .sw-plan* styling; these rules
+   only add the 5-cell bias-bar layout, trend-direction colours, the
+   recommendation tones, and the left-edge plan accent by verdict. */
+.it-setup { margin: 16px 0 4px; }
+.it-setup-meta {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 8px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+#it-setup-refresh { float: right; margin-top: -2px; }
+/* 5 cells (4 timeframes + recommendation). Inherits .sw-bias-bar's seamless
+   1px-divider grid (gap:1px over a --bd background) — we only widen it from 4
+   to 5 columns, then stack 2-up on narrow screens. */
+.it-bias-bar { grid-template-columns: repeat(5, 1fr); }
+@media (max-width: 760px) { .it-bias-bar { grid-template-columns: repeat(2, 1fr); } }
+/* Per-TF trend value colours. */
+.sw-bias-v.it-tr-bull { color: var(--bull); }
+.sw-bias-v.it-tr-bear { color: var(--bear); }
+.sw-bias-v.it-tr-range { color: var(--muted); }
+/* Recommendation tones (value text). CE = bull green / PE = bear red (the
+   trade-context mapping, AGENTS §9); WATCH amber; WAIT muted. */
+.sw-bias-v.it-reco-ce { color: var(--bull); }
+.sw-bias-v.it-reco-pe { color: var(--bear); }
+.sw-bias-v.it-reco-watch { color: #d97706; }
+.sw-bias-v.it-reco-wait { color: var(--muted); }
+/* Recommendation cell tint so the verdict reads at a glance. */
+.sw-bias-cell-final.it-reco-ce {
+  background: color-mix(in srgb, var(--bull) 12%, transparent);
+  border-color: color-mix(in srgb, var(--bull) 40%, var(--border));
+}
+.sw-bias-cell-final.it-reco-pe {
+  background: color-mix(in srgb, var(--bear) 12%, transparent);
+  border-color: color-mix(in srgb, var(--bear) 40%, var(--border));
+}
+.sw-bias-cell-final.it-reco-watch {
+  background: color-mix(in srgb, #d97706 12%, transparent);
+  border-color: color-mix(in srgb, #d97706 40%, var(--border));
+}
+.sw-bias-cell-final.it-reco-wait {
+  background: color-mix(in srgb, var(--muted) 8%, transparent);
+}
+/* Left-edge accent on the trade-plan card by direction. */
+.sw-plan.it-reco-ce-plan { border-left: 3px solid var(--bull); }
+.sw-plan.it-reco-pe-plan { border-left: 3px solid var(--bear); }
+.sw-plan.it-reco-wait-plan { border-left: 3px solid var(--muted); }
+
+/* ═══════════════ SIGNAL JOURNAL · AUTO-TRADE ═══════════════
+   Self-contained panel between the trade plan and the paper desk. Reuses the
+   shared .pt-table / .pt-side-tag / .pt-empty styles for the log table; this
+   block owns the header, the auto-trade switch, the stat strip and the
+   per-row outcome colours. */
+.it-journal {
+  margin-top: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+.it-journal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.it-journal-intro { flex: 1 1 320px; min-width: 0; }
+.it-journal-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.it-journal-sub {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.it-journal-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+/* Auto-trade switch (themed pill) */
+.it-auto-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px 6px 8px;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color .15s ease, background .15s ease;
+}
+.it-auto-toggle:hover { border-color: color-mix(in srgb, var(--bull) 45%, var(--border)); }
+.it-auto-track {
+  position: relative;
+  width: 38px;
+  height: 20px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 35%, transparent);
+  transition: background .18s ease;
+  flex-shrink: 0;
+}
+.it-auto-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .35);
+  transition: transform .18s ease;
+}
+.it-auto-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: var(--muted);
+}
+.it-auto-toggle[data-on="true"] .it-auto-track { background: var(--bull); }
+.it-auto-toggle[data-on="true"] .it-auto-knob { transform: translateX(18px); }
+.it-auto-toggle[data-on="true"] { border-color: color-mix(in srgb, var(--bull) 55%, var(--border)); }
+.it-auto-toggle[data-on="true"] .it-auto-label { color: var(--bull); }
+.it-journal-clear {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color .15s ease, color .15s ease;
+}
+.it-journal-clear:hover { border-color: color-mix(in srgb, var(--bear) 45%, var(--border)); color: var(--bear); }
+/* Strike → premium map (inside the trade-plan card). Translates the spot-level
+   plan into the option premium the user trades on their broker. */
+.it-prem-map {
+  margin: 14px 0 4px;
+  padding: 12px 14px;
+  border: 1px dashed color-mix(in srgb, var(--info, #3b82f6) 45%, var(--bd, var(--border)));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--info, #3b82f6) 6%, var(--card));
+}
+.it-prem-map[hidden] { display: none; }
+.it-prem-map-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+.it-prem-map-ttl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--info, #3b82f6);
+}
+.it-prem-map-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.it-prem-map-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.it-prem-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 8px;
+  background: var(--s1, var(--card));
+  border: 1px solid var(--bd, var(--border));
+  font-variant-numeric: tabular-nums;
+}
+.it-prem-chip b {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.it-prem-chip span {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.it-prem-chip.it-prem-sl span { color: var(--bear); }
+.it-prem-chip.it-prem-t1 span,
+.it-prem-chip.it-prem-t2 span { color: var(--bull); }
+.it-prem-map-note {
+  display: block;
+  margin-top: 9px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* Volume + Candle context banner under the chart — reuses the Live screen's
+   .ia-event-chip styling; this only sets its spacing on the Intraday Trade
+   screen so it sits flush under the chart with a little breathing room. */
+.it-ctx-banner { margin: 12px 0 6px; }
+
+/* Confluence chips (volume + candlestick read at the entry zone) — sit just
+   below the plan grid so the two confirmations are visible at a glance, not
+   buried in the WHY prose. Tones: good = confirmed (green), bad = trap/
+   exhaustion (red), warn = candle against the trade (amber), na = nothing to
+   confirm yet (muted). */
+.it-plan-conf {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 2px;
+}
+.it-plan-conf[hidden] { display: none; }
+.it-plan-conf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  border: 1px solid var(--bd, var(--border));
+  background: color-mix(in srgb, var(--muted) 8%, transparent);
+  color: var(--muted);
+}
+.it-plan-conf-chip.it-plan-conf-good {
+  color: var(--bull);
+  border-color: color-mix(in srgb, var(--bull) 38%, transparent);
+  background: var(--bull-tint);
+}
+.it-plan-conf-chip.it-plan-conf-bad {
+  color: var(--bear);
+  border-color: color-mix(in srgb, var(--bear) 38%, transparent);
+  background: var(--bear-tint);
+}
+.it-plan-conf-chip.it-plan-conf-warn {
+  color: var(--warn, #f59e0b);
+  border-color: color-mix(in srgb, var(--warn, #f59e0b) 38%, transparent);
+  background: color-mix(in srgb, var(--warn, #f59e0b) 12%, transparent);
+}
+
+/* Live / Archive segmented switch — themed pill, mirrors the toggle/clear family. */
+.it-journal-view {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+.it-journal-view-btn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.it-journal-view-btn:hover { color: var(--text); }
+.it-journal-view-btn.is-on {
+  background: color-mix(in srgb, var(--info, #3b82f6) 16%, transparent);
+  color: var(--info, #3b82f6);
+}
+
+/* Day-wise filter — a fully app-themed CUSTOM dropdown (button + listbox), NOT a
+   native <select>: the OS renders the native option popup with its own (macOS)
+   chrome that CSS can't touch, so we roll our own to honour dark/light tokens. */
+.it-journal-day { position: relative; display: inline-flex; }
+.it-journal-day-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.it-journal-day-btn:hover { border-color: color-mix(in srgb, var(--info, #3b82f6) 45%, var(--border)); }
+.it-journal-day-btn[aria-expanded="true"] { border-color: color-mix(in srgb, var(--info, #3b82f6) 60%, var(--border)); }
+.it-journal-day-btn:disabled { opacity: .5; cursor: default; }
+.it-journal-day-ico { font-size: 12px; opacity: .7; line-height: 1; }
+.it-journal-day-cur { line-height: 1; }
+.it-journal-day-caret {
+  width: 0; height: 0;
+  margin-left: 1px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--muted);
+  transition: transform .15s ease;
+}
+.it-journal-day-btn[aria-expanded="true"] .it-journal-day-caret { transform: rotate(180deg); }
+/* The themed popup list. */
+.it-journal-day-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  min-width: 100%;
+  margin: 0;
+  padding: 5px;
+  list-style: none;
+  background: var(--card);
+  border: 1px solid var(--bd, var(--border));
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .28);
+  max-height: 240px;
+  overflow-y: auto;
+}
+.it-journal-day-menu[hidden] { display: none; }
+.it-journal-day-opt {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--text);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .12s ease, color .12s ease;
+}
+.it-journal-day-opt:hover { background: color-mix(in srgb, var(--info, #3b82f6) 14%, transparent); }
+.it-journal-day-opt.is-sel {
+  color: var(--info, #3b82f6);
+  background: color-mix(in srgb, var(--info, #3b82f6) 12%, transparent);
+}
+/* ── Stat tiles ───────────────────────────────────────────────────
+   Four elevated cards with a soft top-to-bottom surface and a colored
+   left accent stripe per metric. Intraday-owned (no .pt-* dependency). */
+.it-journal-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+}
+.it-journal-stat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 13px 16px 13px 18px;
+  background: linear-gradient(180deg, var(--s2) 0%, var(--s1) 100%);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+}
+.it-journal-stat::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--muted);
+  opacity: .55;
+}
+.it-journal-stat:nth-child(1)::before { background: var(--info, #3b82f6); }
+.it-journal-stat:nth-child(2)::before { background: var(--info, #3b82f6); }
+.it-journal-stat:nth-child(3)::before { background: linear-gradient(180deg, var(--info, #3b82f6), var(--bull)); }
+.it-journal-stat:nth-child(4)::before { background: linear-gradient(180deg, var(--bull), var(--info, #3b82f6)); }
+.it-journal-stat-k {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.it-journal-stat-v {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+  letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* ── Table ────────────────────────────────────────────────────────
+   Mono uppercase sticky header on --s1, hairline --bd dividers, soft
+   row hover. Intraday-owned so the journal no longer leans on .pt-table. */
+.it-journal-table-wrap {
+  overflow-x: auto;
+  /* Show ~5 rows + the sticky header, then scroll the rest (latest on top). */
+  overflow-y: auto;
+  max-height: 252px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--s1);
+}
+.it-journal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.it-journal-table th {
+  padding: 11px 12px;
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--muted);
+  border-bottom: 1px solid var(--bd);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  background: var(--s2);
+  z-index: 1;
+}
+.it-journal-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--bd);
+  white-space: nowrap;
+  vertical-align: middle;
+  color: var(--text);
+}
+.it-journal-table tbody tr {
+  transition: background .12s ease;
+}
+.it-journal-table tbody tr:hover {
+  background: color-mix(in srgb, var(--muted) 7%, transparent);
+}
+.it-journal-table tr:last-child td { border-bottom: 0; }
+.it-journal-table .it-jc-when { color: var(--muted); font-size: 12px; }
+/* Exit column: exit time (muted) + the fill price (smaller, mono). */
+.it-journal-table .it-jc-exit { color: var(--muted); font-size: 12px; }
+.it-journal-table .it-jc-exit-t { font-family: 'IBM Plex Mono', monospace; }
+.it-journal-table .it-jc-exit-px {
+  margin-left: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  opacity: 0.75;
+}
+.it-journal-table .it-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.it-journal-table .it-num-sl { color: var(--bear); }
+.it-journal-table .it-num-t1 { color: var(--bull); }
+.it-journal-empty {
+  text-align: center;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 28px 12px !important;
+  font-style: italic;
+  line-height: 1.6;
+}
+/* Side tag — trade context (AGENTS §9): CE = bull (green), PE = bear (red). */
+.it-side-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+}
+.it-side-tag.ce {
+  background: var(--bull-tint);
+  color: var(--bull);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bull) 30%, transparent);
+}
+.it-side-tag.pe {
+  background: var(--bear-tint);
+  color: var(--bear);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bear) 30%, transparent);
+}
+/* Confidence badge */
+.it-conf-tag {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 6px;
+  font-size: 10px;
+  letter-spacing: .08em;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  border: 1px solid var(--bd);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 8%, transparent);
+}
+.it-conf-tag.high {
+  color: var(--bull);
+  border-color: color-mix(in srgb, var(--bull) 35%, transparent);
+  background: var(--bull-tint);
+}
+.it-conf-tag.med {
+  color: var(--info, #3b82f6);
+  border-color: color-mix(in srgb, var(--info, #3b82f6) 35%, transparent);
+  background: color-mix(in srgb, var(--info, #3b82f6) 12%, transparent);
+}
+.it-conf-tag.low {
+  color: var(--muted);
+}
+/* R:R chip */
+.it-r-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  background: color-mix(in srgb, var(--muted) 10%, transparent);
+  border: 1px solid var(--bd);
+}
+/* Outcome pill — win / loss / open / flat */
+.it-out-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.it-out-tag::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.it-out-tag.win { color: var(--bull); background: var(--bull-tint); }
+.it-out-tag.loss { color: var(--bear); background: var(--bear-tint); }
+.it-out-tag.open { color: var(--info, #3b82f6); background: color-mix(in srgb, var(--info, #3b82f6) 13%, transparent); }
+.it-out-tag.flat { color: var(--muted); background: color-mix(in srgb, var(--muted) 12%, transparent); }
+/* Armed = resting order, not filled yet (amber). Miss = price never returned to
+   the entry, cancelled with no P&L (neutral, slightly dimmed). */
+.it-out-tag.armed { color: #eab308; background: color-mix(in srgb, #eab308 14%, transparent); }
+.it-out-tag.miss { color: var(--muted); background: color-mix(in srgb, var(--muted) 10%, transparent); opacity: .9; }
+/* Exit-cell variants for the new states. */
+.it-journal-table .it-jc-exit-wait { font-family: 'IBM Plex Mono', monospace; font-style: italic; opacity: .8; }
+.it-journal-table .it-jc-exit-nofill { color: var(--muted); font-style: italic; }
+@media (max-width: 640px) {
+  .it-journal-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ════════════════ INTRADAY OPTION-CHAIN DASHBOARD — VISUAL POLISH ════════════════
+   Scoped to #itc-dashboard so these overrides ONLY restyle the intraday clone and
+   never leak into the Options tab's shared .up-* rules (styles/option-chain.css).
+   Independence is preserved — this is purely cosmetic. */
+#itc-dashboard {
+  background:
+    linear-gradient(180deg, var(--s1), color-mix(in srgb, var(--s1) 82%, var(--bg)));
+  border: 1px solid var(--bd);
+  border-radius: 16px;
+  padding: 18px 18px 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+}
+#itc-dashboard #itc-dashboard-title {
+  margin: 0 0 16px;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* OI bar chart shell */
+#itc-dashboard #itc-chart-wrap {
+  background:
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--info) 7%, transparent), transparent 70%),
+    var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  padding: 16px 16px 6px;
+  margin-bottom: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Legend / reading tips below the chart */
+#itc-dashboard .up-chart-legend-tips { gap: 10px; margin: 12px 0 18px; }
+#itc-dashboard .up-chart-legend-tips .tip {
+  padding: 10px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--bd);
+  border-left-width: 3px;
+  background: var(--s1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Walls header */
+#itc-dashboard .up-walls-head { margin: 20px 0 12px; }
+
+/* Wall cards — elevated, themed by side, subtle hover lift */
+#itc-dashboard .up-walls-grid { gap: 14px; }
+#itc-dashboard .up-wall-card {
+  border: 1px solid var(--bd);
+  border-left-width: 4px;
+  border-radius: 14px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, var(--s1), color-mix(in srgb, var(--s1) 86%, var(--bg)));
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+#itc-dashboard .up-wall-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22);
+}
+#itc-dashboard .up-wall-card.is-floor {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bull) 7%, var(--s1)), var(--s1));
+}
+#itc-dashboard .up-wall-card.is-ceiling {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bear) 7%, var(--s1)), var(--s1));
+}
+#itc-dashboard .up-wall-card .up-wall-strike {
+  font-size: 1.55rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+#itc-dashboard .up-wall-card .up-wall-translation {
+  border-radius: 10px;
+  border-style: solid;
+  border-color: var(--bd);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+}
+#itc-dashboard .up-wall-card.is-floor .up-wall-translation { border-left: 3px solid var(--bull); }
+#itc-dashboard .up-wall-card.is-ceiling .up-wall-translation { border-left: 3px solid var(--bear); }
+
+/* ════════════════ INTRADAY — COLLAPSIBLE SECTIONS (progressive disclosure) ════════════════
+   Native <details> accordions de-clutter the long intraday scroll. The chart +
+   setup/trade plan + context cards + paper desk stay always-open; the descriptive
+   pattern decks, the option-chain dashboard, and the signal-journal stats/table
+   collapse behind a header (collapsed by default; open/closed state persisted in
+   localStorage by wireAccordions() in scripts/intraday-trade.js). */
+.it-acc {
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--s1), color-mix(in srgb, var(--s1) 88%, var(--bg)));
+  margin-top: 14px;
+  overflow: hidden;
+}
+/* Deck accordions auto-hide when their (only) body child is empty/hidden, so an
+   undetected pattern adds no empty bar — preserves the prior "show only when
+   present" behaviour. */
+.it-acc.it-acc-auto:has(> .it-acc-body > [hidden]) { display: none; }
+
+.it-acc-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  cursor: pointer;
+  list-style: none;
+  -webkit-user-select: none;
+  user-select: none;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  transition: background 0.15s ease;
+}
+.it-acc-summary::-webkit-details-marker { display: none; }
+.it-acc-summary:hover { background: color-mix(in srgb, var(--info) 6%, transparent); }
+.it-acc-summary:focus-visible { outline: 2px solid var(--info); outline-offset: -2px; }
+.it-acc-ttl {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+.it-acc-meta {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.it-acc-chev {
+  margin-left: auto;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform 0.18s ease;
+  flex-shrink: 0;
+}
+.it-acc[open] > .it-acc-summary .it-acc-chev { transform: rotate(-135deg); }
+.it-acc[open] > .it-acc-summary { border-bottom: 1px solid var(--bd); }
+.it-acc-body { padding: 14px 16px 16px; }
+.it-acc-body > .it-pattern-cards,
+.it-acc-body > .it-cp-cards,
+.it-acc-body > .it-cpr-cards,
+.it-acc-body > .it-fib-cards,
+.it-acc-body > .it-zoi-cards { margin-top: 0; }
+
+/* Sub-accordion (journal stats + table) — lighter chrome since it sits INSIDE the
+   .it-journal card whose head (Auto-Trade toggle + Clear) stays always visible. */
+.it-acc.it-acc-sub {
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--bd);
+  border-radius: 0;
+  margin-top: 12px;
+  overflow: visible;
+}
+.it-acc.it-acc-sub > .it-acc-summary { padding: 12px 2px; }
+.it-acc.it-acc-sub > .it-acc-summary:hover { background: transparent; color: var(--info); }
+.it-acc.it-acc-sub[open] > .it-acc-summary { border-bottom: none; }
+.it-acc.it-acc-sub > .it-acc-body { padding: 4px 0 2px; }
+
+/* ═══════════════════ ACTIVE SIGNAL STRIP ═══════════════════
+   The live "what do I do now" banner (ENTER / HOLD / EXITED / WAIT). A left
+   accent stripe + tinted surface encode the state at a glance; the action word
+   is the loudest element so it reads from across the room. State drives colour
+   via [data-state]; CE/PE side tags reuse the trade-context bull/bear mapping. */
+.it-signal {
+  position: relative;
+  margin: 0 0 16px;
+  padding: 14px 18px 14px 22px;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  background: var(--card);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+}
+/* Left accent stripe — colour set per state below. */
+.it-signal::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 5px;
+  background: var(--muted);
+}
+.it-sig-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.it-sig-action {
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.it-sig-side {
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+.it-sig-side.ce { color: var(--bull); background: color-mix(in srgb, var(--bull) 15%, transparent); border-color: color-mix(in srgb, var(--bull) 50%, transparent); }
+.it-sig-side.pe { color: var(--bear); background: color-mix(in srgb, var(--bear) 15%, transparent); border-color: color-mix(in srgb, var(--bear) 50%, transparent); }
+.it-sig-detail {
+  flex: 1 1 auto;
+  min-width: 180px;
+  font-size: 0.86rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.it-sig-big {
+  font-weight: 800;
+  font-size: 1.0rem;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.it-sig-big.it-sig-pos { color: var(--bull); }
+.it-sig-big.it-sig-neg { color: var(--bear); }
+.it-sig-sub {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* ── State accents ── */
+.it-signal[data-state="enter"]  { background: color-mix(in srgb, var(--bull) 8%, var(--card)); }
+.it-signal[data-state="enter"]::before  { background: var(--bull); }
+.it-signal[data-state="enter"] .it-sig-action { color: var(--bull); }
+
+.it-signal[data-state="hold"]   { background: color-mix(in srgb, var(--info) 8%, var(--card)); }
+.it-signal[data-state="hold"]::before   { background: var(--info); }
+.it-signal[data-state="hold"] .it-sig-action { color: var(--info); }
+
+.it-signal[data-state="exited"]::before { background: var(--muted); }
+.it-signal[data-state="exited"] .it-sig-action { color: var(--muted); }
+
+.it-signal[data-state="watch"]  { background: color-mix(in srgb, #eab308 8%, var(--card)); }
+.it-signal[data-state="watch"]::before  { background: #eab308; }
+.it-signal[data-state="watch"] .it-sig-action { color: #eab308; }
+
+.it-signal[data-state="wait"]::before { background: var(--muted); }
+.it-signal[data-state="wait"] .it-sig-action { color: var(--muted); }
+
+/* Armed — a resting order waiting for the price to return to the entry zone.
+   Amber (same hue as WATCH) so it never reads as a green "enter now" call — we
+   have NOT taken the trade yet; it only fills on a genuine retest. */
+.it-signal[data-state="armed"]  { background: color-mix(in srgb, #eab308 9%, var(--card)); }
+.it-signal[data-state="armed"]::before  { background: #eab308; }
+.it-signal[data-state="armed"] .it-sig-action { color: #eab308; }
+
+/* Bias armed — higher timeframes have picked a side but the 5m hasn't triggered
+   yet. A distinct violet "get-ready" tone: not green (we have NOT entered) and
+   not the muted grey of a blank WAIT (the engine DOES see a direction). */
+.it-signal[data-state="bias"]  { background: color-mix(in srgb, #8b5cf6 9%, var(--card)); }
+.it-signal[data-state="bias"]::before  { background: #8b5cf6; }
+.it-signal[data-state="bias"] .it-sig-action { color: #8b5cf6; }
+
+/* Market closed — non-actionable preview of the next session's plan. Neutral
+   slate tone so it never reads like a live ENTER/HOLD call-to-action. */
+.it-signal[data-state="closed"]  { background: color-mix(in srgb, var(--muted) 8%, var(--card)); }
+.it-signal[data-state="closed"]::before  { background: var(--muted); }
+.it-signal[data-state="closed"] .it-sig-action { color: var(--muted); }
+
+@media (max-width: 560px) {
+  .it-sig-detail { flex-basis: 100%; order: 3; }
+  .it-sig-big { margin-left: auto; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FAKE-BREAKOUT RADAR (#it-breakout-cards) — genuine vs trap, by volume.
+   Theme-aware via the shared tokens (var(--bull/bear/info/card/bd/muted/
+   text)); no hardcoded greys so dark/light both follow automatically.
+   ═══════════════════════════════════════════════════════════════ */
+.it-bo-cards { display: flex; flex-direction: column; gap: 12px; }
+
+/* Plain-English intro line */
+.it-bo-intro { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.it-bo-intro b { color: var(--text); }
+
+/* headline text column (verdict line + time-specific candle line) */
+.it-bo-head-txt { display: flex; flex-direction: column; gap: 4px; }
+.it-bo-when { font-size: 0.78rem; color: var(--muted); line-height: 1.45; }
+.it-bo-when b { color: var(--text); }
+
+/* Headline banner — colour reflects the verdict (trap=red, real=green,
+   forming=amber, clear=neutral). */
+.it-bo-head {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 13px; border-radius: 10px;
+  border: 1px solid var(--bd);
+  background: var(--card);
+  line-height: 1.45;
+}
+.it-bo-fake    { background: color-mix(in srgb, var(--bear) 11%, var(--card)); border-color: color-mix(in srgb, var(--bear) 45%, transparent); }
+.it-bo-genuine { background: color-mix(in srgb, var(--bull) 11%, var(--card)); border-color: color-mix(in srgb, var(--bull) 45%, transparent); }
+.it-bo-pending { background: color-mix(in srgb, var(--info) 10%, var(--card)); border-color: color-mix(in srgb, var(--info) 42%, transparent); }
+.it-bo-clear   { background: var(--card); }
+
+.it-bo-badge {
+  flex: 0 0 auto;
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 8px; border-radius: 6px; white-space: nowrap;
+  color: #fff;
+}
+.it-bo-badge-fake    { background: var(--bear); }
+.it-bo-badge-genuine { background: var(--bull); }
+.it-bo-badge-pending { background: var(--info); color: #1a1205; }
+.it-bo-badge-clear   { background: var(--muted); }
+
+.it-bo-headline { font-size: 0.84rem; color: var(--text); }
+
+/* RVOL meter */
+.it-bo-rvol {
+  padding: 10px 13px; border-radius: 10px;
+  border: 1px solid var(--bd); background: var(--card);
+}
+.it-bo-rvol-na { font-size: 0.8rem; color: var(--muted); }
+.it-bo-rvol-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  font-size: 0.78rem; color: var(--muted); margin-bottom: 7px;
+}
+.it-bo-rvol-row b { font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+.it-bo-rvol-hi  { color: var(--bull); }
+.it-bo-rvol-mid { color: var(--info); }
+.it-bo-rvol-lo  { color: var(--bear); }
+.it-bo-rvol-track {
+  position: relative; height: 9px; border-radius: 5px;
+  background: color-mix(in srgb, var(--muted) 22%, transparent);
+  overflow: visible;
+}
+.it-bo-rvol-fill { height: 100%; border-radius: 5px; transition: width 0.3s ease; }
+.it-bo-rvol-fill-hi  { background: var(--bull); }
+.it-bo-rvol-fill-mid { background: var(--info); }
+.it-bo-rvol-fill-lo  { background: var(--bear); }
+.it-bo-rvol-tick {
+  position: absolute; top: -2px; width: 2px; height: 13px;
+  background: var(--text); opacity: 0.45; transform: translateX(-1px);
+}
+.it-bo-rvol-tick-strong { opacity: 0.75; }
+.it-bo-rvol-cap { margin-top: 7px; font-size: 0.72rem; color: var(--muted); line-height: 1.4; }
+
+/* Level chips */
+.it-bo-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.it-bo-chip {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 7px 11px; border-radius: 9px;
+  border: 1px solid var(--bd); background: var(--card);
+  min-width: 116px;
+}
+.it-bo-chip-lvl { font-size: 0.7rem; color: var(--muted); }
+.it-bo-chip-px  { font-size: 0.92rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.it-bo-chip-tag {
+  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.it-bo-chip-time {
+  font-size: 0.64rem; color: var(--muted);
+  font-variant-numeric: tabular-nums; margin-top: 1px;
+}
+.it-bo-chip-fake    { border-color: color-mix(in srgb, var(--bear) 50%, transparent); }
+.it-bo-chip-fake .it-bo-chip-tag    { color: var(--bear); }
+.it-bo-chip-genuine { border-color: color-mix(in srgb, var(--bull) 50%, transparent); }
+.it-bo-chip-genuine .it-bo-chip-tag { color: var(--bull); }
+.it-bo-chip-pending { border-color: color-mix(in srgb, var(--info) 50%, transparent); }
+.it-bo-chip-pending .it-bo-chip-tag { color: var(--info); }
+.it-bo-chip-watch .it-bo-chip-tag   { color: var(--muted); }
+
+.it-bo-src { font-size: 0.72rem; color: var(--muted); line-height: 1.45; }
+
+@media (max-width: 560px) {
+  .it-bo-chip { flex: 1 1 calc(50% - 8px); min-width: 0; }
+}

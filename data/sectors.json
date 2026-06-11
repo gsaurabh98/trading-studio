@@ -36266,8 +36266,8 @@
       "id": "liquid-band",
       "name": "High Liquidity",
       "band": {
-        "min": 500.0,
-        "max": 2000.0
+        "min": 400.0,
+        "max": 5000.0
       },
       "stocks": [
         {
@@ -36323,6 +36323,12 @@
           "isin": "INE982J01020",
           "name": "One 97 Communications",
           "price": 1118.8
+        },
+        {
+          "sym": "GRSE",
+          "isin": "INE382Z01011",
+          "name": "Garden Reach Ship&eng",
+          "price": 2654.8
         },
         {
           "sym": "INDUSINDBK",
@@ -36553,6 +36559,12 @@
           "price": 886.1
         },
         {
+          "sym": "ESCORTS",
+          "isin": "INE042A01014",
+          "name": "Escorts Kubota",
+          "price": 2859.8
+        },
+        {
           "sym": "GRAVITA",
           "isin": "INE024L01027",
           "name": "Gravita India",
@@ -36703,6 +36715,12 @@
           "price": 884.95
         },
         {
+          "sym": "SJS",
+          "isin": "INE284S01014",
+          "name": "Sjs Enterprises",
+          "price": 2105.2
+        },
+        {
           "sym": "KPIL",
           "isin": "INE220B01022",
           "name": "Kalpataru Project INT",
@@ -36785,6 +36803,12 @@
           "isin": "INE427F01016",
           "name": "Chalet Hotels",
           "price": 784.6
+        },
+        {
+          "sym": "DOMS",
+          "isin": "INE321T01012",
+          "name": "Doms Industries",
+          "price": 2185.1
         },
         {
           "sym": "HCG",
@@ -36913,6 +36937,12 @@
           "price": 792.0
         },
         {
+          "sym": "RATNAMANI",
+          "isin": "INE703B01027",
+          "name": "Ratnamani MET & TUB",
+          "price": 2555.5
+        },
+        {
           "sym": "UNIMECH",
           "isin": "INE0U3I01011",
           "name": "Unimech Aerospace N MFG L",
@@ -36983,6 +37013,12 @@
           "isin": "INE907A01026",
           "name": "Kalyani Steels",
           "price": 816.75
+        },
+        {
+          "sym": "INDOTECH",
+          "isin": "INE332H01014",
+          "name": "Indo Tech Transformers",
+          "price": 2497.8
         },
         {
           "sym": "DECCANCE",

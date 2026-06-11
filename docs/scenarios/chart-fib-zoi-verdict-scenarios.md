@@ -1,6 +1,6 @@
 # Chart + Fib + ZOI Verdict Scenarios (PFZ)
 
-> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `data/verdict-rules.json`.**
+> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `rules/swing-rules.json`.**
 > `fibZoiCombined` (Fib×ZOI) IS implemented; the **geometric chart pattern** is
 > NOT yet layered on top. This file defines the **chart pattern + Fib + ZOI**
 > rules to add — the chart pattern becomes a structural confirmation/veto on the

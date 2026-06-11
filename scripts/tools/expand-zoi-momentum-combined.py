@@ -45,7 +45,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Final
 
-RULES_PATH: Final[Path] = Path(__file__).resolve().parents[2] / "data" / "verdict-rules.json"
+RULES_PATH: Final[Path] = Path(__file__).resolve().parents[2] / "rules" / "swing-rules.json"
 
 # id suffix that tags a generated clone (used for idempotent strip + insert).
 CLONE_SUFFIX_RE: Final[re.Pattern[str]] = re.compile(r"-(SR|SC|SF|DC)$")
@@ -141,7 +141,7 @@ def splice_into_combined(text: str, clones: list[dict]) -> str:
     fibZoiCombined array (which is the file's LAST top-level key)."""
     stripped = text.rstrip()
     if not stripped.endswith("}"):
-        raise RuntimeError("verdict-rules.json does not end with '}'")
+        raise RuntimeError("swing-rules.json does not end with '}'")
     # Locate the array's closing ']' (last ']' before the final '}').
     close_brace = stripped.rfind("}")
     close_bracket = stripped.rfind("]", 0, close_brace)

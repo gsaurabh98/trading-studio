@@ -7,7 +7,7 @@
    (``IN_POCKET_UP`` etc.). The LIVE matcher reads ``fibZoiCombined`` with the
    CURRENT names (``IN_POCKET_RISING`` etc.) — the two have diverged, so running
    this does NOT change live behaviour. To edit the live combined matrix today,
-   edit ``data/verdict-rules.json`` directly, or use
+   edit ``rules/swing-rules.json`` directly, or use
    ``scripts/tools/expand-zoi-momentum-combined.py`` for the ZOI momentum clones.
    This generator is kept only as the historical design reference for the
    combinator logic; re-aligning it to the live schema is a separate task.
@@ -15,7 +15,7 @@
 Outputs
 -------
 1. ``data/fib-zoi-combinations.csv`` — human review sheet (one row per scenario).
-2. ``data/verdict-rules.json`` — injects the same scenarios under a NEW key
+2. ``rules/swing-rules.json`` — injects the same scenarios under a NEW key
    ``fibZoiCombinedProposed`` (matcher-ready: real engine ``fibClass`` plus
    ``zoiPosition`` + ``pocketVsZone`` + optional ``touchedZone``/``bounceStatus``).
    The live ``fibZoiCombined`` array and the JS matcher are LEFT UNTOUCHED — the
@@ -330,8 +330,9 @@ def build_sub(verdict: str, fib: FibRule, zoi: ZoiRule, rel: str) -> str:
 # Scenario enumeration
 # --------------------------------------------------------------------------
 DATA_DIR: Final[Path] = Path(__file__).resolve().parents[2] / "data"
+RULES_DIR: Final[Path] = Path(__file__).resolve().parents[2] / "rules"
 CSV_PATH: Final[Path] = DATA_DIR / "fib-zoi-combinations.csv"
-RULES_PATH: Final[Path] = DATA_DIR / "verdict-rules.json"
+RULES_PATH: Final[Path] = RULES_DIR / "swing-rules.json"
 
 HEADER: Final[tuple[str, ...]] = (
     "combo_id", "fib_id", "zoi_id", "zoi_zone", "pocket_vs_zone",
@@ -405,7 +406,7 @@ def write_csv(rows: list[tuple[str, ...]]) -> None:
 
 def inject_proposed_rules(json_rules: list[dict]) -> None:
     """Add/replace the ``fibZoiCombinedProposed`` key without disturbing the
-    rest of verdict-rules.json (preserves existing formatting + the live
+    rest of swing-rules.json (preserves existing formatting + the live
     ``fibZoiCombined`` array)."""
     text = RULES_PATH.read_text(encoding="utf-8").rstrip() + "\n"
 
@@ -426,7 +427,7 @@ def inject_proposed_rules(json_rules: list[dict]) -> None:
     # 2) insert fresh before the final closing brace
     stripped = text.rstrip()
     if not stripped.endswith("}"):
-        raise RuntimeError("verdict-rules.json does not end with '}'")
+        raise RuntimeError("swing-rules.json does not end with '}'")
     body = stripped[:-1].rstrip()
     if not body.endswith("]"):
         raise RuntimeError("expected an array (fibZoiCombined) as the last key")

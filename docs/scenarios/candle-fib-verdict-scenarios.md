@@ -1,11 +1,11 @@
 # Candle + Fib Verdict Scenarios (CF)
 
-> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `data/verdict-rules.json`.**
+> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `rules/swing-rules.json`.**
 > Today the verdict engine combines only Fib×ZOI; candlestick patterns feed the
 > picker score + cosmetic confluence emphasis, never the verdict text (see
 > `docs/candle-patterns.md` §"How this feeds the verdict engine"). This file
 > defines the rules to ADD so a **candlestick pattern + Fib** confluence can
-> produce a verdict. When implemented, `data/verdict-rules.json` becomes the
+> produce a verdict. When implemented, `rules/swing-rules.json` becomes the
 > source of truth and this doc is the human-readable reference.
 
 Combines the **candlestick trigger** (`detectPatterns()`, see

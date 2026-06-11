@@ -1,6 +1,6 @@
 # Candle + ZOI Verdict Scenarios (CZ)
 
-> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `data/verdict-rules.json`.**
+> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `rules/swing-rules.json`.**
 > Candlestick patterns feed the picker score + cosmetic emphasis only; they do
 > not yet feed the ZOI verdict. This file defines the **candlestick pattern +
 > ZOI** confluence rules to add.

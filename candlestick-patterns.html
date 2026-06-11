@@ -131,6 +131,7 @@
   <link rel="stylesheet" href="styles/marketing.css">
   <link rel="stylesheet" href="styles/sidebar-nav.css">
   <link rel="stylesheet" href="styles/bias.css">
+  <link rel="stylesheet" href="styles/intraday-trade.css">
 
   <!--
   ════════════════════════════════════════════════════════════════════════
@@ -661,6 +662,20 @@
         OPTIONS TRADING
       </button>
 
+      <button class="tab" data-tone="info" onclick="show('intraday-trade',this)">
+        <svg class="nico" viewBox="0 0 16 16">
+          <!-- Candlesticks (intraday price action) -->
+          <line x1="4" y1="2.5" x2="4" y2="13.5" />
+          <rect x="3" y="5" width="2" height="5" fill="currentColor" fill-opacity="0.5" />
+          <line x1="9" y1="3.5" x2="9" y2="12.5" />
+          <rect x="8" y="6" width="2" height="4" fill="currentColor" fill-opacity="0.7" />
+          <!-- Clock hand suggesting intraday / live -->
+          <circle cx="12.5" cy="4" r="2.2" fill="none" />
+          <polyline points="12.5,4 12.5,2.8 13.4,4" fill="none" />
+        </svg>
+        INTRADAY TRADE
+      </button>
+
       <button class="tab" data-tone="violet" onclick="show('swing',this)">
         <svg class="nico" viewBox="0 0 16 16">
           <!-- Stacked candle bars suggesting multi-timeframe / swing -->
@@ -977,6 +992,13 @@
   <!-- ══════════════ PAPER TRADING (CHART + OPTION CHAIN + SIM TRADES) ══════════════ -->
   <div class="sec" id="live" data-content="live"></div>
 
+  <!-- ══════════════ INTRADAY TRADE (swing-style chart workspace, Jun 2026) ══════════════
+       Separate, self-contained intraday workspace. Stage 1 = a swing-style
+       Nifty candlestick chart (1m/3m/5m/15m/30m/1h/1D + overlays). Reuses the
+       SHARED Upstox token + global rate-limiter (window._upstoxBucket / _upstoxIsThrottled)
+       so it never doubles API load. The Options Trading tab (#live) is untouched. -->
+  <div class="sec" id="intraday-trade" data-content="intraday-trade"></div>
+
   <!-- ══════════════ SWING TRADE ANALYZER ══════════════ -->
   <div class="sec" id="swing" data-content="swing"></div>
 
@@ -1056,6 +1078,13 @@
        and preserves the DOMContentLoaded init timing. -->
   <script defer src="scripts/bias.js"></script>
 
+  <!-- ═════════ SHARED UPSTOX RATE-LIMITER (account-level infra) ═════════ -->
+  <!-- Owned by NO tab. Defines window._upstox* (throttle gate + token bucket)
+       shared by chart, paper-trade, swing scan, option chain AND the intraday
+       tab. Loaded BEFORE every consumer so the bucket exists on first poll;
+       must stay ahead of live-chart.js / swing-analyzer.js / intraday-*.js. -->
+  <script defer src="scripts/upstox-rate-limit.js"></script>
+
   <!-- ═════════ LIVE CANDLESTICK CHART (UPSTOX + LIGHTWEIGHT CHARTS) ═════════ -->
   <!-- Live chart (Lightweight Charts + Upstox WS/HTTP feed / indicators /
        drawings / market-hours) — extracted to scripts/live-chart.js in the
@@ -1123,6 +1152,32 @@
        in the May-2026 JS module split. Plain <script src> (classic) preserves
        the global exposures used by inline handlers and the original init timing. -->
   <script defer src="scripts/live-chain.js"></script>
+
+  <!-- ═════════ INTRADAY VOLUME + FAKE-BREAKOUT helpers (pure lib) ═════════
+       Pure, testable helpers (front-month futures resolver, RVOL, opening
+       range, non-repainting fake-breakout detector) exposed on
+       window.IntradayVolume. MUST load BEFORE intraday-trade.js (document order
+       via defer) so the chart module can consume it. Also required by the Node
+       backtest guard (scripts/backtest/it-setup-smoke.mjs). -->
+  <script defer src="scripts/intraday-volume.js"></script>
+
+  <!-- ═════════ INTRADAY TRADE — self-contained swing-style chart module ═════════
+       Loads AFTER indicator-math.js + chart-patterns.js + intraday-volume.js
+       (document order via defer) so window.IndicatorMath + window.ChartPatterns
+       + window.IntradayVolume exist when it draws overlays / the radar.
+       Own DOM ids (it-*) + own window globals (itActivate / itChartSetTf / …) so it
+       cannot collide with the Options Trading tab's modules. -->
+  <script defer src="scripts/intraday-trade.js"></script>
+  <script defer src="scripts/intraday-chain.js"></script>
+
+  <!-- ═════════ INTRADAY PAPER TRADING — independent sandbox book ═════════
+       Clone of scripts/paper-trade.js for the Intraday Trade tab as a SEPARATE
+       book: own localStorage key + durable server-JSON mirror
+       (data/intraday-paper-trades.json via /local/intraday-trades) so it survives
+       a browser storage clear. Own itp-* ids + window.itp* handlers; reuses the
+       shared pt-* CSS + toast/confirm hosts. Defers to the intraday tab's single
+       Live/Paused switch (window.itIsApiPaused). -->
+  <script defer src="scripts/intraday-paper-trade.js"></script>
 
   <!-- ══════════════ MORE CANDLESTICK PATTERNS ══════════════ -->
   <div class="sec" id="missing" data-content="missing"></div>

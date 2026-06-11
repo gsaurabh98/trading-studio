@@ -1,6 +1,6 @@
 # Candle + Fib + ZOI Verdict Scenarios (CFZ)
 
-> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `data/verdict-rules.json`.**
+> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `rules/swing-rules.json`.**
 > Today `fibZoiCombined` (Fib×ZOI) IS implemented; the **candlestick trigger** is
 > NOT yet layered on top. This file defines the **candle + Fib + ZOI** rules to
 > add — the candle becomes a conviction/timing modifier on the existing Fib×ZOI

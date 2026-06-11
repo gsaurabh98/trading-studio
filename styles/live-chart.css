@@ -173,7 +173,14 @@
   pointer-events: none;
   min-width: 56px;
   text-align: center;
-  transition: top 0.15s ease-out;
+  transition: top 0.15s ease-out, opacity 0.12s ease-out;
+}
+
+/* Faded out while the crosshair hovers within the chip's band, so the LWC
+   crosshair PRICE label (painted on the canvas, below this DOM chip) reads
+   clearly. pointer-events stays none, so it never blocks hover either. */
+.tv-countdown.tv-countdown-cross-hide {
+  opacity: 0;
 }
 
 .tv-countdown.tv-countdown-bear {

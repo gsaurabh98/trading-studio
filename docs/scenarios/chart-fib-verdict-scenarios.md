@@ -1,6 +1,6 @@
 # Chart + Fib Verdict Scenarios (PF)
 
-> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `data/verdict-rules.json`.**
+> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `rules/swing-rules.json`.**
 > Geometric chart patterns (`scripts/chart-patterns.js`, see
 > `docs/chart-patterns.md`) are detected, drawn, and carded, but they do not yet
 > feed the Fib/ZOI verdict text. This file defines the **chart pattern + Fib**

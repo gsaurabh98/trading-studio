@@ -125,6 +125,7 @@ function toggleSidebar(force) {
     'bias', 'playbook', 'calc',
     'risk', 'checklist',
     'live',
+    'intraday-trade',
     'api-setup',
     'market', 'glossary', 'faq', 'strategy'
   ];
@@ -137,6 +138,7 @@ function toggleSidebar(force) {
     cpr: 'CPR & Pivots', smc: 'Smart Money (SMC)', timeframe: 'Timeframe',
     'ind-trend': 'Trend', 'ind-momentum': 'Momentum', 'ind-volume': 'Volume',
     calc: 'Calculators', bias: 'Bias Calculator', chain: 'Option Chain', live: 'Options Trading',
+    'intraday-trade': 'Intraday Trade',
     options: 'Buying Rules', exits: 'SL & Targets', greeks: 'Greeks',
     expiry: 'Expiry Day', scalping: 'Scalping', hedging: 'Hedging', operators: 'Operators',
     playbook: 'Pick Strategy',
@@ -211,7 +213,7 @@ function toggleSidebar(force) {
     { title: 'F&O Playbook', ids: ['options', 'exits', 'hedging', 'expiry', 'scalping'] },
     { title: 'Decision Tools', ids: ['bias', 'playbook', 'calc'] },
     { title: 'Discipline', ids: ['risk', 'checklist'] },
-    { title: 'Practice', ids: ['live'] },
+    { title: 'Practice', ids: ['live', 'intraday-trade'] },
     { title: 'Settings', ids: ['api-setup'] },
     { title: 'Reference', ids: ['market', 'glossary', 'faq', 'strategy'] }
   ];
@@ -379,6 +381,12 @@ function show(id, btn) {
   if (id !== 'live' && typeof window.intradayDeactivate === 'function') {
     try { window.intradayDeactivate(); } catch (_) {}
   }
+  // Intraday Trade tab (separate, self-contained chart workspace) — stop
+  // its live poller when navigating away so it doesn't burn API calls in
+  // the background. Mirrors the swing / intraday deactivate guards above.
+  if (id !== 'intraday-trade' && typeof window.itDeactivate === 'function') {
+    try { window.itDeactivate(); } catch (_) {}
+  }
   document.querySelectorAll('.sec').forEach(function (s) { s.classList.remove('active'); });
   document.querySelectorAll('.ntabs .tab').forEach(function (t) {
     if (!t.classList.contains('tab-group')) { t.classList.remove('active'); }
@@ -428,6 +436,12 @@ function show(id, btn) {
       if (typeof window.intradayActivate === 'function') {
         try { window.intradayActivate(); } catch (_) {}
       }
+    }
+    // Intraday Trade tab — start its self-contained chart + live poller
+    // once the lazy content has landed. Idempotent (activate just flips a
+    // flag + (re)starts the poller), so safe to call on every show().
+    if (id === 'intraday-trade' && typeof window.itActivate === 'function') {
+      try { window.itActivate(); } catch (_) {}
     }
     if (id === 'calc' && typeof window.seedCalcOutputs === 'function') {
       window.seedCalcOutputs();

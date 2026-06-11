@@ -1,6 +1,6 @@
 # Chart + ZOI Verdict Scenarios (PZ)
 
-> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `data/verdict-rules.json`.**
+> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `rules/swing-rules.json`.**
 > Geometric chart patterns are detected/drawn/carded but do not yet feed the ZOI
 > verdict. This file defines the **chart pattern + ZOI** confluence rules to add.
 

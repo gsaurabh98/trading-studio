@@ -1067,6 +1067,12 @@
       };
       if (typeof window.ptOnChainLoaded === 'function') window.ptOnChainLoaded();
       if (typeof window.ptUpdateLastFetch === 'function') window.ptUpdateLastFetch(now);
+      // NOTE: this Options-tab chain fetch deliberately does NOT notify the
+      // intraday paper book anymore. The intraday tab is fully self-contained —
+      // it fetches its own chain into window.itOptionChainData via
+      // window.itFetchChain (scripts/intraday-trade.js) and drives its own
+      // itpOnChainLoaded. Keeping intraday independent so the Options tab can
+      // be removed later without breaking it.
 
       // Show the success / live status only on manual fetches; auto-refreshes
       // are silent so the screen doesn't blink with "loaded successfully"

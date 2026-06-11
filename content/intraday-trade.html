@@ -1,0 +1,877 @@
+<div class="wrap">
+  <!-- ══════════════ DEDICATED INTRADAY API PAUSE TOGGLE ══════════════
+       Same idea as the Swing tab's pause: a master-independent kill-switch for
+       THIS tab's Upstox calls (chart candles + LTP poll + option-price poll +
+       VIX + chain). Pause to protect your Upstox quota for Options Trading
+       without touching the swing/options switches. Reuses the global
+       .sw-api-pause-* styling. Rendered by renderApiPauseBanner(). -->
+  <div class="sw-api-pause-banner" id="it-api-pause-banner"
+    data-state="active" aria-label="Intraday API access toggle"></div>
+
+  <!-- No-token empty state — shown until a valid Upstox token is present. -->
+  <div class="it-empty" id="it-empty" hidden>
+    <div class="it-empty-icon" aria-hidden="true">&#128274;</div>
+    <h3>Connect your Upstox token to load the chart</h3>
+    <p>
+      The intraday chart streams Nifty 50 candles from Upstox. Add your daily access
+      token under <a href="#api-setup" onclick="gotoId('api-setup');return false;">API&nbsp;Setup</a>,
+      then return here &mdash; the chart starts automatically.
+    </p>
+  </div>
+
+  <!-- ══════════════ INTRADAY PRICE CHART ══════════════
+       Swing-style chart shell. Toolbar (title + live badge + TF buttons),
+       indicator legend (toggles), chart mount, zoom/scroll nav, status row.
+       Mirrors content/swing.html's .sw-chart-section, prefixed it-* so it is
+       fully isolated from the Options Trading tab. -->
+  <div class="it-chart-section" id="it-chart-section">
+    <!-- Toolbar — above chart -->
+    <div class="it-chart-toolbar">
+      <div class="it-chart-title">
+        <span class="it-chart-title-sym" id="it-chart-title-sym">NIFTY&nbsp;50</span>
+        <span class="it-chart-title-name" id="it-chart-title-name">NSE Index</span>
+        <span class="it-chart-live" id="it-chart-live-badge"></span>
+        <!-- BOS structure-regime badge (BULLISH / BEARISH / RANGING). Filled by
+             updateLiveBadgeAndStatus when BOS is on; hidden otherwise. -->
+        <span class="it-chart-trend" id="it-chart-trend" hidden></span>
+      </div>
+      <div class="it-chart-ltp" id="it-chart-ltp" hidden>
+        <span class="it-chart-ltp-val" id="it-chart-ltp-val">&mdash;</span>
+        <span class="it-chart-ltp-chg" id="it-chart-ltp-chg">&mdash;</span>
+      </div>
+      <!-- TF buttons ordered high -> low, left -> right. -->
+      <div class="it-chart-tf-group" id="it-chart-tf-group">
+        <button class="it-chart-tf-btn" type="button" data-tf="1d" onclick="window.itChartSetTf('1d')">1D</button>
+        <button class="it-chart-tf-btn" type="button" data-tf="4h" onclick="window.itChartSetTf('4h')">4H</button>
+        <button class="it-chart-tf-btn" type="button" data-tf="1h" onclick="window.itChartSetTf('1h')">1H</button>
+        <button class="it-chart-tf-btn" type="button" data-tf="30m" onclick="window.itChartSetTf('30m')">30m</button>
+        <button class="it-chart-tf-btn" type="button" data-tf="15m" onclick="window.itChartSetTf('15m')">15m</button>
+        <button class="it-chart-tf-btn active" type="button" data-tf="5m" onclick="window.itChartSetTf('5m')">5m</button>
+        <button class="it-chart-tf-btn" type="button" data-tf="3m" onclick="window.itChartSetTf('3m')">3m</button>
+        <button class="it-chart-tf-btn" type="button" data-tf="1m" onclick="window.itChartSetTf('1m')">1m</button>
+      </div>
+    </div>
+    <div class="it-chart-legend" id="it-chart-legend">
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="fib" onclick="window.itChartToggleInd('fib',this)" title="Toggle Fibonacci retracement levels (golden pocket 61.8%-80%)"><span class="it-chart-dot" style="background:#eab308"></span>FIB</span>
+      <span class="it-fib-dir" id="it-fib-dir" hidden></span>
+      <span class="it-chart-legend-sep"></span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="vwap" onclick="window.itChartToggleInd('vwap',this)" title="Toggle VWAP (volume-weighted average price, session-anchored)"><span class="it-chart-dot" style="background:#3b82f6"></span>VWAP</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="ema20" onclick="window.itChartToggleInd('ema20',this)" title="Toggle EMA 20"><span class="it-chart-dot" style="background:#f97316"></span>EMA 20</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="ema50" onclick="window.itChartToggleInd('ema50',this)" title="Toggle EMA 50"><span class="it-chart-dot" style="background:#9333ea"></span>EMA 50</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="sma44" onclick="window.itChartToggleInd('sma44',this)" title="Toggle SMA 44"><span class="it-chart-dot" style="background:#d97706"></span>SMA 44</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="bb" onclick="window.itChartToggleInd('bb',this)" title="Bollinger Bands — EMA-9 middle band (yellow), upper +2sd (red) / lower -2sd (blue)"><span class="it-chart-dot" style="background:#eab308"></span>BB (EMA 9)</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="macd" onclick="window.itChartToggleInd('macd',this)" title="MACD (12,26,9) — momentum oscillator in its own pane below price"><span class="it-chart-dot" style="background:#3b82f6"></span>MACD</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="rsi" onclick="window.itChartToggleInd('rsi',this)" title="RSI (14) — momentum oscillator in its own pane (70 overbought / 30 oversold)"><span class="it-chart-dot" style="background:#a855f7"></span>RSI</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="pdohlc" onclick="window.itChartToggleInd('pdohlc',this)" title="Previous-day OHLC levels — PDH (red), PDO (grey), PDC (yellow), PDL (green). Intraday timeframes only."><span class="it-chart-dot" style="background:#ef4444"></span>PD OHLC</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="cpr" onclick="window.itChartToggleInd('cpr',this)" title="Central Pivot Range — Pivot (gold), TC/BC central range (amber), R1/S1 (dashed). Day-type filter: narrow CPR = trending day, wide = range. Computed from the previous session, static all day. Intraday timeframes only."><span class="it-chart-dot" style="background:#facc15"></span>CPR</span>
+      <span class="it-chart-legend-sep"></span>
+      <span class="it-chart-legend-it it-ind-toggle active" data-ind="zoi" onclick="window.itChartToggleInd('zoi',this)" title="Demand (green) / Supply (red) zones — institutional order blocks (base + strong leg)"><span class="it-chart-dot" style="background:#8b5cf6"></span>ZOI</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="forming" onclick="window.itChartToggleInd('forming',this)" title="Forming (provisional) demand zones — amber/dashed early reads marked the instant a base candle closes, before any confirming leg. Low-trust: EARLY = small-starter candidate, WATCH = context only. Off by default."><span class="it-chart-dot" style="background:#f59e0b"></span>FORMING</span>
+      <span class="it-chart-legend-it it-ind-toggle active" data-ind="patterns" onclick="window.itChartToggleInd('patterns',this)" title="Tier-1 candlestick reversal/continuation markers"><span class="it-chart-dot" style="background:#22c55e"></span>PATTERNS</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="bos" onclick="window.itChartToggleInd('bos',this)" title="Market structure — Break of Structure / Change of Character (zigzag swings)"><span class="it-chart-dot" style="background:#eab308"></span>BOS</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="fvg" onclick="window.itChartToggleInd('fvg',this)" title="Fair Value Gaps — 3-candle price imbalances (unfilled gaps price tends to retrace into)"><span class="it-chart-dot" style="background:#3b82f6"></span>FVG</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="ob" onclick="window.itChartToggleInd('ob',this)" title="Order Blocks — last opposite candle before a displacement leg that broke structure"><span class="it-chart-dot" style="background:#14b8a6"></span>OB</span>
+      <span class="it-chart-legend-it it-ind-toggle" data-ind="chartpatterns" onclick="window.itChartToggleInd('chartpatterns',this)" title="Chart patterns — Head &amp; Shoulders, Double Top/Bottom, Cup &amp; Handle (neckline + measured-move target)"><span class="it-chart-dot" style="background:#e879f9"></span>CP</span>
+    </div>
+    <!-- Chart canvas -->
+    <div class="it-chart" id="it-chart"></div>
+    <div class="it-chart-nav" id="it-chart-nav">
+      <button type="button" class="it-chart-nav-btn" onclick="window.itChartNav('out')" title="Zoom out (show more candles)">&minus;</button>
+      <button type="button" class="it-chart-nav-btn" onclick="window.itChartNav('in')" title="Zoom in (show fewer candles)">+</button>
+      <button type="button" class="it-chart-nav-btn" onclick="window.itChartNav('left')" title="Scroll left (older)">&lsaquo;</button>
+      <button type="button" class="it-chart-nav-btn" onclick="window.itChartNav('right')" title="Scroll right (newer)">&rsaquo;</button>
+      <button type="button" class="it-chart-nav-btn" onclick="window.itChartNav('reset')" title="Reset view (latest candles)">&#8635;</button>
+    </div>
+    <div class="it-chart-status" id="it-chart-status">&mdash;</div>
+  </div>
+
+  <!-- ══════════════ VOLUME + CANDLE CONTEXT (2026-06-09) ══════════════
+       Two context chips directly beneath the chart, styled exactly like the
+       Live screen's gap / Bank-Nifty banners (.ia-event-chip). LEFT chip = the
+       fake-breakout VOLUME read (front-month futures volume / RVOL — genuine
+       break vs thin trap vs exhaustion). RIGHT chip = the latest CANDLESTICK
+       pattern on the chart's timeframe (non-repainting — the live forming bar
+       is dropped while the market is open). CONTEXT ONLY: mirrors the radar +
+       on-chart pattern markers, never a signal on its own. Rendered by
+       itRenderContextBanner(); hidden until a token + something to show. -->
+  <div class="ia-event-alerts it-ctx-banner" id="it-ctx-banner" hidden></div>
+
+  <!-- ══════════════ INTRADAY SETUP PLAN + TRADE PLAN ══════════════
+       Multi-timeframe trend read (1H / 30m / 15m / 5m) + a single CE/PE trade
+       plan (entry zone / SL / T1 / T2) — the intraday sibling of the Swing
+       Analyzer's Setup Plan, tuned for a ≤30-min OPTION-BUYER scalp.
+       DIRECTION comes from the ENTRY timeframes (5m + 15m): both up → BUY CALL
+       (CE), both down → BUY PUT (PE), disagree → WAIT. 1H + 30m are CONTEXT only
+       (confidence + note), NEVER a gate — a counter-1H scalp is still valid for a
+       ≤30-min hold. The plan is a SPOT-level plan for Nifty 50 (an index — the
+       buyer tracks these spot levels to time the CE/PE); levels are in index
+       points. Built from CONFIRMED structure + the previous session's levels
+       (CPR / PDH-PDL / VWAP / Fib / zones), so it is non-repainting. Reuses the
+       shared .sw-* setup/plan styling. Rendered by renderSetupPlan() +
+       renderTradePlan(); hidden until a token is present. Gated hard to WAIT. -->
+  <!-- ══════════════ ACTIVE SIGNAL STRIP ══════════════
+       The single "what do I do RIGHT NOW" line. This tab is a signal MONITOR
+       (the user enters / exits on their broker app), so each state is shown here
+       live: ENTER (a fresh BUY printed) · HOLD (a virtual trade is live, with
+       running points + whether the setup still backs it) · EXITED (just closed +
+       reason + result) · WAIT/WATCH (stay flat). Driven by renderActiveSignal()
+       from the live verdict + the signal journal's open / last-closed trade.
+       On-screen only — no pop-ups. Hidden until a token + a state exist. -->
+  <div class="it-signal" id="it-active-signal" data-state="wait" hidden></div>
+
+  <div class="it-setup" id="it-setup" hidden>
+    <div class="sw-struct-row sw-setup-row">
+      <div class="sw-struct-title">SETUP PLAN
+        <span class="it-setup-meta" id="it-setup-meta"></span>
+        <button type="button" class="it-cards-refresh" id="it-setup-refresh"
+          onclick="window.itSetupRefresh()" title="Re-read 1H / 30m / 15m / 5m and rebuild the plan">&#8635; Refresh</button>
+      </div>
+      <div class="sw-bias-bar it-bias-bar">
+        <div class="sw-bias-cell" data-tf="1h">
+          <span class="sw-bias-k">1 HOUR</span>
+          <span class="sw-bias-v" id="it-bias-1h">&mdash;</span>
+          <span class="sw-bias-sub" id="it-bias-1h-sub">&mdash;</span>
+        </div>
+        <div class="sw-bias-cell" data-tf="30m">
+          <span class="sw-bias-k">30 MIN</span>
+          <span class="sw-bias-v" id="it-bias-30m">&mdash;</span>
+          <span class="sw-bias-sub" id="it-bias-30m-sub">&mdash;</span>
+        </div>
+        <div class="sw-bias-cell" data-tf="15m">
+          <span class="sw-bias-k">15 MIN</span>
+          <span class="sw-bias-v" id="it-bias-15m">&mdash;</span>
+          <span class="sw-bias-sub" id="it-bias-15m-sub">&mdash;</span>
+        </div>
+        <div class="sw-bias-cell" data-tf="5m">
+          <span class="sw-bias-k">5 MIN</span>
+          <span class="sw-bias-v" id="it-bias-5m">&mdash;</span>
+          <span class="sw-bias-sub" id="it-bias-5m-sub">&mdash;</span>
+        </div>
+        <div class="sw-bias-cell sw-bias-cell-final" id="it-final-cell">
+          <span class="sw-bias-k">RECOMMENDATION</span>
+          <span class="sw-bias-v" id="it-final-bias">&mdash;</span>
+          <span class="sw-bias-sub" id="it-final-conf">&mdash;</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sw-tradeplan-title">SETUP TRADE PLAN<span class="sw-tradeplan-note" id="it-tplan-tfnote"></span></div>
+    <div class="sw-plan" id="it-tplan">
+      <div class="sw-plan-grid">
+        <div class="sw-plan-cell sw-plan-cell-entry">
+          <span class="sw-plan-cell-k" id="it-tplan-entry-k">ENTRY ZONE</span>
+          <span class="sw-plan-cell-v" id="it-tplan-entry">&mdash;</span>
+          <span class="sw-plan-cell-sub" id="it-tplan-entry-sub">&mdash;</span>
+        </div>
+        <div class="sw-plan-cell sw-plan-cell-sl">
+          <span class="sw-plan-cell-k">STOP LOSS</span>
+          <span class="sw-plan-cell-v" id="it-tplan-sl">&mdash;</span>
+          <span class="sw-plan-cell-sub" id="it-tplan-sl-sub">&mdash;</span>
+        </div>
+        <div class="sw-plan-cell sw-plan-cell-t1">
+          <span class="sw-plan-cell-k">TARGET 1</span>
+          <span class="sw-plan-cell-v" id="it-tplan-t1">&mdash;</span>
+          <span class="sw-plan-cell-sub" id="it-tplan-t1-sub">&mdash;</span>
+        </div>
+        <div class="sw-plan-cell sw-plan-cell-t2">
+          <span class="sw-plan-cell-k">TARGET 2</span>
+          <span class="sw-plan-cell-v" id="it-tplan-t2">&mdash;</span>
+          <span class="sw-plan-cell-sub" id="it-tplan-t2-sub">&mdash;</span>
+        </div>
+      </div>
+      <!-- CONFLUENCE CHIPS (2026-06-09) — the volume + candlestick reads at the
+           entry zone, surfaced as visible chips (not just buried in the WHY
+           prose). Populated by renderTradePlan from plan.volGate / plan.candle.
+           Hidden when there's no actionable CE/PE plan. -->
+      <div class="it-plan-conf" id="it-tplan-conf" hidden>
+        <span class="it-plan-conf-chip" id="it-tplan-conf-vol">&mdash;</span>
+        <span class="it-plan-conf-chip" id="it-tplan-conf-candle">&mdash;</span>
+      </div>
+      <!-- Strike → premium map: converts the SPOT-level plan above into the
+           option premium you'll actually see on your broker (uses live ATM
+           premium + real delta from the option chain). -->
+      <div class="it-prem-map" id="it-tplan-prem" hidden>
+        <div class="it-prem-map-head">
+          <span class="it-prem-map-ttl">On your broker &middot; option premium (approx)</span>
+          <span class="it-prem-map-tag" id="it-tplan-prem-tag">&mdash;</span>
+        </div>
+        <div class="it-prem-map-row">
+          <span class="it-prem-chip"><b>Entry</b><span id="it-prem-entry">&mdash;</span></span>
+          <span class="it-prem-chip it-prem-sl"><b>Stop</b><span id="it-prem-sl">&mdash;</span></span>
+          <span class="it-prem-chip it-prem-t1"><b>T1</b><span id="it-prem-t1">&mdash;</span></span>
+          <span class="it-prem-chip it-prem-t2"><b>T2</b><span id="it-prem-t2">&mdash;</span></span>
+        </div>
+        <span class="it-prem-map-note" id="it-tplan-prem-note">&mdash;</span>
+      </div>
+      <div class="sw-plan-why" id="it-tplan-why-wrap">
+        <div class="sw-plan-why-block">
+          <h4>WHY THIS TRADE</h4>
+          <p id="it-tplan-why">&mdash;</p>
+        </div>
+        <div class="sw-plan-why-block sw-plan-why-block-skip">
+          <h4>SKIP IF</h4>
+          <ul id="it-tplan-skip"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ FAKE-BREAKOUT RADAR ══════════════
+       Tells a GENUINE breakout from a TRAP using real volume. The Nifty INDEX
+       reports vol=0 on Upstox, so we borrow the front-month Nifty FUTURE's
+       volume (the standard "index volume" proxy). The detector watches key
+       levels (previous-day high/low, opening-range high/low), flags when price
+       pierces one and CLOSES BACK INSIDE (a trap) vs closes beyond and holds (a
+       real break), and grades participation via relative volume (RVOL).
+       NON-REPAINTING — judged on CLOSED bars only; the live forming bar is at
+       most "forming". FAIL-SAFE — no futures volume → it shows the structural
+       read and marks volume "unconfirmed", never a fabricated claim. DISPLAY
+       ONLY. Rendered by renderFakeBreakout(); hidden until levels + data exist. -->
+  <details class="it-acc it-acc-auto" data-acc="breakout" open hidden>
+    <summary class="it-acc-summary"><span class="it-acc-ttl">Fake-Breakout Radar</span><span class="it-acc-chev" aria-hidden="true"></span></summary>
+    <div class="it-acc-body">
+      <div class="it-bo-cards" id="it-breakout-cards" hidden></div>
+    </div>
+  </details>
+
+  <!-- ══════════════ INTRADAY CONTEXT CARDS ══════════════
+       India VIX / Max Pain / PCR — plain-language reasoning + tooltips to
+       help frame an intraday trade. DISPLAY ONLY — no buy/sell signal.
+       Data: VIX via a gated Upstox fetch; Max Pain + PCR from the live
+       option chain (window.optionChainData). Rendered by renderCards(). -->
+  <div class="it-cards" id="it-cards" hidden>
+    <div class="it-cards-head">
+      <span class="it-cards-title">Intraday Context</span>
+      <span class="it-cards-meta" id="it-cards-meta"></span>
+      <button type="button" class="it-cards-refresh" id="it-cards-refresh"
+        onclick="window.itCardsRefresh()" title="Re-fetch India VIX + option chain">&#8635; Refresh</button>
+    </div>
+    <div class="it-cards-grid" id="it-cards-grid"></div>
+  </div>
+
+  <!-- ══════════════ CANDLESTICK PATTERN CARDS ══════════════
+       Tier-1 candlestick reversals on the current TF, each labelled with its
+       location (demand/supply zone, Fib golden pocket, or open space) and how
+       it played out (LIVE / ✓ WORKED / ✗ FAILED via 2R-target vs formation
+       stop). Mirrors the Swing Analyzer's deck. DISPLAY ONLY — never a signal.
+       Tap a card to centre the chart on that bar. "Show history" reveals every
+       detected pattern on BOTH the chart markers and the cards (like swing).
+       Rendered by renderCandlePatternCards(); hidden until patterns exist. -->
+  <details class="it-acc it-acc-auto" data-acc="candle" open>
+    <summary class="it-acc-summary"><span class="it-acc-ttl">Candlestick Patterns</span><span class="it-acc-chev" aria-hidden="true"></span></summary>
+    <div class="it-acc-body">
+      <div class="it-pattern-cards" id="it-candle-cards" hidden></div>
+    </div>
+  </details>
+
+  <!-- ══════════════ CHART PATTERN CARDS ══════════════
+       Geometric patterns (Head & Shoulders, Double Top/Bottom, Cup & Handle)
+       via the shared window.ChartPatterns engine, with target + invalidation
+       and worked/failed history. DISPLAY ONLY. Rendered by
+       renderChartPatternCards(); hidden until patterns exist. -->
+  <details class="it-acc it-acc-auto" data-acc="cp" open>
+    <summary class="it-acc-summary"><span class="it-acc-ttl">Chart Patterns</span><span class="it-acc-chev" aria-hidden="true"></span></summary>
+    <div class="it-acc-body">
+      <div class="it-cp-cards" id="it-cp-cards" hidden></div>
+    </div>
+  </details>
+
+  <!-- ══════════════ CPR (CENTRAL PIVOT RANGE) CARD ══════════════
+       Daily pivot framework framed as a day-type filter (NARROW=trending /
+       NORMAL / WIDE=range) + where price sits vs Pivot / TC / BC, with the full
+       R/S ladder and plain-language "how to trade it". Mirrors the Options-
+       Trading tab's CPR pill semantics. Levels via the shared
+       IndicatorMath.computeCPR (single source of truth with the chart overlay).
+       DISPLAY ONLY — never a buy/sell verdict. Computed from the PREVIOUS
+       session (authoritative daily candle, intraday-aggregation fallback) so it
+       is static all day / non-repainting. Rendered by renderCprCard(); hidden
+       on the 1d TF and when no prior session is available (fail safe). -->
+  <details class="it-acc it-acc-auto" data-acc="cpr" open>
+    <summary class="it-acc-summary"><span class="it-acc-ttl">Central Pivot Range (CPR)</span><span class="it-acc-chev" aria-hidden="true"></span></summary>
+    <div class="it-acc-body">
+      <div class="it-cpr-cards" id="it-cpr-cards" hidden></div>
+    </div>
+  </details>
+
+  <!-- ══════════════ FIBONACCI RETRACEMENT CARD ══════════════
+       Mirrors the Swing Analyzer's Fib card (golden pocket, depth/volume bars,
+       direction tags, leg/now footer) for the current TF, PLUS a full ladder of
+       every Fib level (0 / 23.6 / 38.2 / 50 / 61.8 / 80 / 100%) with prices.
+       DISPLAY ONLY — a descriptive read of the retracement, NOT a buy/sell
+       verdict. Driven by the shared window._swCP.computeFibZone. Rendered by
+       renderFibCard(); hidden until there's a usable swing leg. -->
+  <details class="it-acc it-acc-auto" data-acc="fib" open>
+    <summary class="it-acc-summary"><span class="it-acc-ttl">Fibonacci Retracement</span><span class="it-acc-chev" aria-hidden="true"></span></summary>
+    <div class="it-acc-body">
+      <div class="it-fib-cards" id="it-fib-cards" hidden></div>
+    </div>
+  </details>
+
+  <!-- ══════════════ SUPPLY & DEMAND ZONE CARDS ══════════════
+       The demand/supply zones drawn on the chart, explained as cards (same
+       shape as the Swing Analyzer's ZOI deck): proximal/distal edges, where
+       price sits now, and a full REASONING / CONFLUENCE / RISKS-TO-WEIGH block.
+       Fact-based and DISPLAY ONLY — describes each zone honestly, never emits a
+       buy/sell verdict (this chart feeds no signal). Built from the same
+       detectZones() the chart bands use. Rendered by renderZoiCards(); hidden
+       until at least one live zone exists. -->
+  <details class="it-acc it-acc-auto" data-acc="zoi" open>
+    <summary class="it-acc-summary"><span class="it-acc-ttl">Supply &amp; Demand Zones</span><span class="it-acc-chev" aria-hidden="true"></span></summary>
+    <div class="it-acc-body">
+      <div class="it-zoi-cards" id="it-zoi-cards" hidden></div>
+    </div>
+  </details>
+
+  <!-- ══════════════ FORMING (PROVISIONAL) DEMAND ZONE CARDS ══════════════
+       The amber/dashed forming zones drawn on the chart when the "Forming"
+       legend chip is on (default OFF). Same shape as the Swing Analyzer's
+       forming deck (reuses .sw-forming-* classes): tier (EARLY/WATCH),
+       evidence chips, and the Formed date. Early, UNCONFIRMED, low-trust reads
+       — DISPLAY ONLY, never a buy/sell verdict. Rendered by renderFormingCards();
+       hidden whenever the chip is off or no forming zone is currently live. -->
+  <details class="it-acc it-acc-auto" data-acc="forming" open>
+    <summary class="it-acc-summary"><span class="it-acc-ttl">Forming Zones (early)</span><span class="it-acc-chev" aria-hidden="true"></span></summary>
+    <div class="it-acc-body">
+      <div class="sw-forming-cards it-forming-cards" id="it-forming-cards" hidden></div>
+    </div>
+  </details>
+
+  <!-- ══════════════ OPTION CHAIN DASHBOARD (INTRADAY-OWNED) ══════════════
+       Self-contained clone of the Options-tab chain dashboard, but driven
+       SOLELY by the intraday store window.itOptionChainData (filled by this
+       tab's own fetchChainDirect — NOT the Options tab's upFetchChain) and
+       rendered by scripts/intraday-chain.js into itc-* ids. Reuses the up-*
+       CSS classes (styles/option-chain.css) for visuals only — no runtime
+       wiring to liveChainModule, so the Options tab can be removed later
+       without breaking this. Stats grid + live CE|STRIKE|PE table + OI bar
+       chart + support/resistance walls + bias verdict.
+       Positioned at the bottom of the deck, directly above the Signal Journal. -->
+  <details class="it-acc" data-acc="chain" open>
+    <summary class="it-acc-summary"><span class="it-acc-ttl">Option Chain</span><span class="it-acc-chev" aria-hidden="true"></span></summary>
+    <div class="it-acc-body">
+  <div class="it-chain-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:0">
+    <span class="it-cards-title">Live Nifty option chain</span>
+    <button type="button" class="it-cards-refresh" id="itc-fetch-btn"
+      onclick="window.itcFetchChain()" data-tip="Fetch / refresh the live Nifty option chain (intraday-owned — independent of the Options tab)">&#8635; Fetch / refresh chain</button>
+  </div>
+  <div id="itc-status" class="up-status" style="display:none;margin-top:10px"></div>
+
+  <div class="up-card" id="itc-dashboard" style="display:none;margin-top:12px">
+    <h3 id="itc-dashboard-title">Option Chain Snapshot</h3>
+
+    <div class="up-chain-table-head">
+      <h3 style="margin:0;font-size:14px;letter-spacing:0.04em;text-transform:uppercase;color:var(--text-soft)">Live Option Chain</h3>
+      <span class="up-chain-table-sub">Auto-refreshes every 30s while the tab is open and the market is live.</span>
+    </div>
+    <div id="itc-chain-table-wrap" class="up-chain-table-wrap"></div>
+
+    <div id="itc-chart-wrap"></div>
+    <div class="up-chart-legend-tips">
+      <div class="tip bull"><b>Tall green bars</b> = strikes where Put writers are committed &mdash; <b>support / floor</b>.</div>
+      <div class="tip bear"><b>Tall red bars</b> = strikes where Call writers are committed &mdash; <b>resistance / ceiling</b>.</div>
+      <div class="tip info"><b>Dashed blue line</b> = current spot. The bigger OI stack is the side price will struggle to cross.</div>
+    </div>
+
+    <div class="up-walls-head">
+      <h3>Walls Detected</h3>
+      <span class="up-walls-sub">The biggest concentration of writer money on each side &mdash; treat these like price magnets or barriers.</span>
+    </div>
+    <div id="itc-walls-grid" class="up-walls-grid"></div>
+  </div>
+    </div>
+  </details>
+
+  <!-- ══════════════ SIGNAL JOURNAL · AUTO-TRADE ══════════════
+       INDEPENDENT, self-contained forward-test. When the AUTO-TRADE switch is
+       ON, every fresh BUY the setup engine fires opens a virtual SPOT trade
+       tracked HERE only — it does NOT touch the paper-trading desk or its JSON.
+       The trade fills at the plan's entry level and is scored in index POINTS
+       when live spot crosses the plan's T1 (win) or SL (loss), or at 15:25 EOD.
+       Persists to its OWN JSON (data/intraday-signal-journal.json) so it
+       survives a browser storage clear. SIMULATED — no real orders.
+       Positioned directly above the paper-trading desk by request. -->
+  <div class="it-journal" id="it-journal">
+    <div class="it-journal-head">
+      <div class="it-journal-intro">
+        <h3 class="it-journal-title">Recommendation Journal &middot; Track Your Edge</h3>
+        <p class="it-journal-sub">Arm <b>Auto-Trade</b> and every BUY CE / BUY PE the engine fires opens a virtual spot trade logged below — fully independent of the paper-trading desk. Each is scored in <b>points</b> when spot hits T1 or SL. Log <b>30–50 signals</b> before going live so the win-rate is meaningful. Saved to its own JSON.</p>
+      </div>
+      <div class="it-journal-controls">
+        <!-- Live / Archive view switch — Archive shows previously cleared trades
+             (read-only); Live shows the current journal. -->
+        <div class="it-journal-view" role="tablist" aria-label="Journal view">
+          <button type="button" class="it-journal-view-btn is-on" id="it-view-live"
+            role="tab" aria-selected="true" onclick="window.itJournalSetView('live')">Live</button>
+          <button type="button" class="it-journal-view-btn" id="it-view-archive"
+            role="tab" aria-selected="false" onclick="window.itJournalSetView('archive')">Archive</button>
+        </div>
+        <!-- Custom day-filter dropdown (NOT a native <select> — its OS popup
+             can't be themed; this button + list is fully app-themed). -->
+        <div class="it-journal-day" id="it-journal-day">
+          <button type="button" class="it-journal-day-btn" id="it-journal-day-btn"
+            aria-haspopup="listbox" aria-expanded="false"
+            title="Show signals for one day (stats follow the selected day)"
+            onclick="window.itJournalToggleDayMenu()">
+            <span class="it-journal-day-ico" aria-hidden="true">&#128197;</span>
+            <span class="it-journal-day-cur" id="it-journal-day-cur">All days</span>
+            <span class="it-journal-day-caret" aria-hidden="true"></span>
+          </button>
+          <ul class="it-journal-day-menu" id="it-journal-day-menu" role="listbox"
+            aria-label="Filter signals by day" hidden></ul>
+        </div>
+        <button type="button" id="it-auto-toggle" class="it-auto-toggle" role="switch"
+          data-on="false" aria-checked="false" onclick="window.itToggleAutoTrade()"
+          title="Arm auto-trade: place a resting virtual order for every fresh BUY signal — it fills only on a genuine retest (independent of the paper desk)">
+          <span class="it-auto-track"><span class="it-auto-knob"></span></span>
+          <span class="it-auto-label" id="it-auto-toggle-label">Auto-Trade OFF</span>
+        </button>
+        <button type="button" class="it-journal-clear" onclick="window.itClearJournal()"
+          title="Archive &amp; clear the on-screen journal (history is kept in the archive JSON)">Clear</button>
+      </div>
+    </div>
+    <details class="it-acc it-acc-sub" data-acc="journal" open>
+      <summary class="it-acc-summary"><span class="it-acc-ttl">Stats &amp; logged signals</span><span class="it-acc-chev" aria-hidden="true"></span></summary>
+      <div class="it-acc-body">
+    <div class="it-journal-stats">
+      <div class="it-journal-stat"><span class="it-journal-stat-k">Signals</span><span class="it-journal-stat-v" id="it-j-signals">0</span></div>
+      <div class="it-journal-stat"><span class="it-journal-stat-k">Scored</span><span class="it-journal-stat-v" id="it-j-taken">0</span></div>
+      <div class="it-journal-stat"><span class="it-journal-stat-k">Win rate</span><span class="it-journal-stat-v" id="it-j-winrate">&mdash;</span></div>
+      <div class="it-journal-stat"><span class="it-journal-stat-k">Net points</span><span class="it-journal-stat-v" id="it-j-pnl">&mdash;</span></div>
+    </div>
+    <div class="it-journal-table-wrap">
+      <table class="it-journal-table">
+        <thead><tr>
+          <th>When</th><th>Side</th><th>Strike</th><th>Conf</th>
+          <th>Entry &#8377;</th><th>SL &#8377;</th><th>T1 &#8377;</th><th>R</th><th>Status / Outcome</th><th>Exit</th>
+        </tr></thead>
+        <tbody id="it-journal-tbody">
+          <tr><td colspan="10" class="it-journal-empty">No signals logged yet. Turn on <b>Auto-Trade</b>; every BUY the engine fires opens a virtual spot trade here and is scored in points when it hits T1 / SL.</td></tr>
+        </tbody>
+      </table>
+    </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ══════ INTRADAY PAPER TRADING (independent sandbox) ══════
+       Full clone of the Live-tab paper-trading desk, but a SEPARATE book
+       (localStorage 'intraday_paper_trade_state_v1' + durable server mirror
+       data/intraday-paper-trades.json). All element ids are 'itp-*' so they
+       never collide with the Live tab's 'pt-*' ids; CSS classes stay 'pt-*'
+       (shared styles/paper-trading.css). Driven by scripts/intraday-paper-trade.js
+       (window.itp*). SIMULATED — no real orders. -->
+  <div class="it-paper" id="it-paper">
+<div class="pt-shell">
+        <div class="pt-head">
+          <h3>Intraday Paper Trading &mdash; Nifty 50</h3>
+          <span class="pt-disc" title="Simulated trades only. No real orders are placed.">SIMULATED &middot; NO REAL MONEY</span>
+        </div>
+
+        <!-- Hero: account summary (equity hero + P&L pair + market context).
+             Replaces the old 5-cell strip with a visually hierarchical
+             dashboard: the biggest number (equity) leads, secondary metrics
+             follow in tinted cards so each value's importance is obvious at
+             a glance. All element IDs (#pt-equity, #pt-equity-pct,
+             #pt-pnl-open, #pt-pnl-open-pct, #pt-pnl-today, #pt-pnl-today-sub,
+             #pt-spot, #pt-spot-sub, #pt-expiry) are preserved so the
+             existing renderEquity / renderTodayPnL / renderSpot updaters
+             continue to work without changes. -->
+        <div class="pt-hero">
+          <div class="pt-hero-equity">
+            <div class="pt-hero-equity-lbl">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="6" width="18" height="13" rx="2"></rect>
+                <path d="M3 10h18"></path>
+                <path d="M8 15h2"></path>
+              </svg>
+              Equity (Total Capital)
+            </div>
+            <div class="pt-hero-equity-val" id="itp-equity">&#8377;1,00,000</div>
+            <div class="pt-hero-equity-foot">
+              <span class="pt-hero-equity-pct" id="itp-equity-pct">+0.00%</span>
+              <span class="pt-hero-equity-base">from &#8377;1,00,000 starting capital</span>
+            </div>
+          </div>
+          <div class="pt-hero-pnl">
+            <div class="pt-hero-pnl-card pt-hero-today"
+              title="Realized P&L from trades closed today (IST). Resets at midnight.">
+              <div class="pt-hero-pnl-lbl">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 17l6-6 4 4 8-8"></path>
+                  <polyline points="14,7 21,7 21,14"></polyline>
+                </svg>
+                P&amp;L Today
+              </div>
+              <div class="pt-hero-pnl-val" id="itp-pnl-today">&#8377;0</div>
+              <div class="pt-hero-pnl-sub" id="itp-pnl-today-sub">0 trades</div>
+            </div>
+            <div class="pt-hero-pnl-card pt-hero-open"
+              title="Floating (unrealized) P&L on currently open positions. Updates with each tick.">
+              <div class="pt-hero-pnl-lbl">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <polyline points="12,7 12,12 15,14"></polyline>
+                </svg>
+                Open P&amp;L
+              </div>
+              <div class="pt-hero-pnl-val" id="itp-pnl-open">&#8377;0</div>
+              <div class="pt-hero-pnl-sub" id="itp-pnl-open-pct">0.00%</div>
+            </div>
+          </div>
+          <div class="pt-hero-ctx">
+            <div class="pt-hero-ctx-row">
+              <div class="pt-hero-ctx-key">
+                <span class="pt-hero-ctx-dot pt-hero-ctx-dot-spot"></span>
+                Nifty 50
+              </div>
+              <div class="pt-hero-ctx-val" id="itp-spot">&mdash;</div>
+              <div class="pt-hero-ctx-sub" id="itp-spot-sub">Live (1s)</div>
+            </div>
+            <div class="pt-hero-ctx-divider"></div>
+            <div class="pt-hero-ctx-row">
+              <div class="pt-hero-ctx-key">
+                <span class="pt-hero-ctx-dot pt-hero-ctx-dot-expiry"></span>
+                Expiry
+              </div>
+              <div class="pt-hero-ctx-val" id="itp-expiry">&mdash;</div>
+              <div class="pt-hero-ctx-sub">Weekly</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Position config: Exit All / Reset (per-side lot stepper now lives inside each BUY card below).
+             The combined 15:25 IST notice (auto square-off + auto-cancel) sits here, between
+             the stats strip and the trade ticket, so the rule is announced ONCE up front
+             instead of being repeated as a badge in every section header below. -->
+        <div class="pt-ticket">
+          <span class="pt-lot-hint">Nifty 50 &middot; 1 lot = 65 qty</span>
+          <span class="pt-eod-tag pt-eod-tag-combined"
+            title="At 15:25 IST every weekday: all open positions are auto-squared off AND all unfilled LIMIT / STOP orders are auto-cancelled — mirrors Upstox's intraday DAY-order behaviour.">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <polyline points="12,7 12,12 15,14" />
+            </svg>
+            At <b>15:25 IST</b> &middot; positions auto square-off &middot; pending orders auto-cancel
+          </span>
+          <div class="pt-ticket-actions">
+            <button class="pt-mini" type="button" onclick="itpExitAll()" title="Close all open positions">EXIT
+              ALL</button>
+            <button class="pt-mini" type="button" onclick="itpReset()"
+              title="Reset capital, clear all positions and history">RESET</button>
+          </div>
+        </div>
+
+        <!-- ─── OPTIONS (Buy CE / Buy PE at chosen strike) ─── -->
+        <div class="pt-trade-row pt-trade-opts">
+          <div class="pt-opts-head">
+            <div class="pt-opt-strike">
+              <label for="itp-strike-trigger">Strike</label>
+              <div class="pt-strike-picker" id="itp-strike-picker">
+                <button class="pt-strike-trigger" type="button" id="itp-strike-trigger" onclick="itpToggleStrikes(event)"
+                  disabled>
+                  <span class="pt-strike-trigger-num" id="itp-strike-current">&mdash;</span>
+                  <span class="pt-strike-trigger-tag" id="itp-strike-atm-tag" hidden>ATM</span>
+                  <svg class="pt-strike-chev" viewBox="0 0 12 12" aria-hidden="true">
+                    <polyline points="3,5 6,8 9,5" fill="none" stroke="currentColor" stroke-width="1.7"
+                      stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+                <div class="pt-strike-pop" id="itp-strike-pop" hidden>
+                  <div class="pt-strike-pop-head">
+                    <input type="text" class="pt-strike-search" id="itp-strike-search"
+                      placeholder="Search strike (e.g. 24200)..." oninput="itpStrikeSearch(this.value)"
+                      autocomplete="off">
+                  </div>
+                  <div class="pt-strike-list-head">
+                    <span class="pt-strike-col-ce">CE</span>
+                    <span class="pt-strike-col-strike">Strike</span>
+                    <span class="pt-strike-col-pe">PE</span>
+                  </div>
+                  <div class="pt-strike-list" id="itp-strike-list">
+                    <div class="pt-strike-empty">Strikes load automatically when chart starts.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="pt-mini" type="button" id="itp-load-strikes-btn" onclick="itpLoadStrikes()"
+              title="Refresh live option premiums">&#8635; REFRESH</button>
+            <span class="pt-live-tag" id="itp-live-tag" hidden>
+              <span class="pt-live-dot"></span>
+              <span class="pt-live-txt">LIVE</span>
+              <span class="pt-live-ago" id="itp-live-ago">just now</span>
+            </span>
+          </div>
+          <div class="pt-opt-grid">
+            <div class="pt-opt-side pt-opt-ce">
+              <div class="pt-opt-prem">
+                <span class="pt-opt-prem-lbl">CE Premium <span class="pt-money-tag" id="itp-opt-ce-money" hidden></span></span>
+                <span class="pt-opt-prem-val" id="itp-opt-ce-val">&mdash;</span>
+              </div>
+              <!-- Order-type selector (Upstox-style: Market / Limit / Stop).
+                   MARKET = fill now at live LTP (original behaviour).
+                   LIMIT  = wait for premium to fall to your price (pullback entry).
+                   STOP   = wait for premium to rise to your price (breakout entry).
+                   The trigger and SL/TGT rows below are hidden until LIMIT or
+                   STOP is picked (progressive disclosure keeps the default
+                   one-click flow clean). -->
+              <div class="pt-ot-type" role="radiogroup" aria-label="CE order type">
+                <button type="button" class="pt-ot-pill active" data-side="ce" data-type="MARKET"
+                  onclick="itpSetOrderType('ce','MARKET')" title="Fill immediately at the live premium">Market</button>
+                <button type="button" class="pt-ot-pill" data-side="ce" data-type="LIMIT"
+                  onclick="itpSetOrderType('ce','LIMIT')"
+                  title="Place an order that fills only when the premium drops to your price (pullback entry)">Limit</button>
+                <button type="button" class="pt-ot-pill" data-side="ce" data-type="STOP"
+                  onclick="itpSetOrderType('ce','STOP')"
+                  title="Place an order that fills only when the premium rises to your price (breakout entry)">Stop</button>
+              </div>
+              <div class="pt-qty pt-qty-mini" title="Lots for BUY CE">
+                <label for="itp-qty-ce">Lots</label>
+                <button type="button" onclick="itpIncQty(-1,'ce')" aria-label="Decrease CE lots">&minus;</button>
+                <input type="number" id="itp-qty-ce" value="1" min="1" max="20" onchange="itpSetQty(this.value,'ce')"
+                  autocomplete="off" data-1p-ignore data-lpignore="true">
+                <button type="button" onclick="itpIncQty(1,'ce')" aria-label="Increase CE lots">+</button>
+              </div>
+              <input class="pt-ot-trigger" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                id="itp-ot-trigger-ce" placeholder="Trigger price (&#8377;)"
+                autocomplete="off" data-1p-ignore data-lpignore="true"
+                oninput="itpSetTriggerPrice('ce',this.value)" hidden>
+              <div class="pt-ot-risk" id="itp-ot-risk-ce" hidden>
+                <input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                  data-which="sl" id="itp-ot-sl-ce" placeholder="Attached SL (&#8377;)"
+                  autocomplete="off" data-1p-ignore data-lpignore="true"
+                  oninput="itpSetAttachedRisk('ce','sl',this.value)"
+                  title="When this order fills, an automatic stop-loss will be set at this premium price">
+                <input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                  data-which="tgt" id="itp-ot-tgt-ce" placeholder="Attached Target (&#8377;)"
+                  autocomplete="off" data-1p-ignore data-lpignore="true"
+                  oninput="itpSetAttachedRisk('ce','tgt',this.value)"
+                  title="When this order fills, an automatic target will be set at this premium price">
+              </div>
+              <div class="pt-ot-hint" id="itp-ot-hint-ce" hidden></div>
+              <button class="pt-btn pt-buy pt-btn-sm" type="button" id="itp-buy-ce-btn" onclick="itpBuyCE()" disabled>BUY
+                CE</button>
+            </div>
+            <div class="pt-opt-side pt-opt-pe">
+              <div class="pt-opt-prem">
+                <span class="pt-opt-prem-lbl">PE Premium <span class="pt-money-tag" id="itp-opt-pe-money" hidden></span></span>
+                <span class="pt-opt-prem-val" id="itp-opt-pe-val">&mdash;</span>
+              </div>
+              <div class="pt-ot-type" role="radiogroup" aria-label="PE order type">
+                <button type="button" class="pt-ot-pill active" data-side="pe" data-type="MARKET"
+                  onclick="itpSetOrderType('pe','MARKET')" title="Fill immediately at the live premium">Market</button>
+                <button type="button" class="pt-ot-pill" data-side="pe" data-type="LIMIT"
+                  onclick="itpSetOrderType('pe','LIMIT')"
+                  title="Place an order that fills only when the premium drops to your price (pullback entry)">Limit</button>
+                <button type="button" class="pt-ot-pill" data-side="pe" data-type="STOP"
+                  onclick="itpSetOrderType('pe','STOP')"
+                  title="Place an order that fills only when the premium rises to your price (breakout entry)">Stop</button>
+              </div>
+              <div class="pt-qty pt-qty-mini" title="Lots for BUY PE">
+                <label for="itp-qty-pe">Lots</label>
+                <button type="button" onclick="itpIncQty(-1,'pe')" aria-label="Decrease PE lots">&minus;</button>
+                <input type="number" id="itp-qty-pe" value="1" min="1" max="20" onchange="itpSetQty(this.value,'pe')"
+                  autocomplete="off" data-1p-ignore data-lpignore="true">
+                <button type="button" onclick="itpIncQty(1,'pe')" aria-label="Increase PE lots">+</button>
+              </div>
+              <input class="pt-ot-trigger" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                id="itp-ot-trigger-pe" placeholder="Trigger price (&#8377;)"
+                autocomplete="off" data-1p-ignore data-lpignore="true"
+                oninput="itpSetTriggerPrice('pe',this.value)" hidden>
+              <div class="pt-ot-risk" id="itp-ot-risk-pe" hidden>
+                <input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                  data-which="sl" id="itp-ot-sl-pe" placeholder="Attached SL (&#8377;)"
+                  autocomplete="off" data-1p-ignore data-lpignore="true"
+                  oninput="itpSetAttachedRisk('pe','sl',this.value)"
+                  title="When this order fills, an automatic stop-loss will be set at this premium price">
+                <input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                  data-which="tgt" id="itp-ot-tgt-pe" placeholder="Attached Target (&#8377;)"
+                  autocomplete="off" data-1p-ignore data-lpignore="true"
+                  oninput="itpSetAttachedRisk('pe','tgt',this.value)"
+                  title="When this order fills, an automatic target will be set at this premium price">
+              </div>
+              <div class="pt-ot-hint" id="itp-ot-hint-pe" hidden></div>
+              <button class="pt-btn pt-sell pt-btn-sm" type="button" id="itp-buy-pe-btn" onclick="itpBuyPE()" disabled>BUY
+                PE</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── PENDING ORDERS (card layout) ─────────────────────────────
+             Old wide table replaced with a stack of cards. Each card shows
+             the instrument tag, order-type pill, lots and placed-time on a
+             header row; trigger / live LTP / distance-to-fire as a 3-up
+             metric row (so the "how close is it?" question gets a big
+             visual answer); and SL / target chips + cancel button as a
+             footer. Identifiers .pt-c-pending-ltp and .pt-c-pending-dist
+             are preserved so updatePendingRows() in-place updates still
+             work tick-by-tick. -->
+        <div class="pt-section">
+          <h4>
+            Pending Orders <span class="pt-cnt" id="itp-pending-cnt">(0)</span>
+            <span class="pt-actions"><button class="pt-mini" type="button" onclick="itpCancelAllPending()"
+              title="Cancel every unfilled LIMIT / STOP order">CANCEL ALL</button></span>
+          </h4>
+          <div class="pt-cards" id="itp-pending-cards">
+            <div class="pt-empty pt-empty-card">No pending orders. Pick <b>LIMIT</b> or <b>STOP</b> in the
+              CE/PE card above, enter your trigger price, then click <b>PLACE LIMIT / STOP BUY</b> to queue one.</div>
+          </div>
+        </div>
+
+        <!-- ─── OPEN POSITIONS (tabular) ─────────────────────────────────
+             Compact 11-column table:
+             Instrument / Side / Lots / Entry / Time / LTP / Pts / P&L /
+             Stop Loss / Target / [exit-button]. Easier to scan than the
+             card-style layout — every column lines up so you can compare
+             P&L / SL / TGT across multiple positions at a glance.
+             data-pos-id, .pt-c-ltp, .pt-c-pts, .pt-c-pnl preserved for
+             updateOpenRows() in-place updates. Wrapped in overflow-x:auto
+             so the table scrolls horizontally on narrow viewports. -->
+        <div class="pt-section">
+          <h4>
+            Open Positions <span class="pt-cnt" id="itp-open-cnt">(0)</span>
+            <span class="pt-eod-tag" title="All open positions are auto-squared off at 15:25 IST on weekdays.">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <polyline points="12,7 12,12 15,14" />
+              </svg>
+              Auto square-off at <b>15:25 IST</b>
+            </span>
+          </h4>
+          <div style="overflow-x:auto">
+            <table class="pt-table">
+              <thead>
+                <tr>
+                  <th>Instrument</th>
+                  <th>Side</th>
+                  <th>Lots</th>
+                  <th>Entry</th>
+                  <th>Time</th>
+                  <th>LTP</th>
+                  <th>Pts</th>
+                  <th>P&amp;L</th>
+                  <th>Stop Loss</th>
+                  <th>Target</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="itp-open-tbody">
+                <tr>
+                  <td colspan="11" class="pt-empty">No open positions. Pick a strike from the dropdown &rarr; click
+                    <b>BUY CE</b> or <b>BUY PE</b> to open one.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ─── TRADE HISTORY (tabular) ───────────────────────────────────
+             Closed trades shown as a compact 9-column table:
+             Result / Instrument / Side / Lots / Entry / Exit / Pts / P&L /
+             Held. Easier to scan than the card-style timeline when you
+             have many trades — every column aligns vertically so you can
+             compare entries/exits/P&Ls at a glance.
+             Wrapped in overflow-x:auto so the table scrolls horizontally
+             on narrow viewports without breaking layout. -->
+        <div class="pt-section">
+          <h4>
+            Trade History <span class="pt-cnt" id="itp-hist-cnt">(0)</span>
+            <span class="pt-actions"><button class="pt-mini" type="button" onclick="itpClearHistory()">CLEAR
+                HISTORY</button></span>
+          </h4>
+          <div style="overflow-x:auto">
+            <table class="pt-table">
+              <thead>
+                <tr>
+                  <th>Result</th>
+                  <th>Instrument</th>
+                  <th>Side</th>
+                  <th>Lots</th>
+                  <th>Entry</th>
+                  <th>Exit</th>
+                  <th>Pts</th>
+                  <th>P&amp;L</th>
+                  <th>Held</th>
+                </tr>
+              </thead>
+              <tbody id="itp-hist-tbody">
+                <tr>
+                  <td colspan="9" class="pt-empty">No closed trades yet. Trade history will appear here after you EXIT a
+                    position.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ─── SESSION STATS (metric tiles) ─────────────────────────────
+             Visual tile per stat, each with a small icon glyph and a
+             colored top accent strip; values are color-coded (green/red)
+             via the existing renderStats() function (IDs preserved). -->
+        <div class="pt-section">
+          <h4>Stats</h4>
+          <div class="pt-metric-tiles">
+            <div class="pt-metric-tile pt-mt-trades">
+              <div class="pt-metric-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                  <path d="M9 3v18M3 9h18"></path>
+                </svg>
+              </div>
+              <div class="pt-metric-label">Trades</div>
+              <div class="pt-metric-value" id="itp-stat-n">0</div>
+            </div>
+            <div class="pt-metric-tile pt-mt-wr">
+              <div class="pt-metric-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"></path>
+                </svg>
+              </div>
+              <div class="pt-metric-label">Win Rate</div>
+              <div class="pt-metric-value" id="itp-stat-wr">&mdash;</div>
+            </div>
+            <div class="pt-metric-tile pt-mt-avg">
+              <div class="pt-metric-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 12h18"></path>
+                  <path d="M3 6h18"></path>
+                  <path d="M3 18h18"></path>
+                </svg>
+              </div>
+              <div class="pt-metric-label">Avg P&amp;L</div>
+              <div class="pt-metric-value" id="itp-stat-avg">&mdash;</div>
+            </div>
+            <div class="pt-metric-tile pt-mt-best">
+              <div class="pt-metric-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 17l6-6 4 4 8-8"></path>
+                  <polyline points="14,7 21,7 21,14"></polyline>
+                </svg>
+              </div>
+              <div class="pt-metric-label">Best Trade</div>
+              <div class="pt-metric-value" id="itp-stat-best">&mdash;</div>
+            </div>
+            <div class="pt-metric-tile pt-mt-worst">
+              <div class="pt-metric-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 7l6 6 4-4 8 8"></path>
+                  <polyline points="14,17 21,17 21,10"></polyline>
+                </svg>
+              </div>
+              <div class="pt-metric-label">Worst Trade</div>
+              <div class="pt-metric-value" id="itp-stat-worst">&mdash;</div>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+</div>

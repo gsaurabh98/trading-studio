@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(node --check:*)",
+      "Bash(node scripts/backtest/find-missed-winners.mjs:*)",
+      "Bash(node scripts/backtest/missed-winners-diagnostic.mjs:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(echo:*)",
+      "Bash(node scripts/backtest/guards.mjs:*)",
+      "Bash(node scripts/backtest/forming-guard.mjs:*)",
+      "Bash(node scripts/backtest/pattern-modifier-guard.mjs:*)"
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 # Chart + Candle + Fib Verdict Scenarios (PCF)
 
-> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `data/verdict-rules.json`.**
+> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `rules/swing-rules.json`.**
 > Defines the three-factor **chart pattern + candlestick + Fib** confluence
 > (no ZOI). Builds on `docs/chart-fib-verdict-scenarios.md` (PF) by adding the
 > candlestick **trigger** on the chart pattern's neckline break / retest.

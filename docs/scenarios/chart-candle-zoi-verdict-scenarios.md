@@ -1,6 +1,6 @@
 # Chart + Candle + ZOI Verdict Scenarios (PCZ)
 
-> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `data/verdict-rules.json`.**
+> **STATUS: DESIGN SPEC (proposed) — NOT yet wired into `rules/swing-rules.json`.**
 > Defines the three-factor **chart pattern + candlestick + ZOI** confluence
 > (no Fib). Builds on `docs/chart-zoi-verdict-scenarios.md` (PZ) by adding the
 > candlestick **trigger** on the breakout / zone test.

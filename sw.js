@@ -37,7 +37,7 @@
  *     comes from a consistent SW instance.
  */
 
-const CACHE_VERSION = 'v955-2026-06-06-scanner-ctx-entry-fallback';
+const CACHE_VERSION = 'v1187-2026-06-11-restore-swing-zonescan-forming-mtf';
 const STATIC_CACHE = `trading-studio-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `trading-studio-runtime-${CACHE_VERSION}`;
 const FONT_CACHE = `trading-studio-fonts-${CACHE_VERSION}`;
@@ -52,7 +52,7 @@ const PRECACHE_URLS = [
   './candlestick-patterns.html',
   './manifest.webmanifest',
   './data/sectors.json',
-  './data/verdict-rules.json',
+  './rules/swing-rules.json',
   './pwa/icons/icon-192.svg',
   './pwa/icons/icon-512.svg',
   './pwa/icons/icon-maskable-512.svg',

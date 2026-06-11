@@ -1112,6 +1112,21 @@ visually distinguishable without coloring the text itself. */
   border-left: 3px solid rgba(9, 168, 110, 0.55);
 }
 
+/* Premium-to-spot mapping hint shown under each SL/Target input.
+   Tells the trader which Nifty index level the typed premium trigger
+   corresponds to (computed from the entry spot anchor + live delta).
+   Display-only — does not affect exit logic. */
+.pt-risk-spot {
+  margin-top: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
 /* Exit reason pill in Trade History */
 .pt-reason-tag {
   display: inline-block;

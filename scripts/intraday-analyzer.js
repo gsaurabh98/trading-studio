@@ -594,6 +594,20 @@
     };
   }
 
+  // Exposed so the Intraday Trade tab (a separate module) can render the same
+  // macro Bank-Nifty bias banner WITHOUT duplicating the fetch + bias logic.
+  // Returns { trend, net, changePct, ... } or null. Reuses _bnCache + the
+  // global Upstox throttle gate, so calling it from the other tab does not add
+  // uncontrolled API load (off-hours it serves the cache; market hours it is
+  // throttle-gated like every other intraday fetch).
+  window.iaGetBankNiftyBias = async function () {
+    try {
+      var candles = await fetchBankNiftyIntraday();
+      if (!candles) return null;
+      return analyzeBankNifty(candles);
+    } catch (_) { return null; }
+  };
+
   // ── Intraday-specific calcs (VWAP / ORH-ORL / PDH-PDL) ──
   // Day key (YYYY-MM-DD in IST) so we can split candles into
   // "today" and "previous trading day" buckets.
@@ -2869,6 +2883,28 @@
     var tf15Net  = structToNet(s15m);
     var tf5Net   = structToNet(s5m);
 
+    // ── REGIME gate (2026-06-09, backtested) — stand aside in a choppy regime ──
+    // The losing May\u2013Jun stretches all shared one trait: a RANGEBOUND 30-minute (no
+    // higher-TF trend), so intraday trend signals kept firing into mean-reverting chop
+    // and bled premium to theta. Gating fresh BUYs on 30m ADX < 18 flipped the
+    // walk-forward (last-40% UNSEEN data) from \u221253 pts / PF 0.95 to +76 / PF 1.10 and
+    // cut June \u2212120\u2192\u22129 on the auto-trade engine (buildIntradaySetup). `an30.adx` here is
+    // the SAME value (IM.adx(30m,14) last close) the backtest gated on, so the on-screen
+    // HUD now AGREES with the auto-trade engine instead of flashing a BUY the auto-trader
+    // would skip. Suppress-only (never CREATES a BUY) \u2192 fail-safe per the signal-integrity
+    // rule. `regimeInfo` ships in the return so the HUD paints a TRENDING / CHOPPY chip on
+    // every recommendation (green when it approves, amber when it stands aside).
+    var regimeAdx = (an30 && an30.adx != null && isFinite(an30.adx)) ? an30.adx : null;
+    var regimeChoppy = (regimeAdx != null && regimeAdx < 18);
+    var regimeInfo = { state: regimeChoppy ? 'CHOPPY' : (regimeAdx != null ? 'TRENDING' : 'UNKNOWN'), adx30: regimeAdx };
+    if (regimeChoppy && (action === 'BUY_CE' || action === 'BUY_PE')) {
+      attemptedSide = attemptedSide || (action === 'BUY_CE' ? 'BUY CE' : 'BUY PE');
+      vetoReasons.unshift('Choppy regime \u2014 the 30-minute trend strength (ADX ' + Math.round(regimeAdx) + ') is below 18, so the bigger picture is rangebound, not trending. Intraday trend signals fail in chop and your option premium bleeds to theta. Standing aside until a clean trend develops.');
+      action = 'WAIT';
+      sideLabel = 'WAIT';
+      confidence = '\u2014';
+    }
+
     // ── Setup label (for plan card header) ───────────────────────────
     var setupLabel = action === 'WAIT' ? 'WAIT'
       : isPullbackEntry
@@ -2908,6 +2944,7 @@
       },
       mode: mode,
       bn:   bn || null,
+      regime: regimeInfo,
       volatility: { regime: volRegime, atrPct: atrPctNow, atrPoints: an5.atr },
       vwapBands: an5.vwapBands ? {
         vwap: an5.vwap, std: an5.vwapBands.std,
@@ -8410,6 +8447,27 @@
       else if (ce === pe)                       marginTxt = ce + ' / ' + pe + ' tied';
       else                                       marginTxt = '+' + diff + ' ' + (ce > pe ? 'CE' : 'PE');
       marginEl.textContent = marginTxt;
+    }
+
+    // ── REGIME chip (2026-06-09) — green TRENDING / amber CHOPPY ───────
+    // Surfaces the higher-TF trend-regime read that gates fresh BUYs:
+    // CHOPPY (30m ADX < 18) = engine stands aside; TRENDING = the regime
+    // these signals are built for. Self-hides when regime can't be read.
+    var regimeEl = document.getElementById('ia-hud-regime');
+    if (regimeEl) {
+      var rg = plan.regime;
+      if (rg && rg.state && rg.state !== 'UNKNOWN') {
+        var rgChoppy = (rg.state === 'CHOPPY');
+        var adxTxt = (rg.adx30 != null && isFinite(rg.adx30)) ? (' ' + Math.round(rg.adx30)) : '';
+        regimeEl.textContent = rgChoppy ? '\u3030 REGIME: CHOPPY' : '\u2197 REGIME: TRENDING';
+        regimeEl.setAttribute('data-regime', rg.state);
+        regimeEl.setAttribute('title', rgChoppy
+          ? ('30m ADX' + adxTxt + ' (below 18) \u2014 the higher timeframe is rangebound. Intraday trend signals fail in chop, so fresh BUYs are held back until a clean trend forms.')
+          : ('30m ADX' + adxTxt + ' (18+) \u2014 the higher timeframe is trending: the regime these signals are built for.'));
+        regimeEl.hidden = false;
+      } else {
+        regimeEl.hidden = true;
+      }
     }
 
     // ── Numbers row (strike / entry / SL / T1 / R:R) ───────────

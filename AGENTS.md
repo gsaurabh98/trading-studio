@@ -52,6 +52,9 @@ candle-stick-pattern/
 │       ├── generate-icons.py               #   logo + favicon + OG-card raster pipeline (Pillow) — see §15
 │       ├── build-mobile-reader.py          #   assembles mobile-reader.html from anatomy + content/*.html + styles/*.css
 │       └── … (10 more .py)                 #   generate-sectors, extract-js-module, prune-universe-by-price, …
+├── rules/                                  # rule books (single source of truth) — see note below
+│   ├── swing-rules.json                  #   swing Fib/ZOI verdict engine — FETCHED AT RUNTIME by swing-analyzer.js + precached in sw.js
+│   └── intraday-rules.json                 #   intraday Setup/Trade-plan + auto-trade rule book — DOC/SPEC only (not fetched; logic is in scripts/intraday-trade.js)
 ├── docs/
 │   ├── scenarios/                          # 11 *-verdict-scenarios.md reference tables (fib / zoi / candle / chart)
 │   ├── history/
@@ -85,6 +88,8 @@ The script and the SVG sources MUST be edited in lockstep — see §15.
 **Never put the manifest or `sw.js` in a subfolder** — service-worker scope is bounded by the directory the SW is served from, so anywhere else would scope it incorrectly and the PWA would stop intercepting requests for the main app.
 
 **Never put `content/` in a subfolder either** — paths in `loadSectionContent()` are relative to the document (`content/X.html`). Moving the directory means updating the `fetch` URL and the SW caching rules.
+
+**`rules/` is the home for rule books** (moved here from root + `data/` on 2026-06-07). Two files live here: `swing-rules.json` is the swing Fib/ZOI verdict engine and is **fetched at runtime** (`fetch('rules/swing-rules.json')` in `scripts/swing-analyzer.js`, precached in `sw.js`, and read by the two Python tools `generate-fib-zoi-combinations.py` / `expand-zoi-momentum-combined.py`) — moving or renaming it again means updating ALL of those references + bumping `CACHE_VERSION`. `intraday-rules.json` is a **doc/spec only** (nothing fetches it; the live logic is hardcoded in `scripts/intraday-trade.js` and guarded by `scripts/backtest/it-setup-smoke.mjs`). The backtest sandbox rejects `fetch`, so the swing guard uses the inline fallback rules and does NOT read `swing-rules.json` from disk.
 
 **Never move `styles/` or rename the CSS files** — the shell's `<head>` links them by relative path and [scripts/tools/build-mobile-reader.py](scripts/tools/build-mobile-reader.py) discovers them by scanning those `<link>` tags. Moving the directory or renaming a file breaks both the live app AND the mobile-reader build. To add a new stylesheet: drop it under `styles/`, add a `<link rel="stylesheet">` in the shell's `<head>` in the correct cascade position (see §17), then bump `CACHE_VERSION` in `sw.js`.
 

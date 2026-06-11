@@ -1125,6 +1125,11 @@
 .ia-hud-conf-chip[data-conf="LOW"]    { background: rgba(239, 68, 68, 0.10); color: #fca5a5; border-color: rgba(239, 68, 68, 0.40); }
 /* PULLBACK ENTRY chip — blue/info tone: buy-the-dip signal */
 .ia-pullback-chip { background: rgba(99, 179, 237, 0.12); color: #63b3ed; border-color: rgba(99, 179, 237, 0.40); cursor: pointer; }
+/* REGIME chip (2026-06-09) — green when the 30m is trending (signals work
+   here), amber when choppy (engine stands aside). Mirrors the conf-chip tones. */
+.ia-regime-chip { cursor: help; letter-spacing: 0.02em; }
+.ia-regime-chip[data-regime="TRENDING"] { background: rgba(34, 197, 94, 0.12); color: #86efac; border-color: rgba(34, 197, 94, 0.45); }
+.ia-regime-chip[data-regime="CHOPPY"]   { background: rgba(245, 158, 11, 0.14); color: #fbbf24; border-color: rgba(245, 158, 11, 0.50); }
 
 /* ─────────────────────────────────────────────────────────────────
    SIGNAL FRESHNESS CHIP (P0-3, May 2026)

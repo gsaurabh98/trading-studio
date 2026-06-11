@@ -1,29 +1,4 @@
     <div class="wrap">
-      <div class="shead sw-hero">
-        <h2>Swing Trade Analyzer</h2>
-        <button type="button" class="sw-api-pill" id="sw-api-pill"
-          onclick="show('api-setup')" title="Manage Upstox API token">
-          <span class="sw-api-dot" id="sw-api-dot"></span>
-          <span id="sw-api-pill-label">Connect API</span>
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
-            stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83
-              2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0
-              00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65
-              1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0
-              010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0
-              00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65
-              1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0
-              012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0
-              001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65
-              1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0
-              010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65
-              0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"></path>
-          </svg>
-        </button>
-      </div>
-
       <!-- ─── SECTOR DISCOVERY ───
            Sector cards are rendered from `data/sectors.json` by
            swingInitSectors() (called from wire()). Clicking a card
@@ -114,6 +89,46 @@
              Today's Setups scan tile below. -->
         <div class="sw-universe-stat" id="sw-universe-stat" aria-live="polite"></div>
 
+        <!-- Editable scan price band. Stocks closing outside ₹Min–₹Max are
+             skipped (not failed). Wired to window.swApplyPriceBandFromUI /
+             swResetPriceBand in scripts/swing-analyzer.js. The chosen band is
+             saved to localStorage (sw_price_band_v1) and OVERRIDES
+             data/config.json so the trader's choice always wins. Inputs are
+             filled by _swRenderPriceBandControl() on swing init. -->
+        <div class="sw-band-ctl" id="sw-band-ctl">
+          <label class="sw-band-enable-wrap" title="Off = scan every name in the chosen scope. On = scan only names inside the price band below.">
+            <span class="sw-band-switch">
+              <input type="checkbox" id="sw-band-enable" class="sw-band-enable" role="switch"
+                onchange="window.swToggleBandEnabled(this)">
+              <span class="sw-band-switch-track" aria-hidden="true"><span class="sw-band-switch-thumb"></span></span>
+            </span>
+            <span class="sw-band-ctl-label">Limit scan to a price band</span>
+          </label>
+          <div class="sw-band-ctl-row">
+            <label class="sw-band-field">
+              <span class="sw-band-cur">&#8377;</span>
+              <input type="number" id="sw-band-min" class="sw-band-input"
+                inputmode="numeric" min="1" step="50" disabled
+                aria-label="Minimum stock price to scan"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();window.swApplyPriceBandFromUI();}">
+            </label>
+            <span class="sw-band-dash">&ndash;</span>
+            <label class="sw-band-field">
+              <span class="sw-band-cur">&#8377;</span>
+              <input type="number" id="sw-band-max" class="sw-band-input"
+                inputmode="numeric" min="1" step="50" disabled
+                aria-label="Maximum stock price to scan"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();window.swApplyPriceBandFromUI();}">
+            </label>
+            <button type="button" class="sw-band-apply" id="sw-band-apply"
+              onclick="window.swApplyPriceBandFromUI()" disabled>Apply</button>
+            <button type="button" class="sw-band-reset" onclick="window.swResetPriceBand()"
+              title="Reset to the default band and turn the filter off">Reset</button>
+            <span class="sw-band-default" id="sw-band-default"></span>
+          </div>
+          <span class="sw-band-err" id="sw-band-err" role="alert" hidden></span>
+        </div>
+
         <!-- Stocks-in-sector panel (the drill-down detail table). Empty
              until a sector card or a Today's-Setups / search row is
              clicked. Placed directly under the sector grid (above Today's
@@ -122,6 +137,16 @@
              gap until a sector is opened. Click handlers scroll it / the
              chart into view. -->
         <div class="sw-sector-panel-host" id="sw-sector-panel"></div>
+
+        <!-- Zone Scan tile ("Scan stocks by zone"). Rule-driven screen
+             (rules/scan-rule.json): pick "Price inside demand zone" or
+             "Price inside forming demand zone" and list every stock whose
+             live price is currently inside that zone across the curated
+             universe. Painted entirely by renderZoneScan() in the swing
+             module — stays empty in source; first paint runs from
+             swingInitSectors() via swZoneScanInit(). -->
+        <div class="sw-zonescan" id="sw-zonescan"
+          aria-label="Scan stocks by zone (price inside a demand / forming-demand zone)"></div>
 
         <!-- Today's Setups tile (Phase 0 discovery loop).
              Single panel with two states:
@@ -155,33 +180,49 @@
               <span class="sw-chart-title-sym" id="sw-chart-title-sym">&mdash;</span>
               <span class="sw-chart-title-name" id="sw-chart-title-name"></span>
               <span class="sw-chart-live" id="sw-chart-live-badge"></span>
+              <!-- BOS structure-regime badge (BULLISH / BEARISH / RANGING).
+                   Filled when BOS is on; hidden otherwise. -->
+              <span class="sw-chart-trend" id="sw-chart-trend" hidden></span>
             </div>
+            <!-- Swing horizon timeframes only (1M · 1W · 1D · 4H · 1H). The
+                 sub-hour buttons (30m/15m/5m) were removed 2026-06-10 — they are
+                 noise/temptation for a 1-2 week swing read and never emitted a
+                 signal anyway. The reco-TF selector below mirrors this set. -->
             <div class="sw-chart-tf-group" id="sw-chart-tf-group">
               <button class="sw-chart-tf-btn" type="button" data-tf="1mo">1M</button>
               <button class="sw-chart-tf-btn" type="button" data-tf="1w">1W</button>
               <button class="sw-chart-tf-btn active" type="button" data-tf="1d">1D</button>
               <button class="sw-chart-tf-btn" type="button" data-tf="4h">4H</button>
               <button class="sw-chart-tf-btn" type="button" data-tf="1h">1H</button>
-              <button class="sw-chart-tf-btn" type="button" data-tf="30m">30m</button>
-              <button class="sw-chart-tf-btn" type="button" data-tf="15m">15m</button>
-              <button class="sw-chart-tf-btn" type="button" data-tf="5m">5m</button>
             </div>
           </div>
+          <!-- Legend grouped (2026-06-10): the swing-decision layers (EMAs,
+               zones, Fib, chart patterns) sit front-and-centre; the smart-money
+               concepts (FVG / OB / BOS / LIQ) are tucked behind a collapsed
+               "Advanced (SMC)" toggle so they're available on demand without
+               cluttering the default read. All chips keep their data-ind +
+               window.swToggleInd() wiring; _syncIndToggles() still finds the
+               nested chips since it querySelectorAll's the whole legend. -->
           <div class="sw-chart-legend" id="sw-chart-legend">
-            <span class="sw-chart-legend-it sw-ind-toggle sw-ind-fib" data-ind="fib" id="sw-fib-toggle" onclick="window.swToggleInd('fib',this)" title="Toggle Fibonacci retracement levels (golden pocket)"><span class="sw-chart-dot" style="background:#eab308"></span>FIB</span>
-            <span class="sw-chart-legend-sep"></span>
+            <!-- Trend & Levels — always visible -->
             <span class="sw-chart-legend-it sw-ind-toggle" data-ind="ema20" onclick="window.swToggleInd('ema20',this)" title="Toggle EMA 20"><span class="sw-chart-dot" style="background:#3b82f6"></span>EMA 20</span>
             <span class="sw-chart-legend-it sw-ind-toggle" data-ind="ema50" onclick="window.swToggleInd('ema50',this)" title="Toggle EMA 50"><span class="sw-chart-dot" style="background:#f97316"></span>EMA 50</span>
             <span class="sw-chart-legend-it sw-ind-toggle" data-ind="ema200" onclick="window.swToggleInd('ema200',this)" title="Toggle EMA 200"><span class="sw-chart-dot" style="background:#9333ea"></span>EMA 200</span>
             <span class="sw-chart-legend-it sw-ind-toggle" data-ind="sma44" onclick="window.swToggleInd('sma44',this)" title="Toggle SMA 44"><span class="sw-chart-dot" style="background:#d97706"></span>SMA 44</span>
             <span class="sw-chart-legend-sep"></span>
             <span class="sw-chart-legend-it sw-ind-toggle" data-ind="zoi" onclick="window.swToggleInd('zoi',this)" title="Toggle Supply/Demand Zones"><span class="sw-chart-dot" style="background:#8b5cf6"></span>ZOI</span>
-            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="fvg" onclick="window.swToggleInd('fvg',this)" title="Fair Value Gaps — precise entry zones inside demand/supply"><span class="sw-chart-dot" style="background:#3b82f6"></span>FVG</span>
-            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="ob" onclick="window.swToggleInd('ob',this)" title="Order Blocks — last opposite candle before a structure-breaking move (institutional entry zone)"><span class="sw-chart-dot" style="background:#14b8a6"></span>OB</span>
-            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="bos" onclick="window.swToggleInd('bos',this)" title="Break of Structure / Change of Character — trend direction"><span class="sw-chart-dot" style="background:#eab308"></span>BOS</span>
-            <span class="sw-chart-legend-it sw-ind-toggle" data-ind="liq" onclick="window.swToggleInd('liq',this)" title="Liquidity Sweeps — institutional order confirmation"><span class="sw-chart-dot" style="background:#f59e0b"></span>LIQ</span>
-            <span class="sw-chart-legend-sep"></span>
+            <span class="sw-chart-legend-it sw-ind-toggle sw-ind-forming" data-ind="forming" onclick="window.swToggleInd('forming',this)" title="Forming demand zones \u2014 early, unconfirmed reads marked the instant a base candle closes (amber, dashed). Lower trust than confirmed ZOI: EARLY = small-starter candidate, WATCH = context only."><span class="sw-chart-dot" style="background:#f59e0b"></span>Forming</span>
+            <span class="sw-chart-legend-it sw-ind-toggle sw-ind-fib" data-ind="fib" id="sw-fib-toggle" onclick="window.swToggleInd('fib',this)" title="Toggle Fibonacci retracement levels (golden pocket)"><span class="sw-chart-dot" style="background:#eab308"></span>FIB</span>
             <span class="sw-chart-legend-it sw-ind-toggle" data-ind="chartpatterns" onclick="window.swToggleInd('chartpatterns',this)" title="Chart patterns — Head &amp; Shoulders, Double Top/Bottom, Cup &amp; Handle (neckline + measured-move target/invalidation)"><span class="sw-chart-dot" style="background:#e879f9"></span>CP</span>
+            <span class="sw-chart-legend-sep"></span>
+            <!-- Advanced (SMC) — collapsed by default -->
+            <button type="button" class="sw-adv-toggle" id="sw-adv-toggle" aria-expanded="false" aria-controls="sw-adv-group" onclick="window.swToggleAdvLegend(this)" title="Smart-money concepts — Fair Value Gaps, Order Blocks, Break of Structure, Liquidity Sweeps"><span class="sw-adv-caret" aria-hidden="true">&#9656;</span>Advanced (SMC)</button>
+            <span class="sw-adv-group" id="sw-adv-group" hidden>
+              <span class="sw-chart-legend-it sw-ind-toggle" data-ind="fvg" onclick="window.swToggleInd('fvg',this)" title="Fair Value Gaps — precise entry zones inside demand/supply"><span class="sw-chart-dot" style="background:#3b82f6"></span>FVG</span>
+              <span class="sw-chart-legend-it sw-ind-toggle" data-ind="ob" onclick="window.swToggleInd('ob',this)" title="Order Blocks — last opposite candle before a structure-breaking move (institutional entry zone)"><span class="sw-chart-dot" style="background:#14b8a6"></span>OB</span>
+              <span class="sw-chart-legend-it sw-ind-toggle" data-ind="bos" onclick="window.swToggleInd('bos',this)" title="Break of Structure / Change of Character — trend direction"><span class="sw-chart-dot" style="background:#eab308"></span>BOS</span>
+              <span class="sw-chart-legend-it sw-ind-toggle" data-ind="liq" onclick="window.swToggleInd('liq',this)" title="Liquidity Sweeps — institutional order confirmation"><span class="sw-chart-dot" style="background:#f59e0b"></span>LIQ</span>
+            </span>
           </div>
           <div class="sw-chart-levels-row" id="sw-chart-legend-levels" hidden></div>
           <!-- Chart canvas -->
@@ -197,6 +238,28 @@
           <!-- Trade plan banner — Buy zone / T1 / T2 / SL / R:R, shown only for fib view -->
           <div class="sw-trade-plan" id="sw-trade-plan" hidden></div>
         </div>
+
+        <!-- WEEKLY CONTEXT — a read-only backdrop strip directly below the
+             chart. Four auto-calculated tiles that mirror the classic
+             weekly-bias checklist: TREND & STRUCTURE (higher highs/lows or a
+             proven support), price vs the weekly 20-EMA, weekly RSI (≥40 and
+             rising), and a roll-up BIAS tile (the "look for BUY on 1D /
+             wait / stay away" conclusion). It NEVER drives the verdict — the
+             live call stays in SETUP PLAN. Always reads the WEEKLY analysis
+             (R.weekly) regardless of which TF the chart shows. Populated by
+             renderResult() → swPaintWeeklyContext(); hidden until analyzed. -->
+        <div class="sw-wctx" id="sw-weekly-context" hidden></div>
+
+        <!-- DAILY SETUP CHECK — a read-only scorecard below the weekly strip
+             that translates the classic 7-point daily entry checklist into
+             plain language (price location, candle signal, price vs the 20-day
+             average line, strength meter / RSI, buying activity / volume,
+             momentum / MACD, and the mandatory risk-vs-reward), plus the daily
+             trend for context and a SETUP summary bar. It NEVER issues a BUY —
+             it explains the setup quality behind the recommendation; the live
+             call stays in SETUP PLAN. Populated by renderResult() →
+             swPaintDailyCheck(); hidden until analyzed. -->
+        <div class="sw-dsc" id="sw-daily-check" hidden></div>
 
         <!-- Recommendation-basis banner — its OWN block below the chart,
              INDEPENDENT of the scan. Picks how the verdict/signal below is
@@ -217,9 +280,9 @@
                  this also re-renders the chart on the same TF, and changing a
                  chart TF moves this control too, so the overlay + cards always
                  share one timeframe. window.swSetRecoTf().
-                 1M/1W/1D/4H/1H emit a BUY/WAIT signal; 30m/15m/5m are
-                 CARDS-ONLY (Fib + ZOI structure, NO buy/sell signal — too
-                 fast to frame a reliable swing leg). -->
+                 1M/1W/1D/4H/1H emit a BUY/WAIT signal. The sub-hour cards-only
+                 TFs (30m/15m/5m) were removed 2026-06-10 — too fast to frame a
+                 reliable 1-2 week swing leg, and they never emitted a signal. -->
             <div class="sw-reco-ctrl-row">
               <span class="sw-reco-ctrl-label">Timeframe</span>
               <div class="sw-reco-mode sw-reco-tf" role="radiogroup" aria-label="Recommendation timeframe">
@@ -228,9 +291,6 @@
                 <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn active" data-recotf="1d" role="radio" aria-checked="true" onclick="window.swSetRecoTf('1d')">1D</button>
                 <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn" data-recotf="4h" role="radio" aria-checked="false" onclick="window.swSetRecoTf('4h')">4H</button>
                 <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn" data-recotf="1h" role="radio" aria-checked="false" onclick="window.swSetRecoTf('1h')">1H</button>
-                <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn sw-reco-tf-nosignal" data-recotf="30m" role="radio" aria-checked="false" title="Cards only — no buy/sell signal on this timeframe" onclick="window.swSetRecoTf('30m')">30m</button>
-                <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn sw-reco-tf-nosignal" data-recotf="15m" role="radio" aria-checked="false" title="Cards only — no buy/sell signal on this timeframe" onclick="window.swSetRecoTf('15m')">15m</button>
-                <button type="button" class="sw-reco-mode-btn sw-reco-tf-btn sw-reco-tf-nosignal" data-recotf="5m" role="radio" aria-checked="false" title="Cards only — no buy/sell signal on this timeframe" onclick="window.swSetRecoTf('5m')">5m</button>
               </div>
             </div>
             <!-- Recommendation BASIS (Fib / ZOI / Fib+ZOI). -->
@@ -260,14 +320,6 @@
                signal. Populated by swPaintVerdict(); hidden until analyzed. -->
           <div class="sw-risk-ctx" id="sw-risk-ctx" hidden></div>
 
-          <!-- Expected Move — probability cone (±range at 68% / 95%) for the
-               selected swing TF's horizons, centered on the live LTP. A
-               statistical RANGE from historical volatility (σ of bar returns
-               scaled √time) — it sizes stops/targets to reality and never
-               predicts direction. Populated by _swPaintExpectedMove(); hidden
-               until analyzed / when σ can't be computed. -->
-          <div class="sw-expected-move" id="sw-expected-move" hidden></div>
-
           <!-- (Full Signal Detail banner removed 2026-06-06 — it duplicated the
                FIB/ZOI cards below + the scan-table hover tooltip. The zone cards
                below each render in their own horizontal flex-wrap row.) -->
@@ -295,6 +347,7 @@
             <div class="sw-fib-signal-col" id="sw-fib-signal-col" hidden></div>
           </div>
           <div class="sw-zoi-cards" id="sw-zoi-cards" hidden></div>
+          <div class="sw-forming-cards" id="sw-forming-cards" hidden></div>
           <div class="sw-fvg-cards" id="sw-fvg-cards" hidden></div>
           <div class="sw-ob-cards" id="sw-ob-cards" hidden></div>
           <div class="sw-bos-cards" id="sw-bos-cards" hidden></div>
@@ -529,12 +582,30 @@
             <span class="sw-bias-v" id="sw-bias-1d">&mdash;</span>
             <span class="sw-bias-sub" id="sw-bias-1d-sub">&mdash;</span>
           </div>
+          <div class="sw-bias-cell" data-tf="4h">
+            <span class="sw-bias-k">4-HOUR</span>
+            <span class="sw-bias-v" id="sw-bias-4h">&mdash;</span>
+            <span class="sw-bias-sub" id="sw-bias-4h-sub">&mdash;</span>
+          </div>
+          <div class="sw-bias-cell" data-tf="1h">
+            <span class="sw-bias-k">1-HOUR</span>
+            <span class="sw-bias-v" id="sw-bias-1h">&mdash;</span>
+            <span class="sw-bias-sub" id="sw-bias-1h-sub">&mdash;</span>
+          </div>
           <div class="sw-bias-cell sw-bias-cell-final" id="sw-final-cell">
             <span class="sw-bias-k">RECOMMENDATION</span>
             <span class="sw-bias-v" id="sw-final-bias">&mdash;</span>
             <span class="sw-bias-sub" id="sw-final-conf">&mdash; confidence</span>
           </div>
           </div>
+
+          <!-- 4H + 1H alignment layer — a confluence read that sits UNDER the
+               Daily recommendation. It checks whether the 4-hour structure
+               agrees with a Daily long and whether the 1-hour has actually
+               triggered, so the trader knows when to act on a Daily BUY vs
+               wait for the faster timeframes to line up. Populated by
+               renderResult() → swPaintMtfAlign(); hidden until 4H data loads. -->
+          <div class="sw-mtf-align" id="sw-mtf-align" hidden></div>
         </div>
 
         <!-- 2c-B. SETUP TRADE PLAN — wired to the Setup (B) engine
@@ -812,19 +883,16 @@
             </div>
           </details>
 
-          <!-- Per-TF detail cards.
-               Order is macro → micro: Monthly (strategic context) →
-               Weekly (intermediate trend) → Daily (setup + trigger).
-               1 Hour was demoted from a verdict-driver to an
-               OPTIONAL tactical indicator since hourly signals decay
-               in hours and a 5-15 day swing trader rarely uses them
-               for the BUY/WAIT decision. Kept in a separate, lighter
-               card below for users who want intraday entry timing. -->
-          <div class="sw-tfs-grid">
-            <div class="sw-tf-card" data-tf="1mo">
-              <h4>MONTHLY <span class="sw-tf-h-sub">strategic context</span></h4>
-              <div class="sw-tf-rows" id="sw-tf-1mo-rows"></div>
-            </div>
+          <!-- Per-TF detail cards (2026-06-08: re-ordered for the 1-2 week
+               swing horizon). Macro → micro across the four timeframes that
+               actually drive a swing entry, all OPEN so every read is fully
+               transparent: Weekly (dominant trend) → Daily (setup + trigger)
+               → 4-Hour (entry structure) → 1-Hour (entry trigger). Monthly is
+               NOT discarded — it moved to the optional drawer below as
+               strategic context + obstacle check (its trend is too slow to
+               drive a 10-day trade, but it still feeds the verdict's Stage 1-4
+               score and is useful as overhead-supply / zone-strength context). -->
+          <div class="sw-tfs-grid sw-tfs-grid-4">
             <div class="sw-tf-card" data-tf="1w">
               <h4>WEEKLY <span class="sw-tf-h-sub">dominant trend</span></h4>
               <div class="sw-tf-rows" id="sw-tf-1w-rows"></div>
@@ -833,11 +901,19 @@
               <h4>DAILY <span class="sw-tf-h-sub">setup + trigger</span></h4>
               <div class="sw-tf-rows" id="sw-tf-1d-rows"></div>
             </div>
+            <div class="sw-tf-card" data-tf="4h">
+              <h4>4-HOUR <span class="sw-tf-h-sub">entry structure</span></h4>
+              <div class="sw-tf-rows" id="sw-tf-4h-rows"></div>
+            </div>
+            <div class="sw-tf-card" data-tf="1h">
+              <h4>1-HOUR <span class="sw-tf-h-sub">entry trigger</span></h4>
+              <div class="sw-tf-rows" id="sw-tf-1h-rows"></div>
+            </div>
           </div>
           <details class="sw-tf-optional">
-            <summary>1 Hour <span class="sw-tf-optional-tag">OPTIONAL &middot; intraday entry timing</span></summary>
-            <div class="sw-tf-card" data-tf="1h">
-              <div class="sw-tf-rows" id="sw-tf-1h-rows"></div>
+            <summary>Monthly <span class="sw-tf-optional-tag">OPTIONAL &middot; strategic context &amp; obstacle check</span></summary>
+            <div class="sw-tf-card" data-tf="1mo">
+              <div class="sw-tf-rows" id="sw-tf-1mo-rows"></div>
             </div>
           </details>
         </div>
@@ -885,6 +961,18 @@
         <div>
           <b id="sw-error-title">Analysis failed</b>
           <p id="sw-error-msg">&mdash;</p>
+        </div>
+      </div>
+
+      <!-- ─── 5b. PAUSED STATE ───
+           Single, calm paused message shown in the result area when a stock
+           is picked while the Swing API is paused. Mirrors the sector-panel
+           stub so the paused state reads the same everywhere. The "Go live"
+           button resumes AND loads the picked stock (window.swGoLive). -->
+      <div class="sw-paused-state" id="sw-paused" hidden>
+        <div class="sw-sector-panel-paused">
+          <div id="sw-paused-msg">Swing API is paused to protect your Upstox quota.</div>
+          <button type="button" class="sw-golive-btn" onclick="window.swGoLive()">Go live</button>
         </div>
       </div>
 
